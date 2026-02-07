@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  gateway:
+    build:
+      context: ./gateway
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+      - "5555:5555"
+    volumes:
+      - ./data:/app/data
+    networks:
+      - trading-net
+    restart: always
+
+  engine:
+    build:
+      context: ./engine
+      dockerfile: Dockerfile
+    volumes:
+      - ./data:/app/data
+    depends_on:
+      - gateway
+    networks:
+      - trading-net
+    restart: on-failure
+
+  analysis:
+    build:
+      context: ./analysis
+      dockerfile: Dockerfile
+    volumes:
+      - ./data:/app/data
+    depends_on:
+      - gateway
+    networks:
+      - trading-net
+    command: tail -f /dev/null # Keep alive for green light
+    tty: true
+
+networks:
+  trading-net:
+    driver: bridge

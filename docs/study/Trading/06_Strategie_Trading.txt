@@ -1,0 +1,1264 @@
+================================================================================
+                         STRATEGIE DI TRADING
+                 Approcci Sistematici per il Trading Quantitativo
+================================================================================
+
+INDICE
+------
+1. Introduzione alle Strategie Sistematiche
+2. Trend Following
+3. Mean Reversion
+4. Momentum
+5. Arbitraggio
+6. Market Making
+7. Strategie Basate su Eventi
+8. Strategie Multi-Asset
+9. Combinazione di Strategie
+10. Codice Python Completo
+
+================================================================================
+1. INTRODUZIONE ALLE STRATEGIE SISTEMATICHE
+================================================================================
+
+------------------------------------------------------------------------------
+1.1 DISCREZIONALE VS SISTEMATICO
+------------------------------------------------------------------------------
+
+TRADING DISCREZIONALE:
+- Decisioni basate su giudizio umano
+- Flessibile ma inconsistente
+- Difficile da scalare
+- Soggetto a bias emotivi
+
+TRADING SISTEMATICO:
+- Regole precise e codificate
+- Esecuzione consistente
+- Scalabile e testabile
+- Rimuove emozioni
+
+VANTAGGI SISTEMATICO:
+- Backtest possibile
+- Ripetibile
+- Puo' gestire molti asset
+- Documentabile
+
+------------------------------------------------------------------------------
+1.2 CLASSIFICAZIONE STRATEGIE
+------------------------------------------------------------------------------
+
+PER DIREZIONE:
+- Directional: scommette su movimento prezzo
+- Market Neutral: indifferente a direzione mercato
+
+PER ORIZZONTE:
+- High Frequency (HFT): millisecondi-secondi
+- Intraday: minuti-ore
+- Swing: giorni-settimane
+- Position: settimane-mesi
+
+PER LOGICA:
+- Trend Following: segue il trend
+- Mean Reversion: scommette su ritorno alla media
+- Arbitrage: sfrutta discrepanze prezzo
+- Event-driven: reagisce a eventi
+
+------------------------------------------------------------------------------
+1.3 COMPONENTI DI UNA STRATEGIA
+------------------------------------------------------------------------------
+
+1. UNIVERSE SELECTION
+   - Quali asset tradare?
+   - Criteri: liquidita', volatilita', costi
+
+2. SIGNAL GENERATION
+   - Quando entrare?
+   - Indicatori, pattern, modelli
+
+3. POSITION SIZING
+   - Quanto capitale allocare?
+   - Risk management
+
+4. ENTRY RULES
+   - Come entrare?
+   - Market vs limit orders
+
+5. EXIT RULES
+   - Quando uscire?
+   - Take profit, stop loss, time exit
+
+6. RISK MANAGEMENT
+   - Limiti di perdita
+   - Diversificazione
+
+================================================================================
+2. TREND FOLLOWING
+================================================================================
+
+------------------------------------------------------------------------------
+2.1 FILOSOFIA
+------------------------------------------------------------------------------
+
+"The trend is your friend"
+
+ASSUNZIONE:
+I mercati tendono a muoversi in trend prolungati.
+Piccole perdite frequenti, grandi guadagni rari.
+
+CARATTERISTICHE:
+- Win rate basso (30-45%)
+- Win/Loss ratio alto (2-5x)
+- Funziona in mercati trending
+- Soffre in mercati laterali
+
+------------------------------------------------------------------------------
+2.2 MOVING AVERAGE CROSSOVER
+------------------------------------------------------------------------------
+
+REGOLE:
+- BUY: SMA veloce > SMA lenta
+- SELL: SMA veloce < SMA lenta
+
+PARAMETRI TIPICI:
+- Crypto: 10/30, 20/50
+- Equity: 50/200 (Golden Cross / Death Cross)
+
+VARIANTI:
+- EMA invece di SMA (piu' reattivo)
+- Triple MA (aggiunge conferma)
+- Adaptive MA (periodo variabile)
+
+PROBLEMI:
+- Lag: segnale arriva in ritardo
+- Whipsaw: falsi segnali in mercati laterali
+
+------------------------------------------------------------------------------
+2.3 BREAKOUT
+------------------------------------------------------------------------------
+
+DONCHIAN CHANNEL:
+- Upper: massimo degli ultimi N periodi
+- Lower: minimo degli ultimi N periodi
+- BUY: prezzo rompe Upper
+- SELL: prezzo rompe Lower
+
+PARAMETRI:
+- Entry: breakout 20-55 periodi
+- Exit: breakout opposto 10-20 periodi
+
+TURTLE TRADING (Richard Dennis):
+- Entry: 20-day breakout
+- Exit: 10-day breakout opposto
+- Position sizing: basato su ATR
+
+BOLLINGER BAND BREAKOUT:
+- BUY: chiusura sopra banda superiore
+- SELL: chiusura sotto banda inferiore
+- Funziona in trend forti
+
+------------------------------------------------------------------------------
+2.4 TREND STRENGTH FILTERS
+------------------------------------------------------------------------------
+
+ADX (Average Directional Index):
+- ADX > 25: trend forte, usa trend following
+- ADX < 20: no trend, evita o usa mean reversion
+
+SUPERTREND:
+Combina ATR con direzione trend.
+Fornisce trailing stop dinamico.
+
+PARABOLIC SAR:
+Trailing stop che accelera col trend.
+Exit quando prezzo incrocia SAR.
+
+------------------------------------------------------------------------------
+2.5 ESEMPIO STRATEGIA TREND FOLLOWING
+------------------------------------------------------------------------------
+
+REGOLE:
+1. Calcola EMA(20) e EMA(50)
+2. Calcola ADX(14)
+3. ENTRY LONG: EMA20 > EMA50 AND ADX > 25
+4. ENTRY SHORT: EMA20 < EMA50 AND ADX > 25
+5. EXIT: EMA cross opposto OR trailing stop 2*ATR
+
+POSITION SIZING:
+Risk 1% capitale per trade
+Size = (Capital * 0.01) / (ATR * 2)
+
+================================================================================
+3. MEAN REVERSION
+================================================================================
+
+------------------------------------------------------------------------------
+3.1 FILOSOFIA
+------------------------------------------------------------------------------
+
+"What goes up must come down"
+
+ASSUNZIONE:
+I prezzi tendono a tornare verso una media.
+Deviazioni estreme sono temporanee.
+
+CARATTERISTICHE:
+- Win rate alto (50-70%)
+- Win/Loss ratio basso (0.5-1.5x)
+- Funziona in mercati laterali
+- Perdite potenzialmente illimitate se trend
+
+------------------------------------------------------------------------------
+3.2 BOLLINGER BANDS MEAN REVERSION
+------------------------------------------------------------------------------
+
+REGOLE:
+- BUY: prezzo tocca banda inferiore
+- SELL: prezzo tocca banda superiore
+- EXIT: prezzo torna a media (SMA centrale)
+
+FILTRI AGGIUNTIVI:
+- RSI oversold/overbought per conferma
+- ADX basso (no trend forte)
+- Volume spike per conferma
+
+ATTENZIONE:
+In trend forte, prezzo puo' "camminare" lungo la banda!
+
+------------------------------------------------------------------------------
+3.3 RSI MEAN REVERSION
+------------------------------------------------------------------------------
+
+REGOLE BASE:
+- BUY: RSI < 30 (oversold)
+- SELL: RSI > 70 (overbought)
+- EXIT: RSI torna in zona neutrale (40-60)
+
+VERSIONE AVANZATA (Connors RSI):
+1. RSI(3) per timing preciso
+2. UpDown Length: conta giorni consecutivi up/down
+3. ROC percentile
+4. Media pesata dei tre
+
+REGOLE CONNORS:
+- BUY: Connors RSI < 10
+- SELL quando Connors RSI > 50
+
+------------------------------------------------------------------------------
+3.4 PAIRS TRADING
+------------------------------------------------------------------------------
+
+Sfrutta la cointegrazione tra due asset.
+
+PROCESSO:
+1. Trova due asset cointegrati (test Engle-Granger)
+2. Calcola hedge ratio (beta della regressione)
+3. Costruisci spread: S = Y - beta * X
+4. Calcola z-score dello spread
+5. Trade lo spread quando devia dalla media
+
+REGOLE:
+- LONG SPREAD: z-score < -2 (compra Y, vendi X)
+- SHORT SPREAD: z-score > +2 (vendi Y, compra X)
+- EXIT: z-score torna a 0
+
+PARAMETRI:
+- Lookback z-score: 20-60 giorni
+- Entry threshold: 1.5-2.5 sigma
+- Exit threshold: 0-0.5 sigma
+- Stop loss: 3-4 sigma
+
+COPPIE CRYPTO TIPICHE:
+- BTC/ETH
+- DeFi tokens correlati
+- Exchange tokens (BNB, FTT, ecc.)
+
+------------------------------------------------------------------------------
+3.5 STATISTICAL ARBITRAGE
+------------------------------------------------------------------------------
+
+Generalizzazione del pairs trading a N asset.
+
+PCA-BASED:
+1. Calcola componenti principali sui rendimenti
+2. Prima componente = fattore mercato
+3. Residui = deviazioni dal fattore
+4. Trade residui che deviano troppo
+
+MARKET NEUTRAL:
+- Long asset sottovalutati
+- Short asset sopravvalutati
+- Esposizione netta al mercato = 0
+
+================================================================================
+4. MOMENTUM
+================================================================================
+
+------------------------------------------------------------------------------
+4.1 FILOSOFIA
+------------------------------------------------------------------------------
+
+"Winners keep winning, losers keep losing"
+
+ASSUNZIONE:
+Asset che hanno performato bene continueranno a farlo.
+Effetto comportamentale: underreaction iniziale, poi overreaction.
+
+EVIDENZE:
+- Momentum e' una delle anomalie piu' robuste
+- Documentato in equity, forex, crypto, commodities
+- Funziona su orizzonti 1-12 mesi
+
+------------------------------------------------------------------------------
+4.2 TIME SERIES MOMENTUM
+------------------------------------------------------------------------------
+
+Momentum dell'asset rispetto a se stesso.
+
+REGOLE:
+- Calcola rendimento ultimi N mesi
+- BUY se rendimento > 0
+- SELL/SHORT se rendimento < 0
+
+PARAMETRI TIPICI:
+- Lookback: 1, 3, 6, 12 mesi
+- Holding period: 1 mese
+
+VARIANTI:
+- Volatility-scaled: aggiusta per volatilita'
+- Risk parity: alloca in base a rischio
+
+------------------------------------------------------------------------------
+4.3 CROSS-SECTIONAL MOMENTUM
+------------------------------------------------------------------------------
+
+Momentum relativo: confronta asset tra loro.
+
+REGOLE:
+1. Calcola rendimento di tutti gli asset (es. ultimi 12 mesi)
+2. Ranking degli asset per rendimento
+3. LONG top decile (migliori 10%)
+4. SHORT bottom decile (peggiori 10%)
+5. Ribilancia periodicamente (mensile)
+
+FILTRI:
+- Escludi mese piu' recente (short-term reversal)
+- Lookback 12M, skip ultimo mese: (12,1) momentum
+
+------------------------------------------------------------------------------
+4.4 DUAL MOMENTUM
+------------------------------------------------------------------------------
+
+Combina time series e cross-sectional momentum.
+
+REGOLE (Gary Antonacci):
+1. Se S&P500 12M return > T-Bill: momentum positivo
+2. Se positivo, scegli tra S&P500 e Int'l Equity (quello con return piu' alto)
+3. Se negativo, stai in bonds
+
+APPLICAZIONE CRYPTO:
+1. Se BTC 12M return > 0: crypto momentum positivo
+2. Se positivo, scegli tra BTC e top altcoins
+3. Se negativo, stai in stablecoin
+
+------------------------------------------------------------------------------
+4.5 MOMENTUM INDICATORS
+------------------------------------------------------------------------------
+
+ROC (Rate of Change):
+ROC = (Price_today - Price_n_ago) / Price_n_ago * 100
+
+MACD MOMENTUM:
+- MACD histogram positivo = momentum up
+- Histogram crescente = momentum in aumento
+
+STOCHASTIC MOMENTUM:
+- %K e %D sopra 80: strong momentum up
+- %K e %D sotto 20: strong momentum down
+
+================================================================================
+5. ARBITRAGGIO
+================================================================================
+
+------------------------------------------------------------------------------
+5.1 TIPI DI ARBITRAGGIO
+------------------------------------------------------------------------------
+
+SPATIAL ARBITRAGE:
+Stesso asset, prezzo diverso su exchange diversi.
+
+TRIANGULAR ARBITRAGE:
+Sfrutta inconsistenze tra tre coppie di valute.
+Es: BTC/USDT, ETH/BTC, ETH/USDT
+
+STATISTICAL ARBITRAGE:
+Sfrutta relazioni statistiche (pairs trading, mean reversion).
+
+LATENCY ARBITRAGE:
+Sfrutta differenze di velocita' tra exchange.
+Richiede infrastruttura costosa.
+
+------------------------------------------------------------------------------
+5.2 CROSS-EXCHANGE ARBITRAGE
+------------------------------------------------------------------------------
+
+PROCESSO:
+1. Monitora prezzi su exchange multipli
+2. Identifica spread significativi
+3. Compra su exchange economico
+4. Vendi su exchange costoso
+5. (Opzionale) Trasferisci fondi per ribilanciare
+
+CONSIDERAZIONI:
+- Fees di trading (maker/taker)
+- Fees di withdrawal
+- Tempo di trasferimento
+- Slippage
+- Rischio controparte
+
+SPREAD MINIMO PROFITTEVOLE:
+Min_spread > fee_buy + fee_sell + fee_transfer + slippage
+
+ESEMPIO:
+BTC su Exchange A: $50,000
+BTC su Exchange B: $50,300
+Spread: 0.6%
+Fees totali: 0.2%
+Profitto: ~0.4% per trade
+
+------------------------------------------------------------------------------
+5.3 TRIANGULAR ARBITRAGE
+------------------------------------------------------------------------------
+
+ESEMPIO:
+Hai USDT. Prezzi:
+- BTC/USDT = 50,000
+- ETH/BTC = 0.06
+- ETH/USDT = 3,100
+
+CALCOLO:
+1. Compra BTC: 1 USDT = 0.00002 BTC
+2. Compra ETH: 0.00002 BTC = 0.00002/0.06 = 0.000333 ETH
+3. Vendi ETH: 0.000333 ETH * 3100 = 1.033 USDT
+
+PROFITTO: 3.3% (prima delle fees!)
+
+In pratica questi spread sono molto piccoli e durano millisecondi.
+
+------------------------------------------------------------------------------
+5.4 FUNDING RATE ARBITRAGE
+------------------------------------------------------------------------------
+
+Nei perpetual futures, c'e' un funding rate periodico.
+
+STRATEGIA:
+Se funding rate alto e positivo (longs pagano shorts):
+1. SHORT perpetual future
+2. LONG spot (hedge)
+3. Incassa funding ogni 8 ore
+
+RISCHI:
+- Liquidation del future
+- Funding rate puo' cambiare direzione
+- Costi di margin
+
+RENDIMENTI TIPICI:
+- 10-50% APY in periodi di alto funding
+- Puo' essere negativo se funding si inverte
+
+================================================================================
+6. MARKET MAKING
+================================================================================
+
+------------------------------------------------------------------------------
+6.1 CONCETTO
+------------------------------------------------------------------------------
+
+Il market maker fornisce liquidita' quotando bid e ask.
+Guadagna lo spread, assume rischio di inventory.
+
+RUOLO:
+- Fornisce liquidita'
+- Riduce spread per gli altri trader
+- Assume rischio di movimenti avversi
+
+------------------------------------------------------------------------------
+6.2 BASIC MARKET MAKING
+------------------------------------------------------------------------------
+
+REGOLE SEMPLICI:
+1. Quota bid a (mid_price - spread/2)
+2. Quota ask a (mid_price + spread/2)
+3. Quando eseguito, quota ordine opposto
+4. Gestisci inventory
+
+SPREAD DETERMINATION:
+Spread deve coprire:
+- Adverse selection (trading con informati)
+- Inventory risk
+- Costi operativi
+
+------------------------------------------------------------------------------
+6.3 INVENTORY MANAGEMENT
+------------------------------------------------------------------------------
+
+PROBLEMA:
+Accumuli posizione se il mercato si muove in una direzione.
+
+SOLUZIONI:
+- Skewing: aggiusta quote in base all'inventory
+  * Inventory lungo? Bid piu' aggressivo (per vendere)
+- Inventory limits: smetti di quotare se inventory eccessivo
+- Hedging: copri con derivati
+
+AVELLANEDA-STOIKOV MODEL:
+Reservation price = mid - q * gamma * sigma^2 * T
+Spread ottimale = gamma * sigma^2 * T + 2/gamma * ln(1 + gamma/k)
+
+Dove:
+- q = inventory corrente
+- gamma = avversione al rischio
+- sigma = volatilita'
+- T = tempo residuo
+- k = parametro di intensita' ordini
+
+------------------------------------------------------------------------------
+6.4 RISCHI DEL MARKET MAKING
+------------------------------------------------------------------------------
+
+ADVERSE SELECTION:
+Trader informati tradano contro di te quando hanno info.
+Perdi sistematicamente.
+
+INVENTORY RISK:
+Il mercato si muove contro la tua posizione.
+
+EXECUTION RISK:
+Ordini non eseguiti quando il mercato si muove.
+
+TECNOLOGIA:
+Richiede bassa latenza e infrastruttura affidabile.
+
+================================================================================
+7. STRATEGIE BASATE SU EVENTI
+================================================================================
+
+------------------------------------------------------------------------------
+7.1 NEWS TRADING
+------------------------------------------------------------------------------
+
+EVENTI CHIAVE:
+- Dati macro (NFP, CPI, FOMC)
+- Earnings
+- Annunci aziendali
+- Eventi crypto (halving, listing, hack)
+
+APPROCCI:
+1. Pre-event: posizionati prima dell'evento
+2. Post-event: reagisci alla news
+
+SFIDE:
+- Speed: news gia' prezzata in millisecondi
+- Interpretazione: stessa news, reazioni diverse
+- Fake news e manipolazione
+
+------------------------------------------------------------------------------
+7.2 SENTIMENT ANALYSIS
+------------------------------------------------------------------------------
+
+FONTI:
+- Social media (Twitter, Reddit)
+- News headlines
+- Forum e chat (Telegram, Discord)
+- On-chain data (per crypto)
+
+METRICHE:
+- Sentiment score (positivo/negativo)
+- Volume di menzioni
+- Cambio di sentiment
+
+ATTENZIONE:
+- Molto rumore
+- Manipolazione facile
+- Lag rispetto al prezzo
+
+------------------------------------------------------------------------------
+7.3 ON-CHAIN ANALYSIS (CRYPTO)
+------------------------------------------------------------------------------
+
+METRICHE UTILI:
+- Exchange inflow/outflow (depositi = pressure di vendita)
+- Whale movements
+- Active addresses
+- Network value (NVT ratio)
+- Stablecoin supply (liquidita' pronta a comprare)
+
+STRATEGIE:
+- Accumulation: basse exchange reserves, whale accumulating
+- Distribution: alte exchange reserves, whale selling
+
+------------------------------------------------------------------------------
+7.4 LISTING/DELISTING
+------------------------------------------------------------------------------
+
+EXCHANGE LISTING:
+- Nuovi listing su exchange major = pump iniziale
+- Spesso seguita da dump
+- Window molto breve
+
+STRATEGIA:
+1. Monitora annunci listing
+2. Compra prima del listing effettivo (se possibile)
+3. Vendi durante il pump iniziale
+4. Mai hold troppo a lungo
+
+================================================================================
+8. STRATEGIE MULTI-ASSET
+================================================================================
+
+------------------------------------------------------------------------------
+8.1 ASSET ALLOCATION TATTICA
+------------------------------------------------------------------------------
+
+Aggiusta pesi del portafoglio in base a segnali.
+
+REGOLE ESEMPIO:
+- Equity: 60% base, +/-20% in base a trend
+- Bonds: 30% base, +/-10% in base a rates
+- Cash: 10% base, aumenta in risk-off
+
+SEGNALI:
+- Moving averages per trend
+- Volatility per risk regime
+- Yield curve per ciclo economico
+
+------------------------------------------------------------------------------
+8.2 RISK PARITY
+------------------------------------------------------------------------------
+
+Alloca in modo che ogni asset contribuisca ugualmente al rischio.
+
+FORMULA SEMPLICE (no correlazioni):
+w_i = (1/sigma_i) / sum(1/sigma_j)
+
+CON CORRELAZIONI:
+Risolvi: w_i * (Sigma * w)_i = budget_rischio / N
+
+VANTAGGI:
+- Diversificazione vera
+- Nessun asset domina il rischio
+- Performance robusta
+
+------------------------------------------------------------------------------
+8.3 SECTOR ROTATION
+------------------------------------------------------------------------------
+
+Ruota tra settori in base al ciclo economico.
+
+CICLO:
+1. Early Recovery: Consumer Discretionary, Financials
+2. Mid Cycle: Technology, Industrials
+3. Late Cycle: Energy, Materials
+4. Recession: Healthcare, Utilities, Staples
+
+SEGNALI:
+- Leading indicators
+- Yield curve
+- PMI
+- Credit spreads
+
+CRYPTO EQUIVALENT:
+- Risk-on: Altcoins, DeFi, Meme coins
+- Risk-off: BTC, Stablecoins
+
+------------------------------------------------------------------------------
+8.4 GLOBAL MACRO
+------------------------------------------------------------------------------
+
+Trade basati su view macroeconomiche globali.
+
+TEMI TIPICI:
+- Differenziali tassi interesse -> FX
+- Crescita relativa -> Equity country selection
+- Inflazione -> Commodities, TIPS
+- Risk sentiment -> Risk-on vs Risk-off assets
+
+STRUMENTI:
+- FX
+- Government bonds
+- Equity indices
+- Commodities
+
+================================================================================
+9. COMBINAZIONE DI STRATEGIE
+================================================================================
+
+------------------------------------------------------------------------------
+9.1 PERCHE' COMBINARE
+------------------------------------------------------------------------------
+
+DIVERSIFICAZIONE:
+Strategie diverse performano in momenti diversi.
+- Trend following: bene in trend
+- Mean reversion: bene in range
+- Combinazione: piu' stabile
+
+RIDUZIONE DRAWDOWN:
+Perdite di una strategia compensate da altre.
+
+------------------------------------------------------------------------------
+9.2 METODI DI COMBINAZIONE
+------------------------------------------------------------------------------
+
+EQUAL WEIGHT:
+Alloca capitale uguale a ogni strategia.
+Semplice ma efficace.
+
+RISK PARITY:
+Alloca in base alla volatilita' di ogni strategia.
+Strategie piu' volatili = peso minore.
+
+INVERSE VOLATILITY:
+w_i = (1/sigma_i) / sum(1/sigma_j)
+
+SHARPE-WEIGHTED:
+Peso proporzionale allo Sharpe ratio storico.
+Attenzione: Sharpe passato non garantisce futuro.
+
+------------------------------------------------------------------------------
+9.3 REGIME-BASED SWITCHING
+------------------------------------------------------------------------------
+
+Usa strategia diversa in base al regime.
+
+IDENTIFICAZIONE REGIME:
+- Volatilita' (VIX, realized vol)
+- Trend strength (ADX)
+- Market breadth
+- Hidden Markov Model
+
+REGOLE:
+- Regime trending + bassa vol: trend following
+- Regime ranging + bassa vol: mean reversion
+- Alta vol: ridurre exposure o hedge
+
+------------------------------------------------------------------------------
+9.4 ENSEMBLE SIGNALS
+------------------------------------------------------------------------------
+
+Combina segnali di strategie multiple.
+
+VOTING:
+- 3 strategie dicono BUY, 1 dice SELL
+- Voto maggioranza: BUY
+
+WEIGHTED VOTING:
+Pesa i voti per affidabilita' storica.
+
+PROBABILISTIC:
+Ogni strategia da' probabilita'.
+Combina con media o Bayesian averaging.
+
+================================================================================
+10. CODICE PYTHON COMPLETO
+================================================================================
+
+```python
+import numpy as np
+import pandas as pd
+from scipy import stats
+import warnings
+warnings.filterwarnings('ignore')
+
+# ============================================
+# SETUP DATI
+# ============================================
+
+np.random.seed(42)
+n_days = 500
+
+# Simula prezzi con trend e mean reversion
+trend = np.linspace(0, 0.5, n_days)
+noise = np.cumsum(np.random.normal(0, 0.02, n_days))
+mean_rev = 0.1 * np.sin(np.linspace(0, 10*np.pi, n_days))
+prices = 100 * np.exp(trend + noise + mean_rev)
+
+df = pd.DataFrame({
+    'close': prices,
+    'high': prices * (1 + np.abs(np.random.normal(0, 0.01, n_days))),
+    'low': prices * (1 - np.abs(np.random.normal(0, 0.01, n_days))),
+    'volume': np.random.lognormal(10, 0.5, n_days)
+})
+df['open'] = df['close'].shift(1).fillna(df['close'].iloc[0])
+df['returns'] = df['close'].pct_change()
+
+print("="*60)
+print("STRATEGIE DI TRADING - IMPLEMENTAZIONI")
+print("="*60)
+
+# ============================================
+# 1. TREND FOLLOWING - MA CROSSOVER
+# ============================================
+
+def ma_crossover_strategy(df, fast_period=20, slow_period=50):
+    """
+    Moving Average Crossover Strategy
+    """
+    signals = pd.DataFrame(index=df.index)
+    signals['price'] = df['close']
+
+    # Calcola medie mobili
+    signals['fast_ma'] = df['close'].rolling(fast_period).mean()
+    signals['slow_ma'] = df['close'].rolling(slow_period).mean()
+
+    # Genera segnali
+    signals['signal'] = 0
+    signals.loc[signals['fast_ma'] > signals['slow_ma'], 'signal'] = 1
+    signals.loc[signals['fast_ma'] < signals['slow_ma'], 'signal'] = -1
+
+    # Posizione (entra il giorno dopo il segnale)
+    signals['position'] = signals['signal'].shift(1)
+
+    return signals
+
+print("\n1. TREND FOLLOWING - MA CROSSOVER")
+print("-"*40)
+ma_signals = ma_crossover_strategy(df, fast_period=10, slow_period=30)
+
+# Calcola rendimenti strategia
+ma_signals['strategy_returns'] = ma_signals['position'] * df['returns']
+ma_signals['cumulative'] = (1 + ma_signals['strategy_returns']).cumprod()
+
+total_return = ma_signals['cumulative'].iloc[-1] - 1
+buy_hold = (df['close'].iloc[-1] / df['close'].iloc[0]) - 1
+
+print(f"Parametri: Fast MA={10}, Slow MA={30}")
+print(f"Strategy Return: {total_return:.2%}")
+print(f"Buy & Hold Return: {buy_hold:.2%}")
+print(f"Numero trade: {(ma_signals['signal'].diff() != 0).sum()}")
+
+# ============================================
+# 2. TREND FOLLOWING - BREAKOUT
+# ============================================
+
+def donchian_breakout_strategy(df, entry_period=20, exit_period=10):
+    """
+    Donchian Channel Breakout (Turtle Trading style)
+    """
+    signals = pd.DataFrame(index=df.index)
+    signals['price'] = df['close']
+
+    # Canali
+    signals['upper'] = df['high'].rolling(entry_period).max()
+    signals['lower'] = df['low'].rolling(entry_period).min()
+    signals['exit_upper'] = df['high'].rolling(exit_period).max()
+    signals['exit_lower'] = df['low'].rolling(exit_period).min()
+
+    # Segnali
+    signals['signal'] = 0
+    position = 0
+
+    for i in range(entry_period, len(signals)):
+        if position == 0:
+            if df['close'].iloc[i] > signals['upper'].iloc[i-1]:
+                position = 1
+            elif df['close'].iloc[i] < signals['lower'].iloc[i-1]:
+                position = -1
+        elif position == 1:
+            if df['close'].iloc[i] < signals['exit_lower'].iloc[i-1]:
+                position = 0
+        elif position == -1:
+            if df['close'].iloc[i] > signals['exit_upper'].iloc[i-1]:
+                position = 0
+
+        signals.iloc[i, signals.columns.get_loc('signal')] = position
+
+    signals['position'] = signals['signal'].shift(1)
+    return signals
+
+print("\n2. TREND FOLLOWING - BREAKOUT")
+print("-"*40)
+breakout_signals = donchian_breakout_strategy(df)
+breakout_signals['strategy_returns'] = breakout_signals['position'] * df['returns']
+breakout_signals['cumulative'] = (1 + breakout_signals['strategy_returns']).cumprod()
+
+print(f"Strategy Return: {breakout_signals['cumulative'].iloc[-1] - 1:.2%}")
+print(f"Numero trade: {(breakout_signals['signal'].diff() != 0).sum()}")
+
+# ============================================
+# 3. MEAN REVERSION - BOLLINGER BANDS
+# ============================================
+
+def bollinger_mean_reversion(df, period=20, std_dev=2):
+    """
+    Bollinger Bands Mean Reversion
+    """
+    signals = pd.DataFrame(index=df.index)
+    signals['price'] = df['close']
+
+    # Bande
+    signals['ma'] = df['close'].rolling(period).mean()
+    signals['std'] = df['close'].rolling(period).std()
+    signals['upper'] = signals['ma'] + std_dev * signals['std']
+    signals['lower'] = signals['ma'] - std_dev * signals['std']
+
+    # Segnali
+    signals['signal'] = 0
+    position = 0
+
+    for i in range(period, len(signals)):
+        if position == 0:
+            if df['close'].iloc[i] < signals['lower'].iloc[i]:
+                position = 1  # Buy oversold
+            elif df['close'].iloc[i] > signals['upper'].iloc[i]:
+                position = -1  # Sell overbought
+        elif position == 1:
+            if df['close'].iloc[i] > signals['ma'].iloc[i]:
+                position = 0  # Exit at mean
+        elif position == -1:
+            if df['close'].iloc[i] < signals['ma'].iloc[i]:
+                position = 0
+
+        signals.iloc[i, signals.columns.get_loc('signal')] = position
+
+    signals['position'] = signals['signal'].shift(1)
+    return signals
+
+print("\n3. MEAN REVERSION - BOLLINGER BANDS")
+print("-"*40)
+bb_signals = bollinger_mean_reversion(df)
+bb_signals['strategy_returns'] = bb_signals['position'] * df['returns']
+bb_signals['cumulative'] = (1 + bb_signals['strategy_returns']).cumprod()
+
+print(f"Strategy Return: {bb_signals['cumulative'].iloc[-1] - 1:.2%}")
+
+# ============================================
+# 4. MEAN REVERSION - RSI
+# ============================================
+
+def rsi_mean_reversion(df, period=14, oversold=30, overbought=70):
+    """
+    RSI Mean Reversion Strategy
+    """
+    signals = pd.DataFrame(index=df.index)
+    signals['price'] = df['close']
+
+    # Calcola RSI
+    delta = df['close'].diff()
+    gain = delta.where(delta > 0, 0).rolling(period).mean()
+    loss = (-delta.where(delta < 0, 0)).rolling(period).mean()
+    rs = gain / loss
+    signals['rsi'] = 100 - (100 / (1 + rs))
+
+    # Segnali
+    signals['signal'] = 0
+    signals.loc[signals['rsi'] < oversold, 'signal'] = 1
+    signals.loc[signals['rsi'] > overbought, 'signal'] = -1
+
+    # Smooth signals (hold until opposite)
+    position = 0
+    positions = []
+    for sig in signals['signal']:
+        if sig == 1:
+            position = 1
+        elif sig == -1:
+            position = -1
+        positions.append(position)
+
+    signals['position'] = pd.Series(positions, index=signals.index).shift(1)
+    return signals
+
+print("\n4. MEAN REVERSION - RSI")
+print("-"*40)
+rsi_signals = rsi_mean_reversion(df)
+rsi_signals['strategy_returns'] = rsi_signals['position'] * df['returns']
+rsi_signals['cumulative'] = (1 + rsi_signals['strategy_returns']).cumprod()
+
+print(f"Strategy Return: {rsi_signals['cumulative'].iloc[-1] - 1:.2%}")
+
+# ============================================
+# 5. MOMENTUM - TIME SERIES
+# ============================================
+
+def time_series_momentum(df, lookback=20):
+    """
+    Time Series Momentum: long if past return positive
+    """
+    signals = pd.DataFrame(index=df.index)
+    signals['price'] = df['close']
+
+    # Rendimento passato
+    signals['past_return'] = df['close'].pct_change(lookback)
+
+    # Segnale
+    signals['signal'] = 0
+    signals.loc[signals['past_return'] > 0, 'signal'] = 1
+    signals.loc[signals['past_return'] < 0, 'signal'] = -1
+
+    signals['position'] = signals['signal'].shift(1)
+    return signals
+
+print("\n5. MOMENTUM - TIME SERIES")
+print("-"*40)
+mom_signals = time_series_momentum(df, lookback=20)
+mom_signals['strategy_returns'] = mom_signals['position'] * df['returns']
+mom_signals['cumulative'] = (1 + mom_signals['strategy_returns']).cumprod()
+
+print(f"Strategy Return: {mom_signals['cumulative'].iloc[-1] - 1:.2%}")
+
+# ============================================
+# 6. PAIRS TRADING (SIMULATO)
+# ============================================
+
+def pairs_trading_strategy(prices1, prices2, lookback=20, entry_z=2, exit_z=0.5):
+    """
+    Pairs Trading con z-score
+    """
+    # Stima hedge ratio (rolling)
+    spread = prices1 - prices2  # Semplificato, in realta' usa regressione
+
+    # Z-score
+    spread_mean = spread.rolling(lookback).mean()
+    spread_std = spread.rolling(lookback).std()
+    z_score = (spread - spread_mean) / spread_std
+
+    signals = pd.DataFrame(index=prices1.index)
+    signals['z_score'] = z_score
+    signals['signal'] = 0
+
+    position = 0
+    for i in range(lookback, len(signals)):
+        z = z_score.iloc[i]
+
+        if position == 0:
+            if z < -entry_z:
+                position = 1  # Long spread
+            elif z > entry_z:
+                position = -1  # Short spread
+        elif position == 1:
+            if z > -exit_z:
+                position = 0
+        elif position == -1:
+            if z < exit_z:
+                position = 0
+
+        signals.iloc[i, signals.columns.get_loc('signal')] = position
+
+    signals['position'] = signals['signal'].shift(1)
+    return signals, spread
+
+print("\n6. PAIRS TRADING")
+print("-"*40)
+
+# Crea seconda serie correlata
+prices2 = df['close'] * 0.8 + np.random.normal(0, 5, len(df))
+pairs_signals, spread = pairs_trading_strategy(df['close'], prices2)
+
+# Rendimenti dello spread
+spread_returns = spread.pct_change()
+pairs_signals['strategy_returns'] = pairs_signals['position'] * spread_returns
+pairs_signals['cumulative'] = (1 + pairs_signals['strategy_returns'].fillna(0)).cumprod()
+
+print(f"Strategy Return: {pairs_signals['cumulative'].iloc[-1] - 1:.2%}")
+
+# ============================================
+# 7. COMBINED STRATEGY
+# ============================================
+
+def combine_strategies(strategies_dict, method='equal'):
+    """
+    Combina segnali di multiple strategie
+    """
+    combined = pd.DataFrame()
+
+    for name, signals in strategies_dict.items():
+        combined[name] = signals['position']
+
+    if method == 'equal':
+        combined['combined'] = combined.mean(axis=1)
+    elif method == 'voting':
+        combined['combined'] = combined.apply(lambda x: np.sign(x.sum()), axis=1)
+
+    return combined
+
+print("\n7. COMBINED STRATEGY")
+print("-"*40)
+
+strategies = {
+    'MA_Crossover': ma_signals,
+    'Breakout': breakout_signals,
+    'BB_MeanRev': bb_signals,
+    'RSI': rsi_signals,
+    'Momentum': mom_signals
+}
+
+combined = combine_strategies(strategies, method='equal')
+combined_returns = combined['combined'] * df['returns']
+combined_cumulative = (1 + combined_returns).cumprod()
+
+print(f"Combined Strategy Return: {combined_cumulative.iloc[-1] - 1:.2%}")
+
+# ============================================
+# 8. PERFORMANCE METRICS
+# ============================================
+
+def calculate_metrics(returns, risk_free=0.02/252):
+    """
+    Calcola metriche di performance
+    """
+    returns = returns.dropna()
+
+    total_return = (1 + returns).prod() - 1
+    annual_return = (1 + total_return) ** (252 / len(returns)) - 1
+    volatility = returns.std() * np.sqrt(252)
+    sharpe = (annual_return - risk_free * 252) / volatility if volatility > 0 else 0
+
+    # Max Drawdown
+    cumulative = (1 + returns).cumprod()
+    peak = cumulative.cummax()
+    drawdown = (cumulative - peak) / peak
+    max_dd = drawdown.min()
+
+    # Win rate
+    win_rate = (returns > 0).mean()
+
+    # Profit factor
+    gross_profit = returns[returns > 0].sum()
+    gross_loss = abs(returns[returns < 0].sum())
+    profit_factor = gross_profit / gross_loss if gross_loss > 0 else np.inf
+
+    return {
+        'Total Return': total_return,
+        'Annual Return': annual_return,
+        'Volatility': volatility,
+        'Sharpe Ratio': sharpe,
+        'Max Drawdown': max_dd,
+        'Win Rate': win_rate,
+        'Profit Factor': profit_factor
+    }
+
+print("\n8. CONFRONTO STRATEGIE")
+print("-"*40)
+
+results = {}
+for name, signals in strategies.items():
+    strat_returns = signals['position'] * df['returns']
+    metrics = calculate_metrics(strat_returns)
+    results[name] = metrics
+
+# Aggiungi combined
+results['Combined'] = calculate_metrics(combined_returns)
+results['Buy & Hold'] = calculate_metrics(df['returns'])
+
+# Stampa tabella
+print(f"\n{'Strategy':<15}{'Return':<12}{'Sharpe':<10}{'MaxDD':<12}{'WinRate':<10}")
+print("-"*60)
+
+for name, metrics in results.items():
+    print(f"{name:<15}{metrics['Total Return']:<12.2%}{metrics['Sharpe Ratio']:<10.2f}"
+          f"{metrics['Max Drawdown']:<12.2%}{metrics['Win Rate']:<10.2%}")
+
+# ============================================
+# 9. REGIME DETECTION
+# ============================================
+
+def detect_regime(df, vol_lookback=20, trend_lookback=50):
+    """
+    Semplice regime detection
+    """
+    # Volatilita'
+    vol = df['returns'].rolling(vol_lookback).std() * np.sqrt(252)
+    vol_median = vol.rolling(100).median()
+
+    # Trend
+    ma = df['close'].rolling(trend_lookback).mean()
+    trend = (df['close'] > ma).astype(int) - (df['close'] < ma).astype(int)
+
+    # Regime
+    regime = pd.DataFrame(index=df.index)
+    regime['volatility'] = vol
+    regime['trend'] = trend
+    regime['high_vol'] = vol > vol_median
+    regime['regime'] = 'Unknown'
+
+    regime.loc[(regime['high_vol'] == False) & (regime['trend'] == 1), 'regime'] = 'Low Vol Uptrend'
+    regime.loc[(regime['high_vol'] == False) & (regime['trend'] == -1), 'regime'] = 'Low Vol Downtrend'
+    regime.loc[(regime['high_vol'] == True) & (regime['trend'] == 1), 'regime'] = 'High Vol Uptrend'
+    regime.loc[(regime['high_vol'] == True) & (regime['trend'] == -1), 'regime'] = 'High Vol Downtrend'
+
+    return regime
+
+print("\n9. REGIME DETECTION")
+print("-"*40)
+regimes = detect_regime(df)
+print("Regime distribution:")
+print(regimes['regime'].value_counts())
+
+# ============================================
+# 10. REGIME-ADAPTIVE STRATEGY
+# ============================================
+
+def regime_adaptive_strategy(df, regimes, strategies):
+    """
+    Usa strategia diversa per regime diverso
+    """
+    signals = pd.DataFrame(index=df.index)
+    signals['regime'] = regimes['regime']
+
+    # Assegna strategia per regime
+    regime_map = {
+        'Low Vol Uptrend': 'Momentum',
+        'Low Vol Downtrend': 'BB_MeanRev',
+        'High Vol Uptrend': 'MA_Crossover',
+        'High Vol Downtrend': 'MA_Crossover',
+        'Unknown': 'Combined'
+    }
+
+    position = []
+    for i in range(len(df)):
+        regime = signals['regime'].iloc[i]
+        strat_name = regime_map.get(regime, 'Combined')
+
+        if strat_name == 'Combined':
+            pos = combined['combined'].iloc[i]
+        else:
+            pos = strategies[strat_name]['position'].iloc[i]
+
+        position.append(pos if not pd.isna(pos) else 0)
+
+    signals['position'] = position
+    return signals
+
+print("\n10. REGIME-ADAPTIVE STRATEGY")
+print("-"*40)
+adaptive_signals = regime_adaptive_strategy(df, regimes, strategies)
+adaptive_returns = adaptive_signals['position'] * df['returns']
+adaptive_metrics = calculate_metrics(adaptive_returns)
+
+print(f"Adaptive Strategy Return: {adaptive_metrics['Total Return']:.2%}")
+print(f"Adaptive Sharpe: {adaptive_metrics['Sharpe Ratio']:.2f}")
+
+# ============================================
+# SUMMARY
+# ============================================
+
+print("\n" + "="*60)
+print("SUMMARY - BEST PERFORMING STRATEGIES")
+print("="*60)
+
+# Ordina per Sharpe
+sorted_results = sorted(results.items(), key=lambda x: x[1]['Sharpe Ratio'], reverse=True)
+
+print(f"\nRanking per Sharpe Ratio:")
+for i, (name, metrics) in enumerate(sorted_results, 1):
+    print(f"{i}. {name}: Sharpe = {metrics['Sharpe Ratio']:.2f}, "
+          f"Return = {metrics['Total Return']:.2%}")
+
+print("\n" + "="*60)
+print("FINE IMPLEMENTAZIONI STRATEGIE")
+print("="*60)
+```
+
+================================================================================
+                              FINE DOCUMENTO
+================================================================================
+
+Prossimo: 07_Risk_Management.txt

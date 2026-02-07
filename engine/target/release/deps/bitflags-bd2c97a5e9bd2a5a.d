@@ -1,0 +1,7 @@
+E:\Progetti\BOT_TRADING\engine\target\release\deps\bitflags-bd2c97a5e9bd2a5a.d: C:\Users\Alex\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\bitflags-1.3.2\src\lib.rs
+
+E:\Progetti\BOT_TRADING\engine\target\release\deps\libbitflags-bd2c97a5e9bd2a5a.rlib: C:\Users\Alex\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\bitflags-1.3.2\src\lib.rs
+
+E:\Progetti\BOT_TRADING\engine\target\release\deps\libbitflags-bd2c97a5e9bd2a5a.rmeta: C:\Users\Alex\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\bitflags-1.3.2\src\lib.rs
+
+C:\Users\Alex\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\bitflags-1.3.2\src\lib.rs:

@@ -1,0 +1,1454 @@
+================================================================================
+                      BACKTESTING E SIMULAZIONE
+                 Validazione delle Strategie di Trading
+================================================================================
+
+INDICE
+------
+1. Introduzione al Backtesting
+2. Architettura di un Backtester
+3. Data Management
+4. Simulazione Realistica
+5. Pitfalls e Bias
+6. Walk-Forward Analysis
+7. Monte Carlo Simulation
+8. Performance Analysis
+9. From Backtest to Live
+10. Codice Python Completo
+
+================================================================================
+1. INTRODUZIONE AL BACKTESTING
+================================================================================
+
+------------------------------------------------------------------------------
+1.1 DEFINIZIONE
+------------------------------------------------------------------------------
+
+BACKTESTING:
+Processo di testare una strategia di trading su dati storici
+per valutarne la performance.
+
+OBIETTIVO:
+- Verificare se la strategia avrebbe funzionato in passato
+- Stimare performance futura (con cautela!)
+- Identificare punti deboli
+- Ottimizzare parametri
+
+IMPORTANZA:
+"In God we trust, all others bring data"
+
+------------------------------------------------------------------------------
+1.2 LIMITI FONDAMENTALI
+------------------------------------------------------------------------------
+
+IL PASSATO NON GARANTISCE IL FUTURO:
+- I mercati cambiano
+- Le inefficienze vengono arbitraggiate
+- I regime shifts accadono
+
+OVERFITTING:
+- Facile ottimizzare per il passato
+- Molto piu' difficile generalizzare
+
+QUALITY OF DATA:
+- Garbage in, garbage out
+- Dati storici spesso imperfetti
+
+SIMULATION VS REALITY:
+- Il backtest e' sempre una semplificazione
+- Molti fattori non catturati
+
+------------------------------------------------------------------------------
+1.3 WORKFLOW DEL BACKTESTING
+------------------------------------------------------------------------------
+
+1. DEFINE STRATEGY
+   - Regole chiare e non ambigue
+   - Tutti i parametri specificati
+
+2. GATHER DATA
+   - Dati di qualita'
+   - Periodo appropriato
+
+3. IMPLEMENT
+   - Codice corretto
+   - Gestione edge cases
+
+4. VALIDATE
+   - Check risultati
+   - Sanity checks
+
+5. ANALYZE
+   - Metriche di performance
+   - Distribuzione trade
+
+6. OPTIMIZE
+   - Con cautela!
+   - Walk-forward validation
+
+7. STRESS TEST
+   - Scenari estremi
+   - Sensitività ai parametri
+
+================================================================================
+2. ARCHITETTURA DI UN BACKTESTER
+================================================================================
+
+------------------------------------------------------------------------------
+2.1 COMPONENTI PRINCIPALI
+------------------------------------------------------------------------------
+
+1. DATA HANDLER
+   - Carica dati storici
+   - Gestisce streaming simulato
+   - Fornisce dati alle altre componenti
+
+2. STRATEGY
+   - Genera segnali
+   - Riceve dati di mercato
+   - Produce ordini
+
+3. PORTFOLIO
+   - Traccia posizioni
+   - Gestisce cash
+   - Calcola equity
+
+4. EXECUTION HANDLER
+   - Simula esecuzione ordini
+   - Applica slippage e commissioni
+   - Gestisce tipi ordine
+
+5. PERFORMANCE TRACKER
+   - Calcola metriche
+   - Traccia equity curve
+   - Genera report
+
+------------------------------------------------------------------------------
+2.2 EVENT-DRIVEN VS VECTORIZED
+------------------------------------------------------------------------------
+
+VECTORIZED BACKTESTING:
+- Opera su intero dataset insieme
+- Usa operazioni numpy/pandas
+- Molto veloce
+- Meno realistico
+
+ESEMPIO VECTORIZED:
+signals = (sma_fast > sma_slow).astype(int)
+returns = signals.shift(1) * price_returns
+cumulative = (1 + returns).cumprod()
+
+EVENT-DRIVEN BACKTESTING:
+- Simula barra per barra
+- Piu' realistico
+- Piu' lento
+- Gestisce complessita' meglio
+
+ESEMPIO EVENT-DRIVEN:
+for bar in data:
+    signal = strategy.calculate(bar)
+    if signal:
+        portfolio.execute_order(signal)
+    portfolio.update(bar)
+
+QUANDO USARE COSA:
+- Vectorized: prototipazione rapida, strategie semplici
+- Event-driven: produzione, strategie complesse
+
+------------------------------------------------------------------------------
+2.3 LOOK-AHEAD BIAS PREVENTION
+------------------------------------------------------------------------------
+
+PROBLEMA:
+Usare informazione futura per prendere decisioni passate.
+
+SOLUZIONI:
+
+SHIFT SIGNALS:
+position = signal.shift(1)  # Trade il giorno dopo il segnale
+
+SEPARATE TRAIN/TEST:
+Non ottimizzare su dati che userai per validare.
+
+POINT-IN-TIME DATA:
+Usa solo dati disponibili a quel momento storico.
+(Es: per fondamentali, usa data di rilascio, non data fiscale)
+
+================================================================================
+3. DATA MANAGEMENT
+================================================================================
+
+------------------------------------------------------------------------------
+3.1 TIPI DI DATI
+------------------------------------------------------------------------------
+
+OHLCV:
+- Open, High, Low, Close, Volume
+- Standard per backtesting
+- Diversi timeframe disponibili
+
+TICK DATA:
+- Ogni singola transazione
+- Piu' preciso per HFT
+- File molto grandi
+
+ORDER BOOK DATA:
+- Snapshots o stream dell'order book
+- Per strategie market making
+- Molto costoso e voluminoso
+
+ALTERNATIVE DATA:
+- Sentiment
+- On-chain (crypto)
+- Satellite, etc.
+
+------------------------------------------------------------------------------
+3.2 DATA QUALITY ISSUES
+------------------------------------------------------------------------------
+
+MISSING DATA:
+- Gap nei prezzi
+- Exchange chiusi
+- Errori di feed
+
+OUTLIERS:
+- Flash crash
+- Bad ticks
+- Fat finger trades
+
+SURVIVOR BIAS:
+- Dataset include solo asset ancora esistenti
+- Esclude fallimenti/delisting
+
+CORPORATE ACTIONS:
+- Split
+- Dividendi
+- Merger
+
+SOLUZIONI:
+- Forward fill per gap brevi
+- Filtra outlier statistici
+- Usa adjusted prices
+- Includi delisted assets
+
+------------------------------------------------------------------------------
+3.3 DATA SOURCES
+------------------------------------------------------------------------------
+
+GRATUITI:
+- Yahoo Finance (yfinance)
+- CoinGecko, CoinMarketCap (crypto)
+- FRED (macro data)
+- Binance API (crypto, limitato)
+
+A PAGAMENTO:
+- Bloomberg, Reuters
+- Polygon.io
+- Kaiko, CryptoCompare (crypto)
+- Quandl
+
+EXCHANGE DIRECT:
+- Binance, Coinbase API
+- Interactive Brokers
+- Limiti di rate e storico
+
+------------------------------------------------------------------------------
+3.4 DATA STORAGE
+------------------------------------------------------------------------------
+
+CSV/PARQUET:
+- Semplice
+- Parquet piu' efficiente
+
+DATABASE:
+- SQL per dati strutturati
+- TimescaleDB per serie temporali
+
+IN-MEMORY:
+- Per velocita' in backtest
+- Limiti di RAM
+
+================================================================================
+4. SIMULAZIONE REALISTICA
+================================================================================
+
+------------------------------------------------------------------------------
+4.1 TRANSACTION COSTS
+------------------------------------------------------------------------------
+
+COMMISSIONI:
+- Maker/Taker fees (0.01% - 0.1%)
+- Spread implicito
+
+FORMULA:
+total_cost = size * price * fee_rate
+
+ESEMPIO:
+Trade $10,000 con fee 0.1%:
+Cost = $10,000 * 0.001 = $10
+
+IN UN ANNO:
+1000 trades * $10 = $10,000 di fees!
+
+------------------------------------------------------------------------------
+4.2 SLIPPAGE
+------------------------------------------------------------------------------
+
+DEFINIZIONE:
+Differenza tra prezzo atteso e prezzo eseguito.
+
+CAUSE:
+- Market orders attraversano lo spread
+- Latency
+- Market impact
+
+MODELLI DI SLIPPAGE:
+
+FIXED:
+slippage = fixed_amount (es. 0.01%)
+
+PROPORTIONAL TO SIZE:
+slippage = base + k * (size / ADV)
+
+SQUARE ROOT:
+slippage = sigma * sqrt(size / ADV)
+
+IMPLEMENTAZIONE:
+if side == 'buy':
+    execution_price = price * (1 + slippage)
+else:
+    execution_price = price * (1 - slippage)
+
+------------------------------------------------------------------------------
+4.3 MARKET IMPACT
+------------------------------------------------------------------------------
+
+Per ordini grandi, il tuo stesso ordine muove il prezzo.
+
+TEMPORARY IMPACT:
+Prezzo si muove durante esecuzione, poi reverte parzialmente.
+
+PERMANENT IMPACT:
+Parte del movimento rimane.
+
+MODELLO ALMGREN-CHRISS:
+Impact = sigma * sqrt(V / ADV)
+
+Dove:
+- sigma = volatilita'
+- V = volume da eseguire
+- ADV = average daily volume
+
+MITIGAZIONE:
+- Spezza ordini grandi (TWAP, VWAP)
+- Usa limit orders
+- Trade in momenti liquidi
+
+------------------------------------------------------------------------------
+4.4 FILL SIMULATION
+------------------------------------------------------------------------------
+
+MARKET ORDERS:
+Sempre filled (con slippage).
+
+LIMIT ORDERS:
+Filled solo se prezzo raggiunge il limite.
+
+SIMULAZIONE CONSERVATIVE:
+- Fill solo se prezzo attraversa il limite
+- Non fill se solo tocca
+
+QUEUE POSITION:
+Per simulazione avanzata, considera la posizione nella coda.
+
+------------------------------------------------------------------------------
+4.5 LIQUIDITY CONSTRAINTS
+------------------------------------------------------------------------------
+
+PROBLEMA:
+Non puoi tradare piu' del volume disponibile.
+
+IMPLEMENTAZIONE:
+max_size = ADV * max_participation
+if order_size > max_size:
+    order_size = max_size
+    # o rifiuta l'ordine
+
+MAX PARTICIPATION:
+Tipicamente 1-10% del volume giornaliero.
+
+================================================================================
+5. PITFALLS E BIAS
+================================================================================
+
+------------------------------------------------------------------------------
+5.1 LOOK-AHEAD BIAS
+------------------------------------------------------------------------------
+
+PROBLEMA:
+Usare informazione non disponibile al momento della decisione.
+
+ESEMPI:
+- Usare adjusted prices per calcolare segnali (gli adjustment sono futuri)
+- Usare dato economico alla data fiscale invece che alla data di rilascio
+- Peak detection (sapere dove sono i picchi in anticipo)
+
+SOLUZIONE:
+- Verifica che ogni calcolo usi SOLO dati passati
+- Shift signals appropriatamente
+
+------------------------------------------------------------------------------
+5.2 SURVIVORSHIP BIAS
+------------------------------------------------------------------------------
+
+PROBLEMA:
+Il dataset include solo asset "sopravvissuti".
+Esclude quelli falliti, delistati, ecc.
+
+CONSEGUENZE:
+- Performance gonfiata
+- Ignora rischi reali
+
+SOLUZIONE:
+- Usa dataset "point-in-time" che include delisted
+- O almeno sii consapevole del bias
+
+CRYPTO ESEMPIO:
+Testare solo su top 100 oggi ignora tutti i token falliti.
+
+------------------------------------------------------------------------------
+5.3 OVERFITTING
+------------------------------------------------------------------------------
+
+PROBLEMA:
+Ottimizzare troppo i parametri sui dati storici.
+Il modello "memorizza" il passato invece di "imparare".
+
+SEGNALI DI OVERFITTING:
+- Troppe regole/parametri
+- Performance in-sample fantastica, out-of-sample pessima
+- Parametri molto specifici (es. entry a 10:37 AM)
+- Strategy funziona solo in periodo specifico
+
+SOLUZIONI:
+- Keep it simple
+- Out-of-sample testing
+- Walk-forward validation
+- Cross-validation
+- Penalizza complessita'
+
+------------------------------------------------------------------------------
+5.4 SELECTION BIAS
+------------------------------------------------------------------------------
+
+PROBLEMA:
+Testare molte strategie e riportare solo la migliore.
+
+"If you torture the data long enough, it will confess anything"
+
+MULTIPLE TESTING:
+Se testi 100 strategie, alcune sembreranno buone per puro caso.
+
+CORREZIONE:
+- Bonferroni: alpha / n_tests
+- False Discovery Rate
+- Richiedi significativita' molto alta
+- Out-of-sample validation
+
+------------------------------------------------------------------------------
+5.5 DATA SNOOPING
+------------------------------------------------------------------------------
+
+PROBLEMA:
+Guardare i dati prima di definire la strategia.
+Anche inconsciamente, questo influenza le decisioni.
+
+SOLUZIONE:
+- Definisci regole PRIMA di guardare i dati
+- Usa out-of-sample period mai visto
+- Walk-forward validation
+
+------------------------------------------------------------------------------
+5.6 ALTRI BIAS
+------------------------------------------------------------------------------
+
+BACKFILL BIAS:
+Dati aggiunti retroattivamente (non disponibili real-time).
+
+TRANSACTION COST BIAS:
+Sottostimare costi reali.
+
+TIME PERIOD BIAS:
+Strategia funziona solo in certi periodi (bull market).
+
+================================================================================
+6. WALK-FORWARD ANALYSIS
+================================================================================
+
+------------------------------------------------------------------------------
+6.1 CONCETTO
+------------------------------------------------------------------------------
+
+Simula come useresti la strategia nel mondo reale:
+1. Allena su periodo passato
+2. Testa su periodo successivo
+3. Ri-allena includendo nuovo periodo
+4. Ripeti
+
+E' la forma piu' robusta di validazione.
+
+------------------------------------------------------------------------------
+6.2 PROCEDURA
+------------------------------------------------------------------------------
+
+1. Definisci:
+   - Training window (es. 2 anni)
+   - Test window (es. 6 mesi)
+   - Step size (quanto avanzi, es. 3 mesi)
+
+2. Prima iterazione:
+   - Train: mesi 1-24
+   - Test: mesi 25-30
+   - Ottimizza parametri su train
+   - Valuta su test
+
+3. Seconda iterazione:
+   - Train: mesi 4-27
+   - Test: mesi 28-33
+   - Ripeti
+
+4. Aggrega risultati:
+   - Concatena tutti i periodi test
+   - Questa e' la "vera" performance
+
+------------------------------------------------------------------------------
+6.3 ROLLING VS EXPANDING
+------------------------------------------------------------------------------
+
+ROLLING WINDOW:
+Training window ha lunghezza fissa.
+Train: [t-W, t], Test: [t, t+T]
+
+Piu' adattivo a regime changes.
+
+EXPANDING WINDOW:
+Training window cresce.
+Train: [0, t], Test: [t, t+T]
+
+Usa piu' dati, ma meno adattivo.
+
+------------------------------------------------------------------------------
+6.4 ANCHORED VS UNANCHORED
+------------------------------------------------------------------------------
+
+ANCHORED:
+Training inizia sempre da t=0.
+Train: [0, t], Test: [t, t+T]
+
+UNANCHORED:
+Training ha finestra mobile.
+Train: [t-W, t], Test: [t, t+T]
+
+------------------------------------------------------------------------------
+6.5 IMPLEMENTATION
+------------------------------------------------------------------------------
+
+```python
+def walk_forward(data, train_period, test_period, step):
+    results = []
+
+    for start in range(0, len(data) - train_period - test_period, step):
+        train_end = start + train_period
+        test_end = train_end + test_period
+
+        train_data = data[start:train_end]
+        test_data = data[train_end:test_end]
+
+        # Ottimizza su train
+        best_params = optimize(train_data)
+
+        # Testa su test
+        performance = backtest(test_data, best_params)
+        results.append(performance)
+
+    return aggregate(results)
+```
+
+================================================================================
+7. MONTE CARLO SIMULATION
+================================================================================
+
+------------------------------------------------------------------------------
+7.1 PERCHE' MONTE CARLO
+------------------------------------------------------------------------------
+
+Un singolo backtest mostra UN possibile percorso.
+Monte Carlo mostra la DISTRIBUZIONE di possibili percorsi.
+
+UTILITA':
+- Stima robustezza
+- Calcola intervalli di confidenza
+- Identifica worst case scenarios
+- Valuta probabilita' di raggiungere obiettivi
+
+------------------------------------------------------------------------------
+7.2 TRADE SHUFFLING
+------------------------------------------------------------------------------
+
+PROCEDURA:
+1. Prendi la lista dei trade dal backtest
+2. Shuffle (mescola) l'ordine dei trade
+3. Calcola equity curve
+4. Ripeti N volte
+5. Analizza distribuzione
+
+COSA RIVELA:
+- L'ordine dei trade importa?
+- Quanto del risultato e' dovuto a fortuna?
+- Worst case drawdown possibile
+
+LIMITE:
+Assume indipendenza dei trade (spesso violata).
+
+------------------------------------------------------------------------------
+7.3 BOOTSTRAP RESAMPLING
+------------------------------------------------------------------------------
+
+Simile a shuffling ma con rimpiazzo.
+
+PROCEDURA:
+1. Campiona N trade con rimpiazzo dalla lista originale
+2. Calcola equity curve
+3. Ripeti M volte
+
+VANTAGGI:
+- Genera scenari non visti nell'originale
+- Puo' avere sequenze di perdite peggiori
+
+------------------------------------------------------------------------------
+7.4 RETURNS SIMULATION
+------------------------------------------------------------------------------
+
+Invece di shufflare trade, simula rendimenti.
+
+PROCEDURA:
+1. Stima distribuzione dei rendimenti
+2. Genera rendimenti random dalla distribuzione
+3. Calcola equity curve
+4. Ripeti
+
+DISTRIBUZIONI:
+- Normale (semplice ma irrealistico)
+- Student-t (fat tails)
+- Empirica (campiona dai rendimenti reali)
+- GARCH (volatilita' variabile)
+
+------------------------------------------------------------------------------
+7.5 ANALISI RISULTATI
+------------------------------------------------------------------------------
+
+DA MONTE CARLO ESTRAI:
+- Distribuzione rendimenti finali
+- Distribuzione max drawdown
+- Probabilita' di rovina
+- Percentili equity finale
+
+METRICHE TIPICHE:
+- 5th percentile finale (worst case)
+- 95th percentile max DD
+- Probability of loss > X%
+- Expected final value
+
+================================================================================
+8. PERFORMANCE ANALYSIS
+================================================================================
+
+------------------------------------------------------------------------------
+8.1 METRICHE ESSENZIALI
+------------------------------------------------------------------------------
+
+RENDIMENTO:
+- Total Return
+- Annualized Return (CAGR)
+- Monthly Returns Distribution
+
+RISCHIO:
+- Volatility (annualized)
+- Max Drawdown
+- Average Drawdown
+- Drawdown Duration
+
+RISK-ADJUSTED:
+- Sharpe Ratio
+- Sortino Ratio
+- Calmar Ratio
+
+TRADE STATISTICS:
+- Win Rate
+- Average Win / Average Loss
+- Profit Factor
+- Number of Trades
+
+------------------------------------------------------------------------------
+8.2 TRADE ANALYSIS
+------------------------------------------------------------------------------
+
+DISTRIBUZIONE TRADE:
+- Histogram dei P&L per trade
+- Winning vs Losing trades
+- Biggest winner / loser
+
+TIME ANALYSIS:
+- Performance per giorno settimana
+- Performance per mese
+- Performance per ora (intraday)
+
+STREAKS:
+- Max consecutive wins
+- Max consecutive losses
+- Average streak length
+
+------------------------------------------------------------------------------
+8.3 BENCHMARK COMPARISON
+------------------------------------------------------------------------------
+
+CONFRONTA CON:
+- Buy and hold
+- Risk-free rate
+- Market index
+- Altre strategie
+
+METRICHE:
+- Alpha: excess return vs benchmark
+- Beta: sensitivita' al benchmark
+- Information Ratio: alpha / tracking error
+- Correlation con benchmark
+
+------------------------------------------------------------------------------
+8.4 EQUITY CURVE ANALYSIS
+------------------------------------------------------------------------------
+
+VISUAL INSPECTION:
+- Trend generale
+- Periodi di drawdown
+- Regime changes
+- Smoothness
+
+STABILITY:
+- Rolling Sharpe ratio
+- Rolling returns
+- Drawdown frequency
+
+REGIME ANALYSIS:
+- Performance in bull markets
+- Performance in bear markets
+- Performance in high/low volatility
+
+------------------------------------------------------------------------------
+8.5 STATISTICAL SIGNIFICANCE
+------------------------------------------------------------------------------
+
+DOMANDA:
+I risultati sono statisticamente significativi o fortuna?
+
+T-TEST SU RETURNS:
+t = mean(returns) / (std(returns) / sqrt(n))
+
+Se p-value < 0.05, rendimenti significativamente diversi da zero.
+
+SHARPE RATIO SIGNIFICANCE:
+Standard error of Sharpe approx= 1/sqrt(n)
+
+Per Sharpe=1 con 100 trade:
+SE = 1/sqrt(100) = 0.1
+95% CI: [0.8, 1.2]
+
+MINIMUM TRACK RECORD LENGTH:
+Per avere confidenza, servono molti trade/tempo.
+Rule of thumb: almeno 30-50 trade per stabilita'.
+
+================================================================================
+9. FROM BACKTEST TO LIVE
+================================================================================
+
+------------------------------------------------------------------------------
+9.1 PAPER TRADING
+------------------------------------------------------------------------------
+
+PRIMA DI ANDARE LIVE:
+1. Esegui in paper trading (simulato con dati live)
+2. Verifica che implementazione corrisponda a backtest
+3. Testa execution logic
+4. Monitora per almeno 1-3 mesi
+
+COSA VERIFICARE:
+- Segnali generati correttamente?
+- Ordini eseguiti come previsto?
+- P&L tracking accurato?
+- Gestione errori funziona?
+
+------------------------------------------------------------------------------
+9.2 DIFFERENCES BACKTEST VS LIVE
+------------------------------------------------------------------------------
+
+SLIPPAGE:
+Live slippage spesso maggiore.
+
+LATENCY:
+Nel backtest e' zero, in live no.
+
+DATA QUALITY:
+Live data puo' avere gap, errori.
+
+FILL RATE:
+Limit orders potrebbero non essere filled.
+
+PSYCHOLOGICAL:
+Emotivamente piu' difficile.
+
+------------------------------------------------------------------------------
+9.3 GRADUAL SCALING
+------------------------------------------------------------------------------
+
+NON ANDARE ALL-IN SUBITO:
+1. Inizia con 10-25% della size target
+2. Se performance in linea con backtest, scala
+3. Se performance molto diversa, investiga
+
+TIMELINE ESEMPIO:
+- Mese 1-2: 25% size
+- Mese 3-4: 50% size
+- Mese 5+: 100% size (se tutto ok)
+
+------------------------------------------------------------------------------
+9.4 MONITORING
+------------------------------------------------------------------------------
+
+MONITORA CONTINUAMENTE:
+- Performance vs backtest
+- Metriche di rischio
+- Execution quality
+- System health
+
+ALERT TRIGGERS:
+- Drawdown oltre soglia
+- Sharpe rolling troppo basso
+- Troppi trade falliti
+- Latenza elevata
+
+------------------------------------------------------------------------------
+9.5 WHEN TO STOP
+------------------------------------------------------------------------------
+
+FERMA LA STRATEGIA SE:
+- Drawdown supera limite predefinito
+- Performance consistentemente peggiore del backtest
+- Condizioni di mercato cambiate strutturalmente
+- Problemi tecnici persistenti
+
+REVIEW PERIODICA:
+- Settimanale: check performance
+- Mensile: analisi dettagliata
+- Trimestrale: decide se continuare/modificare
+
+================================================================================
+10. CODICE PYTHON COMPLETO
+================================================================================
+
+```python
+import numpy as np
+import pandas as pd
+from scipy import stats
+import warnings
+warnings.filterwarnings('ignore')
+
+# ============================================
+# SETUP DATI
+# ============================================
+
+np.random.seed(42)
+n_days = 1000
+
+# Simula prezzi realistici
+returns = np.random.standard_t(df=5, size=n_days) * 0.02 + 0.0003
+prices = 100 * np.cumprod(1 + returns)
+
+df = pd.DataFrame({
+    'open': prices * (1 - np.abs(np.random.normal(0, 0.005, n_days))),
+    'high': prices * (1 + np.abs(np.random.normal(0, 0.01, n_days))),
+    'low': prices * (1 - np.abs(np.random.normal(0, 0.01, n_days))),
+    'close': prices,
+    'volume': np.random.lognormal(10, 0.5, n_days)
+})
+
+print("="*60)
+print("BACKTESTING FRAMEWORK - IMPLEMENTAZIONE COMPLETA")
+print("="*60)
+
+# ============================================
+# 1. BACKTESTER CLASS
+# ============================================
+
+class Backtester:
+    """
+    Framework di backtesting event-driven semplificato
+    """
+
+    def __init__(self, data, initial_capital=100000, commission=0.001, slippage=0.0005):
+        self.data = data.copy()
+        self.initial_capital = initial_capital
+        self.commission = commission
+        self.slippage = slippage
+
+        # State
+        self.cash = initial_capital
+        self.position = 0
+        self.position_price = 0
+
+        # Tracking
+        self.trades = []
+        self.equity_curve = []
+
+    def execute_order(self, idx, signal, price):
+        """Esegue un ordine con costi realistici"""
+
+        if signal == 0:
+            return
+
+        # Calcola slippage
+        if signal > 0:  # Buy
+            exec_price = price * (1 + self.slippage)
+        else:  # Sell
+            exec_price = price * (1 - self.slippage)
+
+        # Calcola size (tutto il capitale disponibile per semplicita')
+        if signal > 0 and self.position == 0:
+            # Apri long
+            size = self.cash / exec_price
+            cost = size * exec_price * self.commission
+            self.cash -= (size * exec_price + cost)
+            self.position = size
+            self.position_price = exec_price
+
+            self.trades.append({
+                'idx': idx,
+                'type': 'BUY',
+                'price': exec_price,
+                'size': size,
+                'cost': cost
+            })
+
+        elif signal < 0 and self.position > 0:
+            # Chiudi long
+            proceeds = self.position * exec_price
+            cost = proceeds * self.commission
+            pnl = (exec_price - self.position_price) * self.position - cost
+
+            self.cash += (proceeds - cost)
+
+            self.trades.append({
+                'idx': idx,
+                'type': 'SELL',
+                'price': exec_price,
+                'size': self.position,
+                'cost': cost,
+                'pnl': pnl
+            })
+
+            self.position = 0
+            self.position_price = 0
+
+    def get_equity(self, price):
+        """Calcola equity corrente"""
+        return self.cash + self.position * price
+
+    def run(self, signals):
+        """Esegue backtest"""
+
+        for i in range(len(self.data)):
+            price = self.data['close'].iloc[i]
+            signal = signals.iloc[i] if i < len(signals) else 0
+
+            # Execute
+            self.execute_order(i, signal, price)
+
+            # Track equity
+            equity = self.get_equity(price)
+            self.equity_curve.append({
+                'idx': i,
+                'equity': equity,
+                'position': self.position,
+                'cash': self.cash
+            })
+
+        return pd.DataFrame(self.equity_curve)
+
+    def get_trades(self):
+        return pd.DataFrame(self.trades)
+
+
+# ============================================
+# 2. STRATEGIA DI ESEMPIO
+# ============================================
+
+def generate_ma_signals(data, fast=20, slow=50):
+    """Genera segnali MA crossover"""
+    signals = pd.Series(index=data.index, data=0)
+
+    fast_ma = data['close'].rolling(fast).mean()
+    slow_ma = data['close'].rolling(slow).mean()
+
+    # Crossover signals
+    signals[fast_ma > slow_ma] = 1
+    signals[fast_ma <= slow_ma] = -1
+
+    # Converti in segnali di trading (solo ai crossover)
+    position = signals.copy()
+    trade_signals = position.diff()
+
+    return trade_signals
+
+print("\n1. BACKTEST BASE")
+print("-"*40)
+
+signals = generate_ma_signals(df, fast=20, slow=50)
+bt = Backtester(df, initial_capital=100000, commission=0.001, slippage=0.0005)
+results = bt.run(signals)
+trades = bt.get_trades()
+
+print(f"Capitale Iniziale: ${bt.initial_capital:,}")
+print(f"Capitale Finale: ${results['equity'].iloc[-1]:,.2f}")
+print(f"Return: {(results['equity'].iloc[-1] / bt.initial_capital - 1):.2%}")
+print(f"Numero Trade: {len(trades)}")
+
+# ============================================
+# 3. PERFORMANCE METRICS
+# ============================================
+
+def calculate_performance(equity_curve, risk_free=0.02):
+    """Calcola metriche di performance complete"""
+
+    equity = equity_curve['equity']
+    returns = equity.pct_change().dropna()
+
+    metrics = {}
+
+    # Returns
+    total_return = (equity.iloc[-1] / equity.iloc[0]) - 1
+    n_years = len(returns) / 252
+    cagr = (1 + total_return) ** (1/n_years) - 1 if n_years > 0 else total_return
+
+    metrics['total_return'] = total_return
+    metrics['cagr'] = cagr
+
+    # Risk
+    annual_vol = returns.std() * np.sqrt(252)
+    metrics['volatility'] = annual_vol
+
+    # Drawdown
+    peak = equity.cummax()
+    drawdown = (equity - peak) / peak
+    metrics['max_drawdown'] = drawdown.min()
+
+    # Risk-adjusted
+    metrics['sharpe'] = (cagr - risk_free) / annual_vol if annual_vol > 0 else 0
+
+    downside_returns = returns[returns < 0]
+    downside_vol = downside_returns.std() * np.sqrt(252) if len(downside_returns) > 0 else annual_vol
+    metrics['sortino'] = (cagr - risk_free) / downside_vol if downside_vol > 0 else 0
+
+    metrics['calmar'] = cagr / abs(metrics['max_drawdown']) if metrics['max_drawdown'] != 0 else 0
+
+    return metrics
+
+print("\n2. PERFORMANCE METRICS")
+print("-"*40)
+
+perf = calculate_performance(results)
+print(f"Total Return: {perf['total_return']:.2%}")
+print(f"CAGR: {perf['cagr']:.2%}")
+print(f"Volatility: {perf['volatility']:.2%}")
+print(f"Max Drawdown: {perf['max_drawdown']:.2%}")
+print(f"Sharpe Ratio: {perf['sharpe']:.2f}")
+print(f"Sortino Ratio: {perf['sortino']:.2f}")
+print(f"Calmar Ratio: {perf['calmar']:.2f}")
+
+# ============================================
+# 4. TRADE ANALYSIS
+# ============================================
+
+def analyze_trades(trades_df):
+    """Analizza statistiche dei trade"""
+
+    if len(trades_df) == 0 or 'pnl' not in trades_df.columns:
+        return {}
+
+    # Filtra solo trade con PnL (sell)
+    completed = trades_df[trades_df['type'] == 'SELL'].copy()
+
+    if len(completed) == 0:
+        return {}
+
+    metrics = {}
+
+    # Basic stats
+    metrics['n_trades'] = len(completed)
+    metrics['win_rate'] = (completed['pnl'] > 0).mean()
+
+    # PnL stats
+    metrics['total_pnl'] = completed['pnl'].sum()
+    metrics['avg_pnl'] = completed['pnl'].mean()
+
+    winners = completed[completed['pnl'] > 0]['pnl']
+    losers = completed[completed['pnl'] < 0]['pnl']
+
+    metrics['avg_win'] = winners.mean() if len(winners) > 0 else 0
+    metrics['avg_loss'] = losers.mean() if len(losers) > 0 else 0
+    metrics['profit_factor'] = abs(winners.sum() / losers.sum()) if len(losers) > 0 and losers.sum() != 0 else np.inf
+
+    metrics['max_win'] = completed['pnl'].max()
+    metrics['max_loss'] = completed['pnl'].min()
+
+    # Costs
+    metrics['total_commission'] = trades_df['cost'].sum()
+
+    return metrics
+
+print("\n3. TRADE ANALYSIS")
+print("-"*40)
+
+trade_stats = analyze_trades(trades)
+for key, value in trade_stats.items():
+    if isinstance(value, float):
+        if 'rate' in key or 'factor' in key:
+            print(f"{key}: {value:.2%}" if 'rate' in key else f"{key}: {value:.2f}")
+        else:
+            print(f"{key}: ${value:,.2f}")
+    else:
+        print(f"{key}: {value}")
+
+# ============================================
+# 5. WALK-FORWARD VALIDATION
+# ============================================
+
+def walk_forward_backtest(data, strategy_func, train_period=252, test_period=63, step=63):
+    """Walk-forward validation"""
+
+    all_results = []
+    all_params = []
+
+    n = len(data)
+    current = 0
+
+    while current + train_period + test_period <= n:
+        train_end = current + train_period
+        test_end = train_end + test_period
+
+        train_data = data.iloc[current:train_end].copy()
+        test_data = data.iloc[train_end:test_end].copy()
+
+        # "Ottimizza" su training (qui usiamo parametri fissi per semplicita')
+        # In pratica, faresti grid search qui
+        best_fast, best_slow = 20, 50
+
+        # Test su out-of-sample
+        signals = generate_ma_signals(test_data, fast=best_fast, slow=best_slow)
+        bt = Backtester(test_data, initial_capital=100000)
+        results = bt.run(signals)
+
+        test_return = (results['equity'].iloc[-1] / results['equity'].iloc[0]) - 1
+
+        all_results.append({
+            'period': f"{current}-{test_end}",
+            'train_start': current,
+            'train_end': train_end,
+            'test_start': train_end,
+            'test_end': test_end,
+            'return': test_return,
+            'params': (best_fast, best_slow)
+        })
+
+        current += step
+
+    return pd.DataFrame(all_results)
+
+print("\n4. WALK-FORWARD VALIDATION")
+print("-"*40)
+
+wf_results = walk_forward_backtest(df, generate_ma_signals)
+print(f"Numero di fold: {len(wf_results)}")
+print(f"\nRisultati per fold:")
+print(wf_results[['period', 'return']].to_string(index=False))
+print(f"\nMedia return: {wf_results['return'].mean():.2%}")
+print(f"Std return: {wf_results['return'].std():.2%}")
+
+# ============================================
+# 6. MONTE CARLO SIMULATION
+# ============================================
+
+def monte_carlo_trades(trades_df, n_simulations=1000, initial_capital=100000):
+    """Monte Carlo via trade shuffling"""
+
+    if 'pnl' not in trades_df.columns:
+        return None
+
+    completed = trades_df[trades_df['type'] == 'SELL'].copy()
+    if len(completed) == 0:
+        return None
+
+    pnls = completed['pnl'].values
+
+    results = []
+
+    for _ in range(n_simulations):
+        # Shuffle trade order
+        shuffled = np.random.permutation(pnls)
+
+        # Calcola equity curve
+        equity = initial_capital + np.cumsum(shuffled)
+        equity = np.insert(equity, 0, initial_capital)
+
+        # Calcola max drawdown
+        peak = np.maximum.accumulate(equity)
+        dd = (equity - peak) / peak
+        max_dd = dd.min()
+
+        results.append({
+            'final_equity': equity[-1],
+            'return': (equity[-1] / initial_capital) - 1,
+            'max_drawdown': max_dd
+        })
+
+    return pd.DataFrame(results)
+
+print("\n5. MONTE CARLO SIMULATION")
+print("-"*40)
+
+mc_results = monte_carlo_trades(trades, n_simulations=1000)
+
+if mc_results is not None:
+    print(f"Simulazioni: 1000")
+    print(f"\nDistribuzione Return:")
+    for p in [5, 25, 50, 75, 95]:
+        print(f"  {p}th percentile: {np.percentile(mc_results['return'], p):.2%}")
+
+    print(f"\nDistribuzione Max Drawdown:")
+    for p in [5, 50, 95]:
+        print(f"  {p}th percentile: {np.percentile(mc_results['max_drawdown'], p):.2%}")
+else:
+    print("Non abbastanza trade per Monte Carlo")
+
+# ============================================
+# 7. SENSITIVITY ANALYSIS
+# ============================================
+
+def parameter_sensitivity(data, fast_range, slow_range):
+    """Analizza sensitivita' ai parametri"""
+
+    results = []
+
+    for fast in fast_range:
+        for slow in slow_range:
+            if fast >= slow:
+                continue
+
+            signals = generate_ma_signals(data, fast=fast, slow=slow)
+            bt = Backtester(data, initial_capital=100000)
+            eq_curve = bt.run(signals)
+
+            total_return = (eq_curve['equity'].iloc[-1] / eq_curve['equity'].iloc[0]) - 1
+
+            results.append({
+                'fast': fast,
+                'slow': slow,
+                'return': total_return
+            })
+
+    return pd.DataFrame(results)
+
+print("\n6. PARAMETER SENSITIVITY")
+print("-"*40)
+
+sensitivity = parameter_sensitivity(df, fast_range=[10, 15, 20, 25], slow_range=[30, 40, 50, 60])
+
+print("Return per combinazione parametri:")
+pivot = sensitivity.pivot(index='fast', columns='slow', values='return')
+print((pivot * 100).round(2).to_string())
+
+best = sensitivity.loc[sensitivity['return'].idxmax()]
+print(f"\nMigliore combinazione:")
+print(f"  Fast={int(best['fast'])}, Slow={int(best['slow'])}: {best['return']:.2%}")
+
+# ============================================
+# 8. STATISTICAL SIGNIFICANCE
+# ============================================
+
+def test_significance(returns):
+    """Test significativita' statistica"""
+
+    # Test che rendimenti siano diversi da zero
+    t_stat, p_value = stats.ttest_1samp(returns, 0)
+
+    # Sharpe ratio significance
+    sharpe = returns.mean() / returns.std() * np.sqrt(252)
+    sharpe_se = 1 / np.sqrt(len(returns) / 252)  # Approssimazione
+
+    return {
+        't_statistic': t_stat,
+        'p_value': p_value,
+        'significant_5pct': p_value < 0.05,
+        'sharpe': sharpe,
+        'sharpe_se': sharpe_se,
+        'sharpe_95_ci': (sharpe - 1.96*sharpe_se, sharpe + 1.96*sharpe_se)
+    }
+
+print("\n7. STATISTICAL SIGNIFICANCE")
+print("-"*40)
+
+strategy_returns = results['equity'].pct_change().dropna()
+sig_test = test_significance(strategy_returns)
+
+print(f"T-statistic: {sig_test['t_statistic']:.4f}")
+print(f"P-value: {sig_test['p_value']:.4f}")
+print(f"Significativo al 5%: {sig_test['significant_5pct']}")
+print(f"\nSharpe Ratio: {sig_test['sharpe']:.2f}")
+print(f"95% CI: [{sig_test['sharpe_95_ci'][0]:.2f}, {sig_test['sharpe_95_ci'][1]:.2f}]")
+
+# ============================================
+# 9. BENCHMARK COMPARISON
+# ============================================
+
+def compare_to_benchmark(strategy_equity, benchmark_prices):
+    """Confronta con benchmark (buy & hold)"""
+
+    # Normalizza
+    strategy_norm = strategy_equity / strategy_equity.iloc[0]
+    benchmark_norm = benchmark_prices / benchmark_prices.iloc[0]
+
+    strategy_returns = strategy_norm.pct_change().dropna()
+    benchmark_returns = benchmark_norm.pct_change().dropna()
+
+    # Metriche
+    strategy_total = strategy_norm.iloc[-1] - 1
+    benchmark_total = benchmark_norm.iloc[-1] - 1
+
+    # Beta e Alpha
+    cov_matrix = np.cov(strategy_returns, benchmark_returns)
+    beta = cov_matrix[0,1] / cov_matrix[1,1]
+    alpha = (strategy_returns.mean() - beta * benchmark_returns.mean()) * 252
+
+    # Information Ratio
+    excess_returns = strategy_returns - benchmark_returns
+    tracking_error = excess_returns.std() * np.sqrt(252)
+    information_ratio = excess_returns.mean() * 252 / tracking_error if tracking_error > 0 else 0
+
+    return {
+        'strategy_return': strategy_total,
+        'benchmark_return': benchmark_total,
+        'excess_return': strategy_total - benchmark_total,
+        'beta': beta,
+        'alpha': alpha,
+        'tracking_error': tracking_error,
+        'information_ratio': information_ratio
+    }
+
+print("\n8. BENCHMARK COMPARISON")
+print("-"*40)
+
+benchmark_comp = compare_to_benchmark(results['equity'], df['close'])
+
+print(f"Strategy Return: {benchmark_comp['strategy_return']:.2%}")
+print(f"Benchmark Return: {benchmark_comp['benchmark_return']:.2%}")
+print(f"Excess Return: {benchmark_comp['excess_return']:.2%}")
+print(f"Beta: {benchmark_comp['beta']:.2f}")
+print(f"Alpha (annual): {benchmark_comp['alpha']:.2%}")
+print(f"Tracking Error: {benchmark_comp['tracking_error']:.2%}")
+print(f"Information Ratio: {benchmark_comp['information_ratio']:.2f}")
+
+# ============================================
+# 10. FINAL REPORT
+# ============================================
+
+print("\n" + "="*60)
+print("BACKTEST REPORT SUMMARY")
+print("="*60)
+
+print(f"""
+STRATEGY: MA Crossover (Fast=20, Slow=50)
+PERIOD: {len(df)} days
+INITIAL CAPITAL: $100,000
+
+PERFORMANCE:
+  Total Return: {perf['total_return']:.2%}
+  CAGR: {perf['cagr']:.2%}
+  Volatility: {perf['volatility']:.2%}
+  Max Drawdown: {perf['max_drawdown']:.2%}
+
+RISK-ADJUSTED:
+  Sharpe Ratio: {perf['sharpe']:.2f}
+  Sortino Ratio: {perf['sortino']:.2f}
+  Calmar Ratio: {perf['calmar']:.2f}
+
+TRADES:
+  Number of Trades: {trade_stats.get('n_trades', 0)}
+  Win Rate: {trade_stats.get('win_rate', 0):.2%}
+  Profit Factor: {trade_stats.get('profit_factor', 0):.2f}
+
+BENCHMARK COMPARISON:
+  Excess Return: {benchmark_comp['excess_return']:.2%}
+  Alpha: {benchmark_comp['alpha']:.2%}
+  Information Ratio: {benchmark_comp['information_ratio']:.2f}
+
+WALK-FORWARD:
+  Mean OOS Return: {wf_results['return'].mean():.2%}
+  Std OOS Return: {wf_results['return'].std():.2%}
+
+STATISTICAL:
+  Significant at 5%: {sig_test['significant_5pct']}
+  Sharpe 95% CI: [{sig_test['sharpe_95_ci'][0]:.2f}, {sig_test['sharpe_95_ci'][1]:.2f}]
+""")
+
+print("\nRECOMMENDATIONS:")
+if perf['sharpe'] > 1 and sig_test['significant_5pct']:
+    print("  [+] Results look promising for further investigation")
+else:
+    print("  [-] Results not statistically significant, use caution")
+
+if wf_results['return'].mean() > 0:
+    print("  [+] Walk-forward results are positive")
+else:
+    print("  [-] Walk-forward shows potential overfitting")
+
+if perf['max_drawdown'] > -0.2:
+    print("  [+] Drawdown within acceptable range")
+else:
+    print("  [-] Large drawdown - consider risk management")
+
+print("\n" + "="*60)
+print("FINE BACKTEST FRAMEWORK")
+print("="*60)
+```
+
+================================================================================
+                              FINE DOCUMENTO
+================================================================================
+
+================================================================================
+                    CONGRATULAZIONI!
+
+Hai completato lo studio dei fondamenti per il Trading Quantitativo.
+
+PROSSIMI PASSI CONSIGLIATI:
+1. Implementa le strategie su dati reali
+2. Pratica con paper trading
+3. Approfondisci Machine Learning avanzato
+4. Studia infrastruttura e deployment
+5. Inizia con capitale piccolo
+
+RICORDA:
+- Il backtesting e' solo l'inizio
+- La gestione del rischio e' tutto
+- La consistenza batte i grandi guadagni
+- Continua sempre a imparare
+
+================================================================================

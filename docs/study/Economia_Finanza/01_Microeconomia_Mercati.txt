@@ -1,0 +1,714 @@
+================================================================================
+                      MICROECONOMIA DEI MERCATI
+                 Fondamenti per il Trading Quantitativo
+================================================================================
+
+INDICE
+------
+1. Domanda e Offerta
+2. Equilibrio di Mercato
+3. Elasticità
+4. Teoria dei Giochi
+5. Asimmetria Informativa
+6. Efficienza dei Mercati (EMH)
+7. Market Microstructure
+8. Applicazioni nel Trading
+
+================================================================================
+1. DOMANDA E OFFERTA
+================================================================================
+
+------------------------------------------------------------------------------
+1.1 CURVA DI DOMANDA
+------------------------------------------------------------------------------
+
+La DOMANDA rappresenta la quantità di un bene che i compratori sono 
+disposti ad acquistare a diversi livelli di prezzo.
+
+LEGGE DELLA DOMANDA:
+A parità di altre condizioni, quando il prezzo aumenta, la quantità 
+domandata diminuisce (e viceversa).
+
+    Qd = f(P) con dQd/dP < 0
+
+Nel trading (order book):
+- BID = domanda di comprare
+- Più alto il prezzo che i buyer offrono, meno sono disposti a comprare
+- Order book mostra la curva di domanda aggregata
+
+FATTORI CHE SPOSTANO LA DOMANDA:
+- Reddito dei compratori
+- Prezzi di beni sostituti/complementari
+- Aspettative future
+- Numero di compratori
+- Preferenze/sentiment
+
+------------------------------------------------------------------------------
+1.2 CURVA DI OFFERTA
+------------------------------------------------------------------------------
+
+L'OFFERTA rappresenta la quantità che i venditori sono disposti 
+a vendere a diversi livelli di prezzo.
+
+LEGGE DELL'OFFERTA:
+A parità di altre condizioni, quando il prezzo aumenta, la quantità 
+offerta aumenta.
+
+    Qs = g(P) con dQs/dP > 0
+
+Nel trading (order book):
+- ASK = offerta di vendere
+- Più alto il prezzo, più venditori sono disposti a vendere
+- Order book mostra la curva di offerta aggregata
+
+FATTORI CHE SPOSTANO L'OFFERTA:
+- Costi di produzione
+- Tecnologia
+- Aspettative dei venditori
+- Numero di venditori
+- Regolamentazione
+
+================================================================================
+2. EQUILIBRIO DI MERCATO
+================================================================================
+
+------------------------------------------------------------------------------
+2.1 PREZZO DI EQUILIBRIO
+------------------------------------------------------------------------------
+
+L'EQUILIBRIO si raggiunge quando:
+    Qd(P*) = Qs(P*)
+
+Al prezzo di equilibrio P*:
+- Non c'è eccesso di domanda né di offerta
+- Il mercato si "svuota"
+
+DISEQUILIBRIO:
+- Se P > P*: eccesso di offerta → pressione al ribasso
+- Se P < P*: eccesso di domanda → pressione al rialzo
+
+Nel trading:
+- Il prezzo "corretto" è dove buy e sell orders si bilanciano
+- Gli squilibri temporanei creano opportunità
+
+------------------------------------------------------------------------------
+2.2 PRICE DISCOVERY
+------------------------------------------------------------------------------
+
+PRICE DISCOVERY è il processo attraverso cui il mercato trova 
+il prezzo di equilibrio.
+
+Meccanismi:
+- Continuous trading (matching continuo)
+- Auction (aste periodiche)
+- Dealer markets (market makers quotano)
+
+Nel crypto:
+- Order book matching (limit orders)
+- AMM (Automated Market Makers) in DeFi
+- Arbitrage tra exchange
+
+------------------------------------------------------------------------------
+2.3 COMPARATIVE STATICS
+------------------------------------------------------------------------------
+
+Analizza come cambia l'equilibrio quando cambiano le condizioni.
+
+AUMENTO DELLA DOMANDA:
+- Curva di domanda si sposta a destra
+- Nuovo equilibrio: prezzo più alto, quantità maggiore
+
+AUMENTO DELL'OFFERTA:
+- Curva di offerta si sposta a destra
+- Nuovo equilibrio: prezzo più basso, quantità maggiore
+
+Nel trading:
+- News positive → aumento domanda → prezzo sale
+- Grandi vendite (whale dump) → aumento offerta → prezzo scende
+- Halving Bitcoin → riduzione offerta futura → prezzo sale (teoria)
+
+================================================================================
+3. ELASTICITÀ
+================================================================================
+
+------------------------------------------------------------------------------
+3.1 ELASTICITÀ DELLA DOMANDA AL PREZZO
+------------------------------------------------------------------------------
+
+Misura la sensibilità della quantità domandata alle variazioni di prezzo.
+
+FORMULA:
+    Ed = (% variazione Qd) / (% variazione P)
+    Ed = (dQd/dP) × (P/Qd)
+
+INTERPRETAZIONE:
+- |Ed| > 1: domanda ELASTICA (sensibile al prezzo)
+- |Ed| < 1: domanda INELASTICA (poco sensibile)
+- |Ed| = 1: elasticità unitaria
+
+FATTORI CHE INFLUENZANO L'ELASTICITÀ:
+- Disponibilità di sostituti (più sostituti → più elastica)
+- Necessità vs lusso (necessità → inelastica)
+- Orizzonte temporale (lungo termine → più elastica)
+- Quota del budget (alta quota → più elastica)
+
+Nel trading:
+- Asset con alta elasticità: grandi movimenti di prezzo con piccoli ordini
+- Asset con bassa elasticità (liquidi): servono grandi ordini per muovere il prezzo
+- Slippage è legato all'elasticità dell'offerta/domanda
+
+------------------------------------------------------------------------------
+3.2 ELASTICITÀ INCROCIATA
+------------------------------------------------------------------------------
+
+Misura come la domanda di un bene risponde al prezzo di un altro bene.
+
+    Exy = (% variazione Qx) / (% variazione Py)
+
+- Exy > 0: beni SOSTITUTI (se Y aumenta, si compra più X)
+- Exy < 0: beni COMPLEMENTARI
+- Exy ≈ 0: beni INDIPENDENTI
+
+Nel trading:
+- BTC e ETH: sostituti? (se BTC è "caro", si compra ETH?)
+- In realtà crypto sono spesso correlati positivamente (non sostituti puri)
+
+------------------------------------------------------------------------------
+3.3 ELASTICITÀ DELL'OFFERTA
+------------------------------------------------------------------------------
+
+    Es = (% variazione Qs) / (% variazione P)
+
+- Es > 0 sempre (legge dell'offerta)
+- Es alto: offerta risponde molto al prezzo
+- Es basso: offerta rigida
+
+Bitcoin:
+- Offerta totalmente inelastica nel breve (fixed mining rate)
+- Prezzo determinato interamente dalla domanda
+
+================================================================================
+4. TEORIA DEI GIOCHI
+================================================================================
+
+------------------------------------------------------------------------------
+4.1 CONCETTI BASE
+------------------------------------------------------------------------------
+
+La TEORIA DEI GIOCHI studia situazioni di interazione strategica,
+dove il risultato dipende dalle decisioni di più agenti.
+
+ELEMENTI:
+- Giocatori: chi prende decisioni
+- Strategie: le azioni disponibili
+- Payoff: risultati/guadagni
+
+TIPI DI GIOCHI:
+- Simultanei vs sequenziali
+- A somma zero vs a somma variabile
+- Cooperativi vs non cooperativi
+- One-shot vs ripetuti
+
+------------------------------------------------------------------------------
+4.2 EQUILIBRIO DI NASH
+------------------------------------------------------------------------------
+
+Un EQUILIBRIO DI NASH è una situazione in cui nessun giocatore 
+ha incentivo a cambiare unilateralmente la propria strategia.
+
+Formalmente: per ogni giocatore i:
+    Ui(si*, s-i*) ≥ Ui(si, s-i*) per ogni si
+
+Nel trading:
+- Prezzo di mercato può essere visto come equilibrio di Nash
+- Ogni trader, dato il comportamento degli altri, sta ottimizzando
+
+------------------------------------------------------------------------------
+4.3 DILEMMA DEL PRIGIONIERO
+------------------------------------------------------------------------------
+
+Gioco classico che mostra come l'interesse individuale può 
+portare a risultati sub-ottimali per tutti.
+
+                    Giocatore 2
+                    Coopera    Defeziona
+Giocatore 1  Coopera    (3,3)      (0,5)
+             Defeziona  (5,0)      (1,1)
+
+Equilibrio di Nash: (Defeziona, Defeziona) = (1,1)
+Ma (Coopera, Coopera) = (3,3) sarebbe meglio per entrambi!
+
+Nel trading:
+- Flash crash: tutti vendono per paura che altri vendano
+- Liquidity crisis: nessuno vuole essere market maker
+- Pump and dump: chi esce prima vince
+
+------------------------------------------------------------------------------
+4.4 GIOCHI RIPETUTI
+------------------------------------------------------------------------------
+
+Quando il gioco si ripete, possono emergere strategie cooperative.
+
+STRATEGIE:
+- Tit-for-tat: coopera, poi copia la mossa dell'avversario
+- Grim trigger: coopera finché l'altro coopera, poi defeziona sempre
+- Forgiving: tollera qualche defezione occasionale
+
+Nel trading:
+- Market makers costruiscono reputazione (gioco ripetuto)
+- Relazioni a lungo termine permettono cooperazione
+
+------------------------------------------------------------------------------
+4.5 APPLICAZIONI NEL TRADING
+------------------------------------------------------------------------------
+
+BIDDING IN AUCTIONS:
+Come fare offerte ottimali sapendo che altri competono.
+
+MARKET MAKING:
+Decidere spread e inventory sapendo che ci sono trader informati.
+
+PREDATORY TRADING:
+Sapendo che un grande fondo deve liquidare, come sfruttarlo?
+
+ORDER PLACEMENT:
+Dove mettere ordini sapendo che altri osservano l'order book?
+
+================================================================================
+5. ASIMMETRIA INFORMATIVA
+================================================================================
+
+------------------------------------------------------------------------------
+5.1 INFORMAZIONE ASIMMETRICA
+------------------------------------------------------------------------------
+
+Si ha ASIMMETRIA INFORMATIVA quando una parte ha più informazioni 
+dell'altra in una transazione.
+
+TIPI:
+- Hidden information: una parte sa qualcosa che l'altra ignora
+- Hidden action: una parte non può osservare le azioni dell'altra
+
+PROBLEMI RISULTANTI:
+- Selezione avversa (adverse selection)
+- Azzardo morale (moral hazard)
+
+------------------------------------------------------------------------------
+5.2 SELEZIONE AVVERSA
+------------------------------------------------------------------------------
+
+I "cattivi" rischi tendono a dominare il mercato perché i "buoni" 
+rischi escono (o non entrano).
+
+Esempio classico: mercato auto usate (Akerlof)
+- Venditori sanno se l'auto è buona o un "limone"
+- Compratori non possono distinguere
+- Prezzo medio → solo limoni vengono venduti
+
+Nel trading:
+- Trader informati sanno il "vero" valore
+- Market makers non sanno se stanno tradando con informati o noise traders
+- Spread bid-ask compensa per questo rischio
+
+------------------------------------------------------------------------------
+5.3 AZZARDO MORALE
+------------------------------------------------------------------------------
+
+Quando una parte può prendere azioni non osservabili che danneggiano l'altra.
+
+Esempi:
+- Manager che prendono rischi eccessivi con soldi degli azionisti
+- Trader che nascondono perdite
+- Too big to fail: banche che rischiano sapendo di essere salvate
+
+Soluzioni:
+- Incentivi allineati (bonus legati a performance)
+- Monitoring
+- Skin in the game
+
+------------------------------------------------------------------------------
+5.4 TRADER INFORMATI VS NON INFORMATI
+------------------------------------------------------------------------------
+
+Kyle (1985) model:
+
+Tre tipi di trader:
+1. INFORMED: conoscono il valore fondamentale
+2. NOISE TRADERS: tradano per ragioni non informative
+3. MARKET MAKER: fissa i prezzi, cerca di inferire informazione
+
+Il market maker:
+- Osserva il flusso totale di ordini
+- Non distingue informed da noise
+- Aggiusta i prezzi per proteggersi
+
+IMPLICAZIONI:
+- Spread è compenso per asimmetria informativa
+- Più trading informato → spread più ampio
+- High-frequency traders possono essere "informed"
+
+================================================================================
+6. EFFICIENZA DEI MERCATI (EMH)
+================================================================================
+
+------------------------------------------------------------------------------
+6.1 EFFICIENT MARKET HYPOTHESIS
+------------------------------------------------------------------------------
+
+DEFINIZIONE (Fama, 1970):
+Un mercato è efficiente se i prezzi riflettono pienamente 
+tutta l'informazione disponibile.
+
+IMPLICAZIONE:
+Non è possibile battere il mercato sistematicamente 
+usando informazione già nota.
+
+I prezzi seguono un RANDOM WALK:
+    Pt+1 = Pt + εt+1
+
+Dove εt+1 è imprevedibile (news).
+
+------------------------------------------------------------------------------
+6.2 TRE FORME DI EFFICIENZA
+------------------------------------------------------------------------------
+
+FORMA DEBOLE:
+I prezzi riflettono tutta l'informazione contenuta nei prezzi passati.
+→ Analisi tecnica non funziona
+
+FORMA SEMI-FORTE:
+I prezzi riflettono tutta l'informazione pubblica.
+→ Analisi fondamentale non funziona
+
+FORMA FORTE:
+I prezzi riflettono TUTTA l'informazione, anche privata.
+→ Neanche insider trading funziona
+
+------------------------------------------------------------------------------
+6.3 EVIDENZE E CRITICHE
+------------------------------------------------------------------------------
+
+EVIDENZE A FAVORE:
+- Difficoltà dei fondi attivi a battere gli indici
+- Random walk approssimato per molti asset
+- Reazione rapida alle news
+
+ANOMALIE (contro EMH):
+- Momentum: asset che sono saliti continuano a salire
+- Value premium: azioni "value" battono "growth"
+- Size effect: small cap outperformano
+- January effect
+- Post-earnings announcement drift
+
+SPIEGAZIONI ALTERNATIVE:
+- Risk premium: anomalie sono compenso per rischio
+- Behavioral finance: bias cognitivi creano inefficienze
+- Limiti all'arbitraggio: costi e rischi impediscono correzione
+
+------------------------------------------------------------------------------
+6.4 BEHAVIORAL FINANCE
+------------------------------------------------------------------------------
+
+Critica all'assunzione di razionalità perfetta.
+
+BIAS COGNITIVI:
+- Overconfidence: troppa fiducia nelle proprie previsioni
+- Confirmation bias: cercare info che conferma le nostre credenze
+- Anchoring: ancorarsi a valori arbitrari
+- Herding: seguire la folla
+- Loss aversion: perdite pesano più dei guadagni equivalenti
+- Disposition effect: vendere vincitori troppo presto, tenere perdenti
+
+IMPLICAZIONI:
+- Prezzi possono deviare dai fondamentali
+- Bolle e crash
+- Opportunità per trader disciplinati
+
+================================================================================
+7. MARKET MICROSTRUCTURE
+================================================================================
+
+------------------------------------------------------------------------------
+7.1 DEFINIZIONE
+------------------------------------------------------------------------------
+
+MARKET MICROSTRUCTURE studia i meccanismi attraverso cui 
+avvengono gli scambi e si formano i prezzi.
+
+Domande chiave:
+- Come si scopre il prezzo?
+- Quali sono i costi di transazione?
+- Come le regole del mercato influenzano gli outcome?
+
+------------------------------------------------------------------------------
+7.2 STRUTTURE DI MERCATO
+------------------------------------------------------------------------------
+
+ORDER-DRIVEN MARKET:
+- Order book con bid e ask
+- Matching automatico
+- Trasparenza pre-trade
+- Esempi: Binance, NYSE
+
+QUOTE-DRIVEN MARKET:
+- Dealer/market makers quotano prezzi
+- Meno trasparenza
+- Esempi: Forex, OTC markets
+
+HYBRID:
+- Combinazione dei due
+- Market makers + order book
+
+------------------------------------------------------------------------------
+7.3 ORDER BOOK
+------------------------------------------------------------------------------
+
+L'ORDER BOOK è il registro di tutti gli ordini limite in attesa.
+
+BID SIDE (compratori):
+    Prezzo    Quantità
+    $100.00   500
+    $99.95    1200
+    $99.90    800
+
+ASK SIDE (venditori):
+    Prezzo    Quantità
+    $100.05   300
+    $100.10   900
+    $100.15   600
+
+TERMINOLOGIA:
+- Best Bid: prezzo più alto a cui qualcuno vuole comprare
+- Best Ask: prezzo più basso a cui qualcuno vuole vendere
+- Spread: Best Ask - Best Bid
+- Mid Price: (Best Bid + Best Ask) / 2
+- Depth: quantità totale disponibile a vari livelli
+
+------------------------------------------------------------------------------
+7.4 TIPI DI ORDINI
+------------------------------------------------------------------------------
+
+MARKET ORDER:
+- Esegui immediatamente al miglior prezzo disponibile
+- Garantisce esecuzione, non il prezzo
+- "Taker" di liquidità
+
+LIMIT ORDER:
+- Esegui solo al prezzo specificato o meglio
+- Può non essere eseguito
+- "Maker" di liquidità
+
+STOP ORDER:
+- Diventa market order quando il prezzo raggiunge trigger
+- Stop loss, stop entry
+
+STOP-LIMIT:
+- Diventa limit order quando trigger raggiunto
+
+ICEBERG/HIDDEN:
+- Mostra solo parte della quantità
+- Nasconde dimensione reale
+
+------------------------------------------------------------------------------
+7.5 COSTI DI TRANSAZIONE
+------------------------------------------------------------------------------
+
+COSTI ESPLICITI:
+- Commissioni exchange
+- Funding fees (futures)
+- Network fees (crypto)
+
+COSTI IMPLICITI:
+- Spread bid-ask
+- Market impact (il tuo ordine muove il prezzo)
+- Slippage (differenza tra prezzo atteso e eseguito)
+- Timing cost (il prezzo si muove mentre aspetti)
+
+SPREAD COMPONENTS:
+1. Order processing cost
+2. Inventory cost (market maker risk)
+3. Adverse selection cost (trading con informati)
+
+------------------------------------------------------------------------------
+7.6 MARKET IMPACT
+------------------------------------------------------------------------------
+
+Quando esegui un ordine grande, MUOVI il prezzo.
+
+TEMPORARY IMPACT:
+- Prezzo si muove durante l'esecuzione
+- Tende a revertire dopo
+
+PERMANENT IMPACT:
+- L'ordine rivela informazione
+- Il prezzo rimane al nuovo livello
+
+MODELLO ALMGREN-CHRISS:
+Ottimizza l'esecuzione bilanciando:
+- Market impact (eseguire veloce = più impatto)
+- Timing risk (eseguire lento = rischio prezzo si muova)
+
+SQUARE-ROOT LAW:
+    Impact ∝ σ × √(V/ADV)
+
+Dove:
+- σ = volatilità
+- V = volume da eseguire
+- ADV = average daily volume
+
+------------------------------------------------------------------------------
+7.7 HIGH-FREQUENCY TRADING (HFT)
+------------------------------------------------------------------------------
+
+Trading automatizzato ad altissima velocità.
+
+STRATEGIE HFT:
+- Market making: fornire liquidità, guadagnare spread
+- Arbitrage: sfruttare discrepanze tra exchange
+- Momentum ignition: spingere il prezzo, poi tradare nella direzione
+- Latency arbitrage: essere più veloci di altri
+
+IMPATTO:
+- Pro: più liquidità, spread più stretti
+- Contro: flash crash, predatory trading, unfair advantage
+
+================================================================================
+8. APPLICAZIONI NEL TRADING
+================================================================================
+
+------------------------------------------------------------------------------
+8.1 ANALISI DELL'ORDER BOOK
+------------------------------------------------------------------------------
+
+IMBALANCE:
+    Imb = (Bid Vol - Ask Vol) / (Bid Vol + Ask Vol)
+
+- Imb > 0: più pressione di acquisto
+- Imb < 0: più pressione di vendita
+
+DEPTH ANALYSIS:
+- Livelli con molto volume = supporto/resistenza
+- "Walls" (muri di ordini) possono bloccare il prezzo
+- Attenzione: possono essere spoofing
+
+------------------------------------------------------------------------------
+8.2 SFRUTTARE INEFFICIENZE
+------------------------------------------------------------------------------
+
+MEAN REVERSION TEMPORANEO:
+Quando l'order flow spinge il prezzo lontano dal fair value:
+- Market makers comprano a prezzi bassi
+- Vendono quando il prezzo torna
+
+INFORMATION TRADING:
+Se hai informazione superiore:
+- Trada prima che si rifletta nei prezzi
+- Attention: insider trading è illegale
+
+ARBITRAGE:
+- Cross-exchange: prezzo diverso su exchange diversi
+- Statistical: relazioni storiche che si rompono temporaneamente
+
+------------------------------------------------------------------------------
+8.3 OPTIMAL EXECUTION
+------------------------------------------------------------------------------
+
+Come eseguire un ordine grande minimizzando i costi?
+
+STRATEGIE:
+- TWAP (Time-Weighted Average Price): dividi uniformemente nel tempo
+- VWAP (Volume-Weighted): segui il profilo di volume
+- Implementation Shortfall: minimizza slippage vs decision price
+- Adaptive: aggiusta in base alle condizioni di mercato
+
+------------------------------------------------------------------------------
+8.4 CODICE PYTHON
+------------------------------------------------------------------------------
+
+```python
+import numpy as np
+
+# Simulazione Order Book
+class OrderBook:
+    def __init__(self):
+        # Bid: {prezzo: quantità}
+        self.bids = {100.0: 500, 99.95: 1200, 99.90: 800, 99.85: 1500}
+        # Ask: {prezzo: quantità}
+        self.asks = {100.05: 300, 100.10: 900, 100.15: 600, 100.20: 1100}
+    
+    def best_bid(self):
+        return max(self.bids.keys())
+    
+    def best_ask(self):
+        return min(self.asks.keys())
+    
+    def spread(self):
+        return self.best_ask() - self.best_bid()
+    
+    def mid_price(self):
+        return (self.best_bid() + self.best_ask()) / 2
+    
+    def imbalance(self, levels=3):
+        """Calcola order book imbalance"""
+        bid_prices = sorted(self.bids.keys(), reverse=True)[:levels]
+        ask_prices = sorted(self.asks.keys())[:levels]
+        
+        bid_vol = sum(self.bids[p] for p in bid_prices)
+        ask_vol = sum(self.asks[p] for p in ask_prices)
+        
+        return (bid_vol - ask_vol) / (bid_vol + ask_vol)
+    
+    def market_impact(self, size, side='buy'):
+        """Stima il market impact di un ordine"""
+        if side == 'buy':
+            prices = sorted(self.asks.keys())
+            book = self.asks
+        else:
+            prices = sorted(self.bids.keys(), reverse=True)
+            book = self.bids
+        
+        remaining = size
+        total_cost = 0
+        
+        for price in prices:
+            if remaining <= 0:
+                break
+            qty = min(remaining, book[price])
+            total_cost += qty * price
+            remaining -= qty
+        
+        avg_price = total_cost / (size - remaining) if remaining < size else None
+        return avg_price
+
+# Test
+ob = OrderBook()
+print("="*50)
+print("ORDER BOOK ANALYSIS")
+print("="*50)
+print(f"Best Bid: ${ob.best_bid()}")
+print(f"Best Ask: ${ob.best_ask()}")
+print(f"Spread: ${ob.spread():.2f}")
+print(f"Mid Price: ${ob.mid_price():.3f}")
+print(f"Imbalance (3 levels): {ob.imbalance(3):.3f}")
+print(f"\nMarket Impact (buy 1000): ${ob.market_impact(1000, 'buy'):.3f}")
+print(f"Market Impact (buy 2000): ${ob.market_impact(2000, 'buy'):.3f}")
+
+# Elasticità
+def price_elasticity(q1, q2, p1, p2):
+    """Calcola elasticità punto medio"""
+    pct_q = (q2 - q1) / ((q1 + q2) / 2)
+    pct_p = (p2 - p1) / ((p1 + p2) / 2)
+    return pct_q / pct_p
+
+# Esempio
+e = price_elasticity(1000, 800, 100, 110)
+print(f"\nElasticità domanda: {e:.2f}")
+if abs(e) > 1:
+    print("Domanda ELASTICA")
+else:
+    print("Domanda INELASTICA")
+```
+
+================================================================================
+                              FINE DOCUMENTO
+================================================================================

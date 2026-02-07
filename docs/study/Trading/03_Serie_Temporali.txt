@@ -1,0 +1,1314 @@
+================================================================================
+                           SERIE TEMPORALI
+              Analisi e Modellazione per il Trading Quantitativo
+================================================================================
+
+INDICE
+------
+1. Introduzione alle Serie Temporali
+2. Componenti di una Serie Temporale
+3. Stazionarietà
+4. Autocorrelazione
+5. Modelli AR, MA, ARMA
+6. Modelli ARIMA
+7. Modelli di Volatilità (ARCH/GARCH)
+8. Cointegrazione
+9. Applicazioni nel Trading
+10. Codice Python
+
+================================================================================
+1. INTRODUZIONE ALLE SERIE TEMPORALI
+================================================================================
+
+------------------------------------------------------------------------------
+1.1 DEFINIZIONE
+------------------------------------------------------------------------------
+
+Una SERIE TEMPORALE è una sequenza di osservazioni ordinate nel tempo:
+{X_t : t = 1, 2, 3, ..., T}
+
+Nel trading, le serie temporali più comuni sono:
+- Prezzi di chiusura (Close)
+- OHLCV (Open, High, Low, Close, Volume)
+- Rendimenti
+- Volatilità
+- Indicatori tecnici
+
+Caratteristiche distintive:
+- L'ordine temporale è importante
+- Le osservazioni NON sono indipendenti
+- C'è struttura temporale da sfruttare
+
+------------------------------------------------------------------------------
+1.2 NOTAZIONE
+------------------------------------------------------------------------------
+
+X_t = valore al tempo t
+X_{t-1} = valore un periodo fa (lag 1)
+X_{t-k} = valore k periodi fa (lag k)
+ΔX_t = X_t - X_{t-1} = prima differenza
+Δ²X_t = ΔX_t - ΔX_{t-1} = seconda differenza
+
+------------------------------------------------------------------------------
+1.3 TIPI DI DATI NEL TRADING
+------------------------------------------------------------------------------
+
+PREZZI:
+- Non stazionari (trend)
+- Sempre positivi
+- Autocorrelati
+
+RENDIMENTI:
+- Più vicini alla stazionarietà
+- Possono essere negativi
+- Meno autocorrelati (ma non completamente)
+- Rendimento semplice: r_t = (P_t - P_{t-1}) / P_{t-1}
+- Rendimento logaritmico: r_t = ln(P_t / P_{t-1})
+
+VOLATILITÀ:
+- Non stazionaria
+- Sempre positiva
+- Fortemente autocorrelata (clustering)
+
+================================================================================
+2. COMPONENTI DI UNA SERIE TEMPORALE
+================================================================================
+
+Una serie temporale può essere decomposta in:
+
+X_t = T_t + S_t + C_t + ε_t
+
+Dove:
+- T_t = Trend (componente di lungo periodo)
+- S_t = Stagionalità (pattern periodici regolari)
+- C_t = Ciclo (fluttuazioni di medio periodo)
+- ε_t = Rumore/Residuo (componente casuale)
+
+------------------------------------------------------------------------------
+2.1 TREND
+------------------------------------------------------------------------------
+
+Movimento di lungo periodo verso l'alto o verso il basso.
+
+Tipi di trend:
+- Lineare: T_t = a + bt
+- Quadratico: T_t = a + bt + ct²
+- Esponenziale: T_t = ae^(bt)
+- Stocastico: trend che cambia nel tempo
+
+Nel trading:
+- Bull market = trend rialzista
+- Bear market = trend ribassista
+- Sideways = assenza di trend
+
+Rimozione del trend:
+- Differenziazione: ΔX_t = X_t - X_{t-1}
+- Detrendizzazione: sottrai linea di trend
+- Trasformazione logaritmica
+
+------------------------------------------------------------------------------
+2.2 STAGIONALITÀ
+------------------------------------------------------------------------------
+
+Pattern che si ripetono a intervalli regolari.
+
+Esempi nel trading:
+- Effetto gennaio (mercati azionari)
+- Effetto lunedì
+- Effetto fine mese/trimestre
+- Stagionalità intraday (apertura/chiusura)
+- Expiration Friday (opzioni)
+- Halving cycle (Bitcoin ogni ~4 anni)
+
+Identificazione:
+- Grafici stagionali
+- Autocorrelazione a lag stagionali
+- Decomposizione STL
+
+------------------------------------------------------------------------------
+2.3 CICLI
+------------------------------------------------------------------------------
+
+Fluttuazioni di periodo variabile (non fisso come stagionalità).
+
+Esempi:
+- Cicli economici (espansione/recessione)
+- Cicli di mercato (bull/bear)
+- Cicli di volatilità
+
+Differenza con stagionalità:
+- Stagionalità: periodo FISSO e NOTO
+- Cicli: periodo VARIABILE
+
+------------------------------------------------------------------------------
+2.4 DECOMPOSIZIONE
+------------------------------------------------------------------------------
+
+DECOMPOSIZIONE ADDITIVA:
+X_t = T_t + S_t + ε_t
+
+Quando le fluttuazioni stagionali sono costanti in ampiezza.
+
+DECOMPOSIZIONE MOLTIPLICATIVA:
+X_t = T_t × S_t × ε_t
+
+Quando le fluttuazioni stagionali crescono con il trend.
+(Più comune per dati finanziari)
+
+Metodi:
+- Decomposizione classica
+- STL (Seasonal and Trend decomposition using Loess)
+- X-11, X-12-ARIMA, X-13ARIMA-SEATS
+
+================================================================================
+3. STAZIONARIETÀ
+================================================================================
+
+------------------------------------------------------------------------------
+3.1 DEFINIZIONE
+------------------------------------------------------------------------------
+
+Una serie temporale è STAZIONARIA se le sue proprietà statistiche
+non cambiano nel tempo.
+
+STAZIONARIETÀ DEBOLE (Weak/Covariance Stationarity):
+1. E[X_t] = μ (media costante)
+2. Var(X_t) = σ² (varianza costante)
+3. Cov(X_t, X_{t-k}) = γ_k (dipende solo dal lag k, non da t)
+
+STAZIONARIETÀ FORTE (Strict Stationarity):
+La distribuzione congiunta di (X_t, X_{t+1}, ..., X_{t+k}) è uguale
+a quella di (X_{t+h}, X_{t+h+1}, ..., X_{t+h+k}) per ogni h.
+
+------------------------------------------------------------------------------
+3.2 PERCHÉ È IMPORTANTE
+------------------------------------------------------------------------------
+
+La stazionarietà è CRUCIALE perché:
+
+1. La maggior parte dei modelli statistici la assume
+2. Permette di fare inferenza (i parametri hanno significato)
+3. Permette previsioni sensate
+4. I test statistici sono validi
+
+Serie NON stazionarie possono portare a:
+- Regressioni spurie (correlazioni false)
+- Parametri instabili
+- Previsioni inaffidabili
+
+------------------------------------------------------------------------------
+3.3 PREZZI VS RENDIMENTI
+------------------------------------------------------------------------------
+
+PREZZI: tipicamente NON stazionari
+- La media cambia nel tempo (trend)
+- La varianza può cambiare
+- Sono integrati di ordine 1: I(1)
+
+RENDIMENTI: tipicamente stazionari (o quasi)
+- Media relativamente costante (~0)
+- Varianza può variare (ma modellabile con GARCH)
+- Sono la prima differenza dei log-prezzi
+
+Random Walk:
+P_t = P_{t-1} + ε_t
+
+I prezzi seguono un random walk → i rendimenti sono stazionari:
+r_t = P_t - P_{t-1} = ε_t
+
+------------------------------------------------------------------------------
+3.4 TEST DI STAZIONARIETÀ
+------------------------------------------------------------------------------
+
+TEST ADF (Augmented Dickey-Fuller):
+Ipotesi nulla H0: la serie ha una radice unitaria (NON stazionaria)
+Ipotesi alternativa H1: la serie è stazionaria
+
+ΔX_t = α + βt + γX_{t-1} + Σδ_iΔX_{t-i} + ε_t
+
+Se γ < 0 significativamente, rifiutiamo H0 → serie stazionaria
+
+Interpretazione:
+- p-value < 0.05 → serie stazionaria
+- p-value ≥ 0.05 → serie NON stazionaria
+
+TEST KPSS (Kwiatkowski-Phillips-Schmidt-Shin):
+H0: la serie è stazionaria
+H1: la serie NON è stazionaria
+
+(Ipotesi invertite rispetto ad ADF)
+
+Best practice: usare ENTRAMBI i test:
+- ADF rifiuta H0 AND KPSS non rifiuta H0 → stazionaria
+- ADF non rifiuta H0 AND KPSS rifiuta H0 → non stazionaria
+- Risultati discordanti → situazione ambigua
+
+TEST PP (Phillips-Perron):
+Simile ad ADF ma con correzione per autocorrelazione.
+
+------------------------------------------------------------------------------
+3.5 RENDERE UNA SERIE STAZIONARIA
+------------------------------------------------------------------------------
+
+DIFFERENZIAZIONE:
+ΔX_t = X_t - X_{t-1}
+
+Se una differenza non basta:
+Δ²X_t = ΔX_t - ΔX_{t-1}
+
+DIFFERENZIAZIONE STAGIONALE:
+ΔsX_t = X_t - X_{t-s}
+
+Dove s è il periodo stagionale.
+
+TRASFORMAZIONE LOGARITMICA:
+Y_t = ln(X_t)
+
+Utile quando la varianza cresce con il livello.
+I log-rendimenti: ln(P_t) - ln(P_{t-1}) = ln(P_t/P_{t-1})
+
+DETRENDIZZAZIONE:
+Rimuovi il trend stimato.
+
+ORDINE DI INTEGRAZIONE:
+Una serie è I(d) se diventa stazionaria dopo d differenziazioni.
+- I(0): già stazionaria
+- I(1): stazionaria dopo 1 differenza
+- I(2): stazionaria dopo 2 differenze
+
+I prezzi sono tipicamente I(1).
+
+================================================================================
+4. AUTOCORRELAZIONE
+================================================================================
+
+------------------------------------------------------------------------------
+4.1 DEFINIZIONE
+------------------------------------------------------------------------------
+
+L'AUTOCORRELAZIONE misura la correlazione di una serie con se stessa
+a diversi lag.
+
+Autocovarianza al lag k:
+γ_k = Cov(X_t, X_{t-k}) = E[(X_t - μ)(X_{t-k} - μ)]
+
+Autocorrelazione (ACF) al lag k:
+ρ_k = γ_k / γ_0 = Corr(X_t, X_{t-k})
+
+Proprietà:
+- ρ_0 = 1 (sempre)
+- -1 ≤ ρ_k ≤ 1
+- ρ_k = ρ_{-k} (simmetrica)
+
+------------------------------------------------------------------------------
+4.2 AUTOCORRELAZIONE PARZIALE (PACF)
+------------------------------------------------------------------------------
+
+L'autocorrelazione PARZIALE al lag k misura la correlazione tra
+X_t e X_{t-k} DOPO aver rimosso l'effetto dei lag intermedi.
+
+φ_kk = Corr(X_t, X_{t-k} | X_{t-1}, ..., X_{t-k+1})
+
+Utile per identificare l'ordine di un modello AR.
+
+------------------------------------------------------------------------------
+4.3 CORRELOGRAMMA
+------------------------------------------------------------------------------
+
+Grafico di ACF o PACF contro i lag.
+
+Interpretazione:
+- Bande di confidenza: ±1.96/√n (al 95%)
+- Valori fuori dalle bande sono significativi
+- Il pattern indica il tipo di processo
+
+Pattern tipici:
+
+WHITE NOISE:
+- ACF: tutti valori dentro le bande
+- PACF: tutti valori dentro le bande
+
+AR(p) - Autoregressivo:
+- ACF: decadimento esponenziale o sinusoidale
+- PACF: cutoff dopo lag p (significativo solo fino a p)
+
+MA(q) - Media Mobile:
+- ACF: cutoff dopo lag q
+- PACF: decadimento esponenziale o sinusoidale
+
+ARMA(p,q):
+- ACF: decadimento dopo lag q
+- PACF: decadimento dopo lag p
+
+NON STAZIONARIO:
+- ACF: decadimento molto lento (quasi lineare)
+
+------------------------------------------------------------------------------
+4.4 TEST DI LJUNG-BOX
+------------------------------------------------------------------------------
+
+Testa se i primi m autocorrelazioni sono congiuntamente zero.
+
+H0: ρ_1 = ρ_2 = ... = ρ_m = 0 (white noise)
+H1: almeno uno ρ_k ≠ 0
+
+Statistica test:
+Q = n(n+2) × Σ(ρ̂_k² / (n-k)) ~ χ²(m)
+
+Se Q > valore critico, rifiutiamo H0.
+
+Applicazione:
+- Test sui residui di un modello
+- Verifica che i residui siano white noise
+
+================================================================================
+5. MODELLI AR, MA, ARMA
+================================================================================
+
+------------------------------------------------------------------------------
+5.1 MODELLO AR (Autoregressivo)
+------------------------------------------------------------------------------
+
+AR(p): il valore corrente dipende dai p valori passati.
+
+X_t = c + φ₁X_{t-1} + φ₂X_{t-2} + ... + φ_pX_{t-p} + ε_t
+
+Dove:
+- c = costante
+- φ_i = coefficienti AR
+- ε_t = white noise (errore)
+
+AR(1):
+X_t = c + φX_{t-1} + ε_t
+
+Condizione di stazionarietà: |φ| < 1
+Se φ = 1, abbiamo un random walk (non stazionario).
+
+Interpretazione nel trading:
+- φ > 0: momentum (trend continuation)
+- φ < 0: mean reversion
+- |φ| vicino a 1: forte persistenza
+- |φ| vicino a 0: comportamento quasi random
+
+------------------------------------------------------------------------------
+5.2 MODELLO MA (Media Mobile)
+------------------------------------------------------------------------------
+
+MA(q): il valore corrente dipende dagli errori passati.
+
+X_t = c + ε_t + θ₁ε_{t-1} + θ₂ε_{t-2} + ... + θ_qε_{t-q}
+
+Dove:
+- c = media del processo
+- θ_i = coefficienti MA
+- ε_t = white noise
+
+MA(1):
+X_t = c + ε_t + θε_{t-1}
+
+I processi MA sono SEMPRE stazionari.
+
+Condizione di invertibilità: |θ| < 1
+(necessaria per rappresentazione AR infinita)
+
+Interpretazione:
+MA modella shock temporanei che persistono per q periodi.
+
+------------------------------------------------------------------------------
+5.3 MODELLO ARMA (Autoregressivo Media Mobile)
+------------------------------------------------------------------------------
+
+ARMA(p,q): combina AR e MA.
+
+X_t = c + Σφ_iX_{t-i} + Σθ_jε_{t-j} + ε_t
+
+ARMA(1,1):
+X_t = c + φX_{t-1} + ε_t + θε_{t-1}
+
+Vantaggi:
+- Più parsimonioso di AR o MA puri
+- Cattura sia persistenza che shock
+
+Stazionarietà: dipende dalla parte AR (tutte radici fuori cerchio unitario)
+Invertibilità: dipende dalla parte MA
+
+------------------------------------------------------------------------------
+5.4 IDENTIFICAZIONE DEL MODELLO
+------------------------------------------------------------------------------
+
+Usa ACF e PACF:
+
+| Modello | ACF                    | PACF                   |
+|---------|------------------------|------------------------|
+| AR(p)   | Decadimento            | Cutoff dopo lag p      |
+| MA(q)   | Cutoff dopo lag q      | Decadimento            |
+| ARMA    | Decadimento            | Decadimento            |
+
+Criteri di informazione per selezione modello:
+- AIC (Akaike Information Criterion)
+- BIC (Bayesian Information Criterion)
+- HQIC (Hannan-Quinn Information Criterion)
+
+Formula AIC:
+AIC = 2k - 2ln(L)
+
+Dove k = numero parametri, L = likelihood
+
+Regola: scegli il modello con AIC/BIC più BASSO.
+
+================================================================================
+6. MODELLI ARIMA
+================================================================================
+
+------------------------------------------------------------------------------
+6.1 DEFINIZIONE
+------------------------------------------------------------------------------
+
+ARIMA(p, d, q) = ARMA applicato a serie differenziata d volte.
+
+- p = ordine AR
+- d = ordine di differenziazione
+- q = ordine MA
+
+Se d = 0: ARIMA(p, 0, q) = ARMA(p, q)
+
+Equazione (per d=1):
+ΔX_t = c + Σφ_iΔX_{t-i} + Σθ_jε_{t-j} + ε_t
+
+------------------------------------------------------------------------------
+6.2 ARIMA STAGIONALE - SARIMA
+------------------------------------------------------------------------------
+
+SARIMA(p, d, q)(P, D, Q)_s
+
+Aggiunge componenti stagionali:
+- P = ordine AR stagionale
+- D = differenziazione stagionale
+- Q = ordine MA stagionale
+- s = periodo stagionale
+
+Esempio: SARIMA(1,1,1)(1,1,1)₁₂ per dati mensili con stagionalità annuale.
+
+------------------------------------------------------------------------------
+6.3 BOX-JENKINS METHODOLOGY
+------------------------------------------------------------------------------
+
+Procedura classica per costruire modelli ARIMA:
+
+1. IDENTIFICAZIONE
+   - Verifica stazionarietà (test ADF)
+   - Se non stazionaria, differenzia
+   - Analizza ACF e PACF per identificare p e q
+
+2. STIMA
+   - Stima parametri con Maximum Likelihood
+   - Verifica significatività
+
+3. DIAGNOSTICA
+   - Residui devono essere white noise
+   - Test Ljung-Box sui residui
+   - Normalità residui (Q-Q plot)
+
+4. PREVISIONE
+   - Se diagnostica OK, usa per prevedere
+
+------------------------------------------------------------------------------
+6.4 PREVISIONI
+------------------------------------------------------------------------------
+
+Previsione a un passo:
+X̂_{t+1|t} = E[X_{t+1} | X_t, X_{t-1}, ...]
+
+Previsione a h passi:
+X̂_{t+h|t} = E[X_{t+h} | X_t, X_{t-1}, ...]
+
+Per ARIMA, le previsioni convergono alla media per h → ∞.
+
+Intervalli di confidenza:
+X̂_{t+h} ± z_{α/2} × σ̂_h
+
+Dove σ̂_h aumenta con l'orizzonte di previsione.
+
+================================================================================
+7. MODELLI DI VOLATILITÀ (ARCH/GARCH)
+================================================================================
+
+------------------------------------------------------------------------------
+7.1 PERCHÉ SERVONO
+------------------------------------------------------------------------------
+
+I rendimenti finanziari hanno proprietà che ARMA non cattura:
+- Volatility clustering
+- Leptokurtosis (code pesanti)
+- Effetto leverage
+
+VOLATILITY CLUSTERING:
+"Grandi cambiamenti tendono a essere seguiti da grandi cambiamenti,
+piccoli cambiamenti da piccoli cambiamenti" - Mandelbrot
+
+I rendimenti sono poco autocorrelati, ma i loro QUADRATI
+(proxy della varianza) sono molto autocorrelati.
+
+------------------------------------------------------------------------------
+7.2 MODELLO ARCH
+------------------------------------------------------------------------------
+
+ARCH(q) - AutoRegressive Conditional Heteroskedasticity
+
+r_t = μ + ε_t
+ε_t = σ_t × z_t, dove z_t ~ N(0,1)
+σ²_t = α₀ + α₁ε²_{t-1} + α₂ε²_{t-2} + ... + α_qε²_{t-q}
+
+La varianza condizionata dipende dagli shock passati.
+
+ARCH(1):
+σ²_t = α₀ + α₁ε²_{t-1}
+
+Condizioni:
+- α₀ > 0
+- α_i ≥ 0 per ogni i
+- Σα_i < 1 per stazionarietà
+
+------------------------------------------------------------------------------
+7.3 MODELLO GARCH
+------------------------------------------------------------------------------
+
+GARCH(p,q) - Generalized ARCH
+
+σ²_t = ω + Σα_iε²_{t-i} + Σβ_jσ²_{t-j}
+
+GARCH(1,1) (il più usato):
+σ²_t = ω + αε²_{t-1} + βσ²_{t-1}
+
+Interpretazione:
+- ω: baseline variance
+- α: reazione agli shock recenti
+- β: persistenza della volatilità
+- α + β: persistenza totale (vicino a 1 = alta persistenza)
+
+Condizioni:
+- ω > 0, α ≥ 0, β ≥ 0
+- α + β < 1 per stazionarietà
+
+Varianza non condizionata:
+σ² = ω / (1 - α - β)
+
+------------------------------------------------------------------------------
+7.4 VARIANTI DI GARCH
+------------------------------------------------------------------------------
+
+EGARCH (Exponential GARCH):
+ln(σ²_t) = ω + α|z_{t-1}| + γz_{t-1} + βln(σ²_{t-1})
+
+- γ cattura l'effetto leverage
+- γ < 0: shock negativi aumentano la volatilità più dei positivi
+
+GJR-GARCH (Glosten-Jagannathan-Runkle):
+σ²_t = ω + (α + γI_{t-1})ε²_{t-1} + βσ²_{t-1}
+
+Dove I_{t-1} = 1 se ε_{t-1} < 0 (indicatore)
+- γ > 0: effetto leverage
+
+TGARCH (Threshold GARCH):
+Simile a GJR, modella asimmetria.
+
+IGARCH (Integrated GARCH):
+α + β = 1, varianza non condizionata infinita.
+Persistenza massima.
+
+------------------------------------------------------------------------------
+7.5 APPLICAZIONI NEL TRADING
+------------------------------------------------------------------------------
+
+1. PREVISIONE VOLATILITÀ
+   - Forecast σ_{t+1} per position sizing
+   - Calcolo VaR dinamico
+
+2. OPTION PRICING
+   - Volatilità implicita vs realizzata
+   - Volatilità variabile nel tempo
+
+3. RISK MANAGEMENT
+   - VaR con volatilità dinamica più accurato
+   - Stress testing
+
+4. TRADING SIGNALS
+   - Alta volatilità prevista → ridurre esposizione
+   - Bassa volatilità prevista → aumentare esposizione
+
+================================================================================
+8. COINTEGRAZIONE
+================================================================================
+
+------------------------------------------------------------------------------
+8.1 DEFINIZIONE
+------------------------------------------------------------------------------
+
+Due serie I(1) sono COINTEGRATE se esiste una combinazione lineare
+che è stazionaria I(0).
+
+Se X_t ~ I(1) e Y_t ~ I(1), ma Z_t = Y_t - βX_t ~ I(0),
+allora X e Y sono cointegrate.
+
+Significato economico:
+Le serie si muovono insieme nel lungo periodo.
+Deviazioni dalla relazione di equilibrio sono temporanee.
+
+------------------------------------------------------------------------------
+8.2 PAIRS TRADING
+------------------------------------------------------------------------------
+
+Il pairs trading sfrutta la cointegrazione:
+
+1. Trova due asset cointegrati (es. Coca-Cola e Pepsi)
+2. Calcola lo spread: S_t = Y_t - βX_t
+3. Lo spread è stazionario → mean reverting
+4. Quando spread alto → vendi spread (short Y, long X)
+5. Quando spread basso → compra spread (long Y, short X)
+6. Aspetta ritorno alla media
+
+Nel crypto:
+- BTC e ETH (storicamente cointegrati)
+- Token dello stesso settore (DeFi, Layer 1, etc.)
+
+------------------------------------------------------------------------------
+8.3 TEST DI COINTEGRAZIONE
+------------------------------------------------------------------------------
+
+TEST DI ENGLE-GRANGER (2 variabili):
+
+1. Verifica che X_t e Y_t siano entrambe I(1)
+2. Stima regressione: Y_t = α + βX_t + ε_t
+3. Testa se i residui ε̂_t sono stazionari (ADF)
+4. Se residui I(0) → cointegrazione
+
+TEST DI JOHANSEN (multiple variabili):
+- Può testare cointegrazione tra N variabili
+- Determina il numero di relazioni di cointegrazione
+- Basato su VAR (Vector Autoregression)
+
+------------------------------------------------------------------------------
+8.4 ERROR CORRECTION MODEL (ECM)
+------------------------------------------------------------------------------
+
+Se X e Y sono cointegrate, possiamo usare un ECM:
+
+ΔY_t = α + γ(Y_{t-1} - βX_{t-1}) + Σδ_iΔY_{t-i} + Σθ_jΔX_{t-j} + ε_t
+
+Termine correzione errore: γ(Y_{t-1} - βX_{t-1})
+- γ < 0: ritorno all'equilibrio
+- |γ| grande: correzione veloce
+
+Interpretazione:
+- Breve periodo: dinamica dei cambiamenti
+- Lungo periodo: relazione di equilibrio
+
+================================================================================
+9. APPLICAZIONI NEL TRADING
+================================================================================
+
+------------------------------------------------------------------------------
+9.1 PREVISIONE RENDIMENTI
+------------------------------------------------------------------------------
+
+Problema: rendimenti sono quasi un random walk, difficili da prevedere.
+
+Approcci:
+1. ARIMA sui rendimenti (poco utile in pratica)
+2. Machine Learning con feature aggiuntive
+3. Focus sulla previsione direzionale, non del valore esatto
+
+Regola empirica:
+La prevedibilità dei rendimenti è molto bassa.
+Meglio concentrarsi su:
+- Previsione volatilità (più prevedibile)
+- Previsione direzionale (classificazione)
+- Strategie basate su pattern statistici
+
+------------------------------------------------------------------------------
+9.2 PREVISIONE VOLATILITÀ
+------------------------------------------------------------------------------
+
+Più utile e fattibile della previsione rendimenti.
+
+Modello GARCH(1,1):
+σ²_{t+1|t} = ω + αε²_t + βσ²_t
+
+Per h-step ahead:
+σ²_{t+h|t} converge a varianza non condizionata
+
+Uso nel trading:
+- Position sizing basato su volatilità prevista
+- Calcolo stop loss dinamici (es. 2×σ prevista)
+- VaR rolling
+
+------------------------------------------------------------------------------
+9.3 REGIME DETECTION
+------------------------------------------------------------------------------
+
+Il mercato ha diversi "regimi":
+- Alta volatilità vs bassa volatilità
+- Trending vs ranging
+- Bull vs bear
+
+MODELLI MARKOV-SWITCHING:
+- Assumono che i parametri cambino tra K stati
+- Transizioni tra stati governate da catena di Markov
+
+Esempio: 2 stati (alta/bassa volatilità)
+
+r_t ~ N(μ_{s_t}, σ²_{s_t})
+
+Dove s_t ∈ {1, 2} segue una catena di Markov.
+
+Applicazione:
+- Adattare strategia al regime corrente
+- Trend following in regime trending
+- Mean reversion in regime ranging
+
+------------------------------------------------------------------------------
+9.4 SEASONAL PATTERNS
+------------------------------------------------------------------------------
+
+Analisi stagionalità per sfruttare pattern ricorrenti.
+
+Intraday:
+- Apertura mercati (alta volatilità)
+- Lunch hour (bassa volatilità)
+- Power hour (ultima ora)
+
+Settimanale:
+- Monday effect
+- Weekend gap (crypto)
+
+Mensile/Annuale:
+- Window dressing fine trimestre
+- January effect
+- Sell in May
+- Santa rally
+
+Test statistici per verificare se i pattern sono significativi.
+
+------------------------------------------------------------------------------
+9.5 MEAN REVERSION TRADING
+------------------------------------------------------------------------------
+
+Basato su serie stazionarie o cointegrate.
+
+Half-life della mean reversion:
+Se X_t segue un processo AR(1): X_t = φX_{t-1} + ε_t
+
+Half-life ≈ -ln(2) / ln(φ)
+
+Indica quanto tempo impiega lo spread a dimezzare la sua deviazione.
+
+Strategia:
+- Calcola z-score: z = (spread - media) / std
+- Long se z < -2
+- Short se z > 2
+- Chiudi quando z torna a 0
+
+================================================================================
+10. CODICE PYTHON
+================================================================================
+
+```python
+import numpy as np
+import pandas as pd
+from scipy import stats
+import statsmodels.api as sm
+from statsmodels.tsa.stattools import adfuller, kpss, acf, pacf
+from statsmodels.tsa.arima.model import ARIMA
+from statsmodels.tsa.stattools import coint
+from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
+import warnings
+warnings.filterwarnings('ignore')
+
+# ============================================
+# GENERAZIONE DATI DI ESEMPIO
+# ============================================
+
+np.random.seed(42)
+
+# Simuliamo un prezzo con random walk
+n = 500
+returns = np.random.normal(0.0005, 0.02, n)  # rendimenti
+prices = 100 * np.cumprod(1 + returns)  # prezzi
+
+# Convertiamo in Series pandas
+price_series = pd.Series(prices, name='Price')
+return_series = pd.Series(returns, name='Returns')
+
+print("=" * 60)
+print("ANALISI SERIE TEMPORALI - TRADING")
+print("=" * 60)
+
+# ============================================
+# TEST DI STAZIONARIETÀ
+# ============================================
+
+def test_stationarity(series, name="Serie"):
+    """
+    Esegue test ADF e KPSS per verificare stazionarietà
+    """
+    print(f"\n{'='*50}")
+    print(f"TEST STAZIONARIETÀ: {name}")
+    print('='*50)
+    
+    # Test ADF
+    adf_result = adfuller(series.dropna(), autolag='AIC')
+    print(f"\nADF Test:")
+    print(f"  Statistica: {adf_result[0]:.4f}")
+    print(f"  p-value: {adf_result[1]:.4f}")
+    print(f"  Valori critici:")
+    for key, value in adf_result[4].items():
+        print(f"    {key}: {value:.4f}")
+    
+    if adf_result[1] < 0.05:
+        print("  → RIFIUTA H0: Serie STAZIONARIA (ADF)")
+    else:
+        print("  → NON rifiuta H0: Serie NON stazionaria (ADF)")
+    
+    # Test KPSS
+    kpss_result = kpss(series.dropna(), regression='c', nlags='auto')
+    print(f"\nKPSS Test:")
+    print(f"  Statistica: {kpss_result[0]:.4f}")
+    print(f"  p-value: {kpss_result[1]:.4f}")
+    
+    if kpss_result[1] < 0.05:
+        print("  → RIFIUTA H0: Serie NON stazionaria (KPSS)")
+    else:
+        print("  → NON rifiuta H0: Serie STAZIONARIA (KPSS)")
+    
+    # Conclusione combinata
+    print("\nCONCLUSIONE:")
+    if adf_result[1] < 0.05 and kpss_result[1] >= 0.05:
+        print("  ✓ Serie STAZIONARIA (entrambi i test concordano)")
+        return True
+    elif adf_result[1] >= 0.05 and kpss_result[1] < 0.05:
+        print("  ✗ Serie NON STAZIONARIA (entrambi i test concordano)")
+        return False
+    else:
+        print("  ? Risultati ambigui (test discordanti)")
+        return None
+
+# Test sui prezzi
+is_stationary_prices = test_stationarity(price_series, "PREZZI")
+
+# Test sui rendimenti
+is_stationary_returns = test_stationarity(return_series, "RENDIMENTI")
+
+# ============================================
+# AUTOCORRELAZIONE
+# ============================================
+
+def analyze_autocorrelation(series, name="Serie", nlags=20):
+    """
+    Analizza ACF e PACF di una serie
+    """
+    print(f"\n{'='*50}")
+    print(f"AUTOCORRELAZIONE: {name}")
+    print('='*50)
+    
+    # Calcola ACF e PACF
+    acf_values = acf(series.dropna(), nlags=nlags)
+    pacf_values = pacf(series.dropna(), nlags=nlags)
+    
+    # Banda di confidenza
+    conf_band = 1.96 / np.sqrt(len(series))
+    
+    print(f"\nBanda di confidenza 95%: ±{conf_band:.4f}")
+    print(f"\nACF significativi (fuori banda):")
+    for i, val in enumerate(acf_values[1:], 1):
+        if abs(val) > conf_band:
+            print(f"  Lag {i}: {val:.4f}")
+    
+    print(f"\nPACF significativi (fuori banda):")
+    for i, val in enumerate(pacf_values[1:], 1):
+        if abs(val) > conf_band:
+            print(f"  Lag {i}: {val:.4f}")
+    
+    # Test Ljung-Box
+    lb_result = sm.stats.acorr_ljungbox(series.dropna(), lags=[10, 20], return_df=True)
+    print(f"\nTest Ljung-Box:")
+    print(lb_result)
+    
+    return acf_values, pacf_values
+
+# Analisi autocorrelazione rendimenti
+acf_ret, pacf_ret = analyze_autocorrelation(return_series, "RENDIMENTI")
+
+# Analisi autocorrelazione rendimenti^2 (per vedere volatility clustering)
+return_squared = return_series ** 2
+acf_ret2, pacf_ret2 = analyze_autocorrelation(return_squared, "RENDIMENTI²")
+
+# ============================================
+# MODELLO ARIMA
+# ============================================
+
+def fit_arima(series, order=(1,0,1), name="Serie"):
+    """
+    Stima un modello ARIMA
+    """
+    print(f"\n{'='*50}")
+    print(f"MODELLO ARIMA{order}: {name}")
+    print('='*50)
+    
+    model = ARIMA(series.dropna(), order=order)
+    results = model.fit()
+    
+    print(results.summary())
+    
+    # Diagnostica residui
+    residuals = results.resid
+    
+    print("\nDIAGNOSTICA RESIDUI:")
+    
+    # Test normalità
+    _, pvalue_normal = stats.normaltest(residuals)
+    print(f"  Test normalità p-value: {pvalue_normal:.4f}")
+    
+    # Test Ljung-Box sui residui
+    lb_resid = sm.stats.acorr_ljungbox(residuals, lags=[10], return_df=True)
+    print(f"  Ljung-Box(10) p-value: {lb_resid['lb_pvalue'].values[0]:.4f}")
+    
+    if lb_resid['lb_pvalue'].values[0] > 0.05:
+        print("  ✓ Residui sono white noise")
+    else:
+        print("  ✗ Residui NON sono white noise - modello inadeguato")
+    
+    return results
+
+# Fit ARIMA sui rendimenti
+arima_results = fit_arima(return_series, order=(1,0,1), name="RENDIMENTI")
+
+# ============================================
+# SELEZIONE AUTOMATICA ORDINE ARIMA
+# ============================================
+
+def select_arima_order(series, max_p=5, max_q=5, d=0):
+    """
+    Seleziona ordine ARIMA ottimale basato su AIC
+    """
+    print(f"\n{'='*50}")
+    print("SELEZIONE ORDINE ARIMA (Grid Search)")
+    print('='*50)
+    
+    best_aic = np.inf
+    best_order = None
+    results = []
+    
+    for p in range(max_p + 1):
+        for q in range(max_q + 1):
+            if p == 0 and q == 0:
+                continue
+            try:
+                model = ARIMA(series.dropna(), order=(p, d, q))
+                fit = model.fit()
+                results.append({
+                    'order': (p, d, q),
+                    'AIC': fit.aic,
+                    'BIC': fit.bic
+                })
+                if fit.aic < best_aic:
+                    best_aic = fit.aic
+                    best_order = (p, d, q)
+            except:
+                continue
+    
+    results_df = pd.DataFrame(results).sort_values('AIC')
+    print("\nTop 5 modelli per AIC:")
+    print(results_df.head())
+    print(f"\nMiglior modello: ARIMA{best_order} con AIC={best_aic:.2f}")
+    
+    return best_order
+
+best_order = select_arima_order(return_series, max_p=3, max_q=3)
+
+# ============================================
+# MODELLO GARCH
+# ============================================
+
+def fit_garch(returns, p=1, q=1):
+    """
+    Stima un modello GARCH per la volatilità
+    """
+    print(f"\n{'='*50}")
+    print(f"MODELLO GARCH({p},{q})")
+    print('='*50)
+    
+    # Nota: arch usa una convenzione diversa
+    # arch: p = ordine GARCH, q = ordine ARCH
+    try:
+        from arch import arch_model
+        
+        # Scala i rendimenti (arch preferisce percentuali)
+        returns_pct = returns * 100
+        
+        model = arch_model(returns_pct.dropna(), vol='Garch', p=p, q=q, 
+                          mean='Constant', dist='normal')
+        results = model.fit(disp='off')
+        
+        print(results.summary())
+        
+        # Estrai parametri
+        omega = results.params['omega']
+        alpha = results.params['alpha[1]']
+        beta = results.params['beta[1]']
+        
+        print(f"\nInterpretazione parametri:")
+        print(f"  ω (omega): {omega:.6f}")
+        print(f"  α (alpha): {alpha:.4f} - reazione a shock")
+        print(f"  β (beta): {beta:.4f} - persistenza")
+        print(f"  α + β: {alpha + beta:.4f} - persistenza totale")
+        
+        # Varianza non condizionata
+        if alpha + beta < 1:
+            uncond_var = omega / (1 - alpha - beta)
+            uncond_vol = np.sqrt(uncond_var)
+            print(f"  Volatilità non condizionata: {uncond_vol:.2f}%")
+        
+        # Forecast volatilità
+        forecast = results.forecast(horizon=5)
+        print(f"\nPrevisione volatilità (5 periodi):")
+        print(f"  {np.sqrt(forecast.variance.values[-1, :])}")
+        
+        return results
+    
+    except ImportError:
+        print("Libreria 'arch' non installata. Installa con: pip install arch")
+        return None
+
+# Fit GARCH
+garch_results = fit_garch(return_series, p=1, q=1)
+
+# ============================================
+# COINTEGRAZIONE
+# ============================================
+
+def test_cointegration(series1, series2, name1="Asset1", name2="Asset2"):
+    """
+    Test di cointegrazione Engle-Granger
+    """
+    print(f"\n{'='*50}")
+    print(f"TEST COINTEGRAZIONE: {name1} vs {name2}")
+    print('='*50)
+    
+    # Test ADF su entrambe le serie
+    adf1 = adfuller(series1.dropna())[1]
+    adf2 = adfuller(series2.dropna())[1]
+    
+    print(f"\nTest ADF individuale:")
+    print(f"  {name1} p-value: {adf1:.4f} - {'I(0)' if adf1 < 0.05 else 'I(1)'}")
+    print(f"  {name2} p-value: {adf2:.4f} - {'I(0)' if adf2 < 0.05 else 'I(1)'}")
+    
+    # Test cointegrazione
+    score, pvalue, _ = coint(series1.dropna(), series2.dropna())
+    
+    print(f"\nTest Cointegrazione (Engle-Granger):")
+    print(f"  Statistica: {score:.4f}")
+    print(f"  p-value: {pvalue:.4f}")
+    
+    if pvalue < 0.05:
+        print(f"  ✓ Serie COINTEGRATE - possibile pairs trading")
+        
+        # Calcola hedge ratio
+        model = sm.OLS(series1.dropna(), sm.add_constant(series2.dropna()))
+        results = model.fit()
+        hedge_ratio = results.params.iloc[1]
+        
+        print(f"\n  Hedge ratio (β): {hedge_ratio:.4f}")
+        print(f"  Spread = {name1} - {hedge_ratio:.4f} × {name2}")
+        
+        # Calcola spread
+        spread = series1 - hedge_ratio * series2
+        
+        # Half-life
+        spread_lag = spread.shift(1)
+        spread_diff = spread - spread_lag
+        spread_lag = spread_lag.dropna()
+        spread_diff = spread_diff.dropna()
+        
+        model_hl = sm.OLS(spread_diff, spread_lag)
+        res_hl = model_hl.fit()
+        
+        if res_hl.params.iloc[0] < 0:
+            half_life = -np.log(2) / res_hl.params.iloc[0]
+            print(f"  Half-life: {half_life:.1f} periodi")
+        
+        return True, hedge_ratio, spread
+    else:
+        print(f"  ✗ Serie NON cointegrate")
+        return False, None, None
+
+# Simula due serie cointegrate
+np.random.seed(123)
+n = 500
+x = np.cumsum(np.random.randn(n)) + 100  # Random walk
+y = 0.8 * x + np.random.randn(n) * 2 + 20  # Cointegrata con x
+
+series_x = pd.Series(x, name='Asset_X')
+series_y = pd.Series(y, name='Asset_Y')
+
+is_coint, hedge, spread = test_cointegration(series_y, series_x, "Asset_Y", "Asset_X")
+
+# ============================================
+# PAIRS TRADING STRATEGY
+# ============================================
+
+def pairs_trading_backtest(spread, entry_z=2.0, exit_z=0.0, lookback=20):
+    """
+    Backtest semplice di pairs trading
+    """
+    print(f"\n{'='*50}")
+    print("BACKTEST PAIRS TRADING")
+    print('='*50)
+    
+    # Calcola z-score rolling
+    spread_mean = spread.rolling(lookback).mean()
+    spread_std = spread.rolling(lookback).std()
+    z_score = (spread - spread_mean) / spread_std
+    
+    # Genera segnali
+    position = pd.Series(index=spread.index, data=0.0)
+    
+    for i in range(1, len(spread)):
+        if z_score.iloc[i] < -entry_z and position.iloc[i-1] == 0:
+            position.iloc[i] = 1  # Long spread
+        elif z_score.iloc[i] > entry_z and position.iloc[i-1] == 0:
+            position.iloc[i] = -1  # Short spread
+        elif position.iloc[i-1] == 1 and z_score.iloc[i] > -exit_z:
+            position.iloc[i] = 0  # Exit long
+        elif position.iloc[i-1] == -1 and z_score.iloc[i] < exit_z:
+            position.iloc[i] = 0  # Exit short
+        else:
+            position.iloc[i] = position.iloc[i-1]  # Hold
+    
+    # Calcola returns
+    spread_returns = spread.diff()
+    strategy_returns = position.shift(1) * spread_returns
+    cumulative_returns = strategy_returns.cumsum()
+    
+    # Statistiche
+    total_return = cumulative_returns.iloc[-1]
+    sharpe = strategy_returns.mean() / strategy_returns.std() * np.sqrt(252)
+    num_trades = (position.diff() != 0).sum()
+    
+    print(f"\nParametri:")
+    print(f"  Entry z-score: ±{entry_z}")
+    print(f"  Exit z-score: {exit_z}")
+    print(f"  Lookback: {lookback}")
+    
+    print(f"\nRisultati:")
+    print(f"  Rendimento totale: {total_return:.4f}")
+    print(f"  Sharpe Ratio: {sharpe:.2f}")
+    print(f"  Numero trade: {num_trades}")
+    
+    return cumulative_returns, position
+
+if spread is not None:
+    cum_ret, positions = pairs_trading_backtest(spread)
+
+# ============================================
+# DECOMPOSIZIONE STAGIONALE
+# ============================================
+
+def seasonal_decomposition(series, period=None):
+    """
+    Decompone una serie in trend, stagionalità e residuo
+    """
+    from statsmodels.tsa.seasonal import seasonal_decompose
+    
+    print(f"\n{'='*50}")
+    print("DECOMPOSIZIONE STAGIONALE")
+    print('='*50)
+    
+    if period is None:
+        period = 20  # Default
+    
+    decomposition = seasonal_decompose(series.dropna(), model='additive', period=period)
+    
+    print(f"\nPeriodo stagionale: {period}")
+    print(f"\nComponenti estratte:")
+    print(f"  Trend: media={decomposition.trend.mean():.4f}")
+    print(f"  Seasonal: range=[{decomposition.seasonal.min():.4f}, {decomposition.seasonal.max():.4f}]")
+    print(f"  Residual: std={decomposition.resid.std():.4f}")
+    
+    return decomposition
+
+# Decomposizione (su rendimenti o prezzi simulati)
+decomp = seasonal_decomposition(price_series, period=20)
+
+# ============================================
+# FUNZIONI UTILITY PER TRADING
+# ============================================
+
+def calculate_half_life(spread):
+    """
+    Calcola l'half-life di mean reversion
+    """
+    spread_lag = spread.shift(1)
+    spread_diff = spread - spread_lag
+    
+    # Rimuovi NaN
+    spread_lag = spread_lag.iloc[1:]
+    spread_diff = spread_diff.iloc[1:]
+    
+    # Regressione
+    model = sm.OLS(spread_diff, spread_lag)
+    results = model.fit()
+    
+    # Half-life
+    theta = results.params.iloc[0]
+    if theta < 0:
+        half_life = -np.log(2) / theta
+    else:
+        half_life = np.inf
+    
+    return half_life
+
+def variance_ratio_test(returns, lags=[2, 4, 8, 16]):
+    """
+    Test del rapporto di varianza per random walk
+    """
+    print(f"\n{'='*50}")
+    print("VARIANCE RATIO TEST")
+    print('='*50)
+    
+    n = len(returns)
+    var_1 = returns.var()
+    
+    print(f"\nH0: Serie è random walk (VR = 1)")
+    print(f"\nLag  VR      Stat    p-value")
+    print("-" * 35)
+    
+    for q in lags:
+        # Calcola rendimenti q-periodi
+        returns_q = returns.rolling(q).sum().dropna()
+        var_q = returns_q.var()
+        
+        # Variance ratio
+        vr = var_q / (q * var_1)
+        
+        # Statistica test (approssimata)
+        stat = (vr - 1) / np.sqrt(2 * (2*q - 1) * (q - 1) / (3 * q * n))
+        pvalue = 2 * (1 - stats.norm.cdf(abs(stat)))
+        
+        print(f"{q:4d}  {vr:.4f}  {stat:7.3f}  {pvalue:.4f}")
+    
+    print("\nVR > 1: Momentum (trend following)")
+    print("VR < 1: Mean reversion")
+    print("VR = 1: Random walk")
+
+variance_ratio_test(return_series)
+
+print("\n" + "=" * 60)
+print("FINE ANALISI SERIE TEMPORALI")
+print("=" * 60)
+```
+
+================================================================================
+                              FINE DOCUMENTO
+================================================================================
+
+Prossimo: 04_Algebra_Lineare_Ottimizzazione.txt

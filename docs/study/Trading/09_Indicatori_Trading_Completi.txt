@@ -1,0 +1,1832 @@
+================================================================================
+                    INDICATORI DI TRADING - GUIDA COMPLETA
+                 Tutti gli Indicatori con Scale e Interpretazioni
+================================================================================
+
+INDICE
+------
+PARTE 1: INDICATORI DI TREND
+PARTE 2: INDICATORI DI MOMENTUM
+PARTE 3: INDICATORI DI VOLATILITA'
+PARTE 4: INDICATORI DI VOLUME
+PARTE 5: INDICATORI DI FORZA RELATIVA
+PARTE 6: INDICATORI DI CICLO
+PARTE 7: INDICATORI COMPOSITI
+PARTE 8: INDICATORI ON-CHAIN (CRYPTO)
+PARTE 9: INDICATORI DI SENTIMENT
+PARTE 10: TABELLE RIASSUNTIVE
+
+================================================================================
+================================================================================
+                    PARTE 1: INDICATORI DI TREND
+================================================================================
+================================================================================
+
+Gli indicatori di trend identificano la direzione prevalente del mercato.
+Aiutano a rispondere: "Il mercato sta salendo, scendendo o e' laterale?"
+
+================================================================================
+1.1 MEDIE MOBILI (MOVING AVERAGES)
+================================================================================
+
+------------------------------------------------------------------------------
+1.1.1 SMA - Simple Moving Average
+------------------------------------------------------------------------------
+
+FORMULA:
+    SMA(n) = (P1 + P2 + ... + Pn) / n
+
+PARAMETRI COMUNI:
+- SMA(10): breve termine
+- SMA(20): breve-medio termine
+- SMA(50): medio termine
+- SMA(100): medio-lungo termine
+- SMA(200): lungo termine
+
+SCALA: Stessa scala del prezzo
+
+INTERPRETAZIONE:
+| Condizione              | Significato                    | Azione          |
+|------------------------|--------------------------------|-----------------|
+| Prezzo > SMA           | Trend rialzista               | Bias long       |
+| Prezzo < SMA           | Trend ribassista              | Bias short      |
+| Prezzo incrocia SMA ↑  | Potenziale inversione bullish | Segnale buy     |
+| Prezzo incrocia SMA ↓  | Potenziale inversione bearish | Segnale sell    |
+| SMA piatta             | Mercato laterale              | Cautela         |
+| SMA inclinata ↑        | Trend forte up                | Seguire trend   |
+| SMA inclinata ↓        | Trend forte down              | Seguire trend   |
+
+DISTANZA DAL PREZZO:
+- Prezzo molto sopra SMA: mercato esteso, possibile pullback
+- Prezzo molto sotto SMA: mercato oversold, possibile rimbalzo
+
+------------------------------------------------------------------------------
+1.1.2 EMA - Exponential Moving Average
+------------------------------------------------------------------------------
+
+FORMULA:
+    EMA(t) = Price(t) * k + EMA(t-1) * (1-k)
+    k = 2 / (n + 1)
+
+DIFFERENZA DA SMA:
+- Piu' peso ai dati recenti
+- Piu' reattiva ai cambiamenti
+- Meno lag
+
+PARAMETRI COMUNI:
+- EMA(9): molto breve
+- EMA(12): breve (usata in MACD)
+- EMA(21): breve-medio
+- EMA(26): medio (usata in MACD)
+- EMA(50): medio termine
+- EMA(200): lungo termine
+
+INTERPRETAZIONE:
+Stessa logica della SMA ma segnali piu' tempestivi.
+
+------------------------------------------------------------------------------
+1.1.3 WMA - Weighted Moving Average
+------------------------------------------------------------------------------
+
+FORMULA:
+    WMA = (n*Pn + (n-1)*P(n-1) + ... + 1*P1) / (n + (n-1) + ... + 1)
+
+Peso lineare: dati piu' recenti pesano di piu'.
+
+USO: Alternativa a EMA, meno comune.
+
+------------------------------------------------------------------------------
+1.1.4 DEMA - Double Exponential Moving Average
+------------------------------------------------------------------------------
+
+FORMULA:
+    DEMA = 2 * EMA(n) - EMA(EMA(n))
+
+CARATTERISTICHE:
+- Ancora meno lag di EMA
+- Piu' reattiva
+- Puo' generare piu' falsi segnali
+
+------------------------------------------------------------------------------
+1.1.5 TEMA - Triple Exponential Moving Average
+------------------------------------------------------------------------------
+
+FORMULA:
+    TEMA = 3*EMA - 3*EMA(EMA) + EMA(EMA(EMA))
+
+CARATTERISTICHE:
+- Minimo lag
+- Molto reattiva
+- Usare con cautela per evitare whipsaw
+
+------------------------------------------------------------------------------
+1.1.6 KAMA - Kaufman Adaptive Moving Average
+------------------------------------------------------------------------------
+
+FORMULA:
+    KAMA = KAMA(t-1) + SC * (Price - KAMA(t-1))
+    SC = (ER * (fast - slow) + slow)^2
+
+Dove:
+- ER = Efficiency Ratio = |Price change| / Sum(|daily changes|)
+- fast = 2/(2+1), slow = 2/(30+1)
+
+CARATTERISTICHE:
+- Si adatta alla volatilita'
+- Piu' smooth in mercati laterali
+- Piu' reattiva in trend
+
+INTERPRETAZIONE:
+| ER Alto (>0.6)  | Mercato in trend    | KAMA segue strettamente |
+| ER Basso (<0.3) | Mercato laterale    | KAMA si appiattisce     |
+
+------------------------------------------------------------------------------
+1.1.7 VWMA - Volume Weighted Moving Average
+------------------------------------------------------------------------------
+
+FORMULA:
+    VWMA = Sum(Price * Volume) / Sum(Volume)
+
+CARATTERISTICHE:
+- Incorpora il volume
+- Piu' peso a candele con alto volume
+
+INTERPRETAZIONE:
+- Prezzo > VWMA: compratori dominano
+- Prezzo < VWMA: venditori dominano
+- VWMA vs SMA: divergenza indica accumulo/distribuzione
+
+------------------------------------------------------------------------------
+1.1.8 HMA - Hull Moving Average
+------------------------------------------------------------------------------
+
+FORMULA:
+    HMA = WMA(2*WMA(n/2) - WMA(n), sqrt(n))
+
+CARATTERISTICHE:
+- Minimo lag
+- Molto smooth
+- Buona per identificare inversioni
+
+------------------------------------------------------------------------------
+1.1.9 ZLEMA - Zero Lag EMA
+------------------------------------------------------------------------------
+
+FORMULA:
+    ZLEMA = EMA(2*Price - Price[lag], n)
+    lag = (n-1)/2
+
+CARATTERISTICHE:
+Tenta di eliminare il lag dell'EMA standard.
+
+================================================================================
+1.2 SISTEMI DI MEDIE MOBILI
+================================================================================
+
+------------------------------------------------------------------------------
+1.2.1 GOLDEN CROSS / DEATH CROSS
+------------------------------------------------------------------------------
+
+GOLDEN CROSS:
+- SMA(50) incrocia sopra SMA(200)
+- Segnale bullish di lungo termine
+- Conferma trend rialzista
+
+DEATH CROSS:
+- SMA(50) incrocia sotto SMA(200)
+- Segnale bearish di lungo termine
+- Conferma trend ribassista
+
+AFFIDABILITA':
+- Alta su timeframe giornaliero+
+- Lag significativo (segnale arriva tardi)
+- Meglio per conferma che per timing
+
+------------------------------------------------------------------------------
+1.2.2 RIBBON DI MEDIE MOBILI
+------------------------------------------------------------------------------
+
+SETUP:
+Multiple EMA (es: 10, 20, 30, 40, 50, 60)
+
+INTERPRETAZIONE:
+| Ribbon espanso ↑     | Trend forte up    | Hold long         |
+| Ribbon espanso ↓     | Trend forte down  | Hold short        |
+| Ribbon contratto     | Consolidamento    | Prepararsi        |
+| Ribbon che si gira   | Possibile reversal| Attenzione        |
+
+------------------------------------------------------------------------------
+1.2.3 ALLIGATOR (Bill Williams)
+------------------------------------------------------------------------------
+
+COMPONENTI:
+- Jaw (mandibola): SMMA(13) spostata 8 periodi avanti - BLU
+- Teeth (denti): SMMA(8) spostata 5 periodi avanti - ROSSO
+- Lips (labbra): SMMA(5) spostata 3 periodi avanti - VERDE
+
+INTERPRETAZIONE:
+| Linee intrecciate    | Alligator dorme   | Mercato laterale  |
+| Linee si aprono ↑    | Alligator mangia  | Trend up forte    |
+| Linee si aprono ↓    | Alligator mangia  | Trend down forte  |
+| Lips > Teeth > Jaw   | Uptrend           | Long              |
+| Lips < Teeth < Jaw   | Downtrend         | Short             |
+
+================================================================================
+1.3 INDICATORI DI TREND DIREZIONALE
+================================================================================
+
+------------------------------------------------------------------------------
+1.3.1 ADX - Average Directional Index
+------------------------------------------------------------------------------
+
+COMPONENTI:
+- +DI (Positive Directional Indicator)
+- -DI (Negative Directional Indicator)
+- ADX (linea principale)
+
+FORMULA:
+    +DM = High(t) - High(t-1) se positivo e > -DM, altrimenti 0
+    -DM = Low(t-1) - Low(t) se positivo e > +DM, altrimenti 0
+    TR = True Range
+    +DI = 100 * EMA(+DM) / EMA(TR)
+    -DI = 100 * EMA(-DM) / EMA(TR)
+    DX = 100 * |+DI - -DI| / (+DI + -DI)
+    ADX = EMA(DX)
+
+SCALA: 0 - 100
+
+INTERPRETAZIONE ADX:
+| Valore ADX   | Forza del Trend      | Azione                    |
+|--------------|----------------------|---------------------------|
+| 0-15         | Assente/Molto debole | Evita trend following     |
+| 15-25        | Debole               | Cautela                   |
+| 25-50        | Forte                | Trend following efficace  |
+| 50-75        | Molto forte          | Trend maturo, attenzione  |
+| 75-100       | Estremamente forte   | Possibile esaurimento     |
+
+INTERPRETAZIONE +DI/-DI:
+| Condizione        | Significato           | Azione    |
+|-------------------|----------------------|-----------|
+| +DI > -DI         | Pressione rialzista  | Bias long |
+| -DI > +DI         | Pressione ribassista | Bias short|
+| +DI incrocia -DI ↑| Segnale buy          | Entry long|
+| -DI incrocia +DI ↑| Segnale sell         | Entry short|
+
+SEGNALI COMBINATI:
+- ADX > 25 AND +DI > -DI = Trend up confermato
+- ADX > 25 AND -DI > +DI = Trend down confermato
+- ADX < 20 = Non tradare trend following
+
+------------------------------------------------------------------------------
+1.3.2 AROON
+------------------------------------------------------------------------------
+
+COMPONENTI:
+- Aroon Up
+- Aroon Down
+- Aroon Oscillator = Aroon Up - Aroon Down
+
+FORMULA:
+    Aroon Up = 100 * (n - periodi dal massimo) / n
+    Aroon Down = 100 * (n - periodi dal minimo) / n
+
+SCALA: 0 - 100 per Up/Down, -100 a +100 per Oscillator
+
+INTERPRETAZIONE:
+| Aroon Up > 70, Down < 30  | Forte uptrend    | Long       |
+| Aroon Down > 70, Up < 30  | Forte downtrend  | Short      |
+| Entrambi < 50             | Consolidamento   | Attendere  |
+| Up incrocia Down ↑        | Nuovo uptrend    | Buy        |
+| Down incrocia Up ↑        | Nuovo downtrend  | Sell       |
+
+OSCILLATOR:
+| > +50  | Forte uptrend   |
+| < -50  | Forte downtrend |
+| Tra -50 e +50 | Neutro   |
+
+------------------------------------------------------------------------------
+1.3.3 PARABOLIC SAR
+------------------------------------------------------------------------------
+
+FORMULA:
+    SAR(t) = SAR(t-1) + AF * (EP - SAR(t-1))
+
+Dove:
+- AF = Acceleration Factor (inizia 0.02, incrementa 0.02, max 0.20)
+- EP = Extreme Point (massimo in uptrend, minimo in downtrend)
+
+SCALA: Stessa scala del prezzo (punti sopra/sotto le candele)
+
+INTERPRETAZIONE:
+| SAR sotto il prezzo | Uptrend    | Long/Hold    |
+| SAR sopra il prezzo | Downtrend  | Short/Sell   |
+| Prezzo tocca SAR    | Reversal   | Cambia posiz.|
+
+USO PRINCIPALE:
+- Trailing stop loss
+- Identificare punti di inversione
+
+LIMITI:
+- Whipsaw in mercati laterali
+- Meglio usare con filtro di trend (es: ADX > 25)
+
+------------------------------------------------------------------------------
+1.3.4 SUPERTREND
+------------------------------------------------------------------------------
+
+FORMULA:
+    Basic Upper = (High + Low)/2 + Multiplier * ATR
+    Basic Lower = (High + Low)/2 - Multiplier * ATR
+
+    Se Close > Previous Supertrend: Supertrend = Lower
+    Se Close < Previous Supertrend: Supertrend = Upper
+
+PARAMETRI TIPICI:
+- Period: 10
+- Multiplier: 3
+
+SCALA: Stessa scala del prezzo
+
+INTERPRETAZIONE:
+| Prezzo > Supertrend (verde) | Uptrend  | Long  |
+| Prezzo < Supertrend (rosso) | Downtrend| Short |
+| Cambio colore               | Reversal | Exit/Reverse |
+
+VANTAGGI:
+- Semplice da leggere
+- Buon trailing stop
+- Si adatta alla volatilita'
+
+------------------------------------------------------------------------------
+1.3.5 VORTEX INDICATOR
+------------------------------------------------------------------------------
+
+COMPONENTI:
+- VI+ (Positive Vortex)
+- VI- (Negative Vortex)
+
+FORMULA:
+    VM+ = |High(t) - Low(t-1)|
+    VM- = |Low(t) - High(t-1)|
+    VI+ = Sum(VM+, n) / Sum(TR, n)
+    VI- = Sum(VM-, n) / Sum(TR, n)
+
+SCALA: Tipicamente 0.5 - 1.5
+
+INTERPRETAZIONE:
+| VI+ > VI-         | Trend rialzista | Long  |
+| VI- > VI+         | Trend ribassista| Short |
+| Incrocio VI+/VI-  | Cambio trend    | Reversal |
+
+------------------------------------------------------------------------------
+1.3.6 ICHIMOKU KINKO HYO
+------------------------------------------------------------------------------
+
+COMPONENTI:
+1. Tenkan-sen (Conversion Line): (9-period high + 9-period low) / 2
+2. Kijun-sen (Base Line): (26-period high + 26-period low) / 2
+3. Senkou Span A (Leading Span A): (Tenkan + Kijun) / 2, proiettato 26 periodi avanti
+4. Senkou Span B (Leading Span B): (52-period high + 52-period low) / 2, proiettato 26 periodi avanti
+5. Chikou Span (Lagging Span): Close proiettato 26 periodi indietro
+
+KUMO (CLOUD):
+Area tra Senkou Span A e Senkou Span B
+
+SCALA: Stessa scala del prezzo
+
+INTERPRETAZIONE COMPLETA:
+
+TREND:
+| Prezzo > Kumo             | Uptrend          | Bias long    |
+| Prezzo < Kumo             | Downtrend        | Bias short   |
+| Prezzo dentro Kumo        | Neutro/Transiz.  | Cautela      |
+
+FORZA DEL TREND:
+| Kumo spesso               | Forte supporto/resistenza        |
+| Kumo sottile              | Debole, facile da penetrare      |
+| Kumo sale                 | Trend up                         |
+| Kumo scende               | Trend down                       |
+
+SEGNALI:
+| Tenkan incrocia Kijun ↑ sopra Kumo | Forte buy     |
+| Tenkan incrocia Kijun ↑ dentro Kumo| Buy moderato  |
+| Tenkan incrocia Kijun ↑ sotto Kumo | Buy debole    |
+| Tenkan incrocia Kijun ↓ sotto Kumo | Forte sell    |
+
+CHIKOU SPAN:
+| Chikou > Prezzo 26 periodi fa | Conferma bullish |
+| Chikou < Prezzo 26 periodi fa | Conferma bearish |
+
+KUMO TWIST:
+Quando Senkou A incrocia Senkou B = potenziale cambio trend
+
+SEGNALE PERFETTO BULLISH:
+1. Prezzo sopra Kumo
+2. Tenkan > Kijun
+3. Chikou sopra prezzo passato
+4. Kumo futuro verde (A > B)
+5. Kumo in espansione
+
+================================================================================
+1.4 CANALI E BANDE DI TREND
+================================================================================
+
+------------------------------------------------------------------------------
+1.4.1 DONCHIAN CHANNEL
+------------------------------------------------------------------------------
+
+FORMULA:
+    Upper = Highest High degli ultimi n periodi
+    Lower = Lowest Low degli ultimi n periodi
+    Middle = (Upper + Lower) / 2
+
+PARAMETRI TIPICI:
+- 20 periodi (Turtle Trading)
+- 55 periodi (trend lungo)
+
+SCALA: Stessa scala del prezzo
+
+INTERPRETAZIONE:
+| Breakout Upper  | Nuovo massimo, momentum up  | Buy    |
+| Breakout Lower  | Nuovo minimo, momentum down | Sell   |
+| Canale stretto  | Bassa volatilita'           | Attesa |
+| Canale largo    | Alta volatilita'            | Trend  |
+
+------------------------------------------------------------------------------
+1.4.2 KELTNER CHANNEL
+------------------------------------------------------------------------------
+
+FORMULA:
+    Middle = EMA(20)
+    Upper = EMA + Multiplier * ATR
+    Lower = EMA - Multiplier * ATR
+
+PARAMETRI TIPICI:
+- EMA: 20
+- ATR: 10
+- Multiplier: 2
+
+SCALA: Stessa scala del prezzo
+
+INTERPRETAZIONE:
+| Prezzo > Upper  | Forte momentum up / Esteso   |
+| Prezzo < Lower  | Forte momentum down / Esteso |
+| Prezzo al Middle| Equilibrio                   |
+
+CONFRONTO CON BOLLINGER:
+Keltner usa ATR (piu' stabile), Bollinger usa Std Dev (piu' reattivo)
+
+------------------------------------------------------------------------------
+1.4.3 LINEAR REGRESSION CHANNEL
+------------------------------------------------------------------------------
+
+FORMULA:
+Linea di regressione lineare + deviazioni standard
+
+COMPONENTI:
+- Linea centrale: y = a + bx (best fit)
+- Upper: Linea + n * StdDev
+- Lower: Linea - n * StdDev
+
+INTERPRETAZIONE:
+| Prezzo tocca Upper | Esteso al rialzo, possibile ritracciamento |
+| Prezzo tocca Lower | Esteso al ribasso, possibile rimbalzo     |
+| Pendenza positiva  | Trend up                                   |
+| Pendenza negativa  | Trend down                                 |
+
+
+================================================================================
+================================================================================
+                    PARTE 2: INDICATORI DI MOMENTUM
+================================================================================
+================================================================================
+
+Gli indicatori di momentum misurano la velocita' e forza del movimento dei prezzi.
+Aiutano a identificare condizioni di ipercomprato/ipervenduto e divergenze.
+
+================================================================================
+2.1 OSCILLATORI BOUNDED (con limiti)
+================================================================================
+
+------------------------------------------------------------------------------
+2.1.1 RSI - Relative Strength Index
+------------------------------------------------------------------------------
+
+FORMULA:
+    RS = Average Gain / Average Loss (ultimi n periodi)
+    RSI = 100 - (100 / (1 + RS))
+
+PARAMETRI TIPICI:
+- RSI(14): standard
+- RSI(7): piu' sensibile
+- RSI(21): piu' smooth
+
+SCALA: 0 - 100
+
+ZONE E INTERPRETAZIONE:
+| Valore RSI  | Zona              | Significato                | Azione          |
+|-------------|-------------------|----------------------------|-----------------|
+| 0-20        | Estremamente OS   | Ipervenduto grave          | Strong buy      |
+| 20-30       | Ipervenduto       | Possibile rimbalzo         | Cerca buy       |
+| 30-40       | Debolmente OS     | Cautela lato long          | Attendi         |
+| 40-50       | Neutro bearish    | Leggera pressione vendita  | Neutro          |
+| 50          | Equilibrio        | Punto di bilanciamento     | Neutro          |
+| 50-60       | Neutro bullish    | Leggera pressione acquisto | Neutro          |
+| 60-70       | Debolmente OB     | Cautela lato short         | Attendi         |
+| 70-80       | Ipercomprato      | Possibile correzione       | Cerca sell      |
+| 80-100      | Estremamente OB   | Ipercomprato grave         | Strong sell     |
+
+DIVERGENZE:
+| Divergenza Bullish | Prezzo fa lower low, RSI fa higher low  | Inversione up  |
+| Divergenza Bearish | Prezzo fa higher high, RSI fa lower high| Inversione down|
+| Hidden Bull. Div.  | Prezzo fa higher low, RSI fa lower low  | Continua up    |
+| Hidden Bear. Div.  | Prezzo fa lower high, RSI fa higher high| Continua down  |
+
+FAILURE SWINGS:
+- Bullish Failure Swing: RSI scende sotto 30, risale, ritraccia senza andare sotto 30, poi supera il precedente massimo
+- Bearish Failure Swing: RSI sale sopra 70, scende, risale senza superare 70, poi rompe il precedente minimo
+
+LIVELLO 50:
+| RSI > 50           | Momentum positivo  | Bias long  |
+| RSI < 50           | Momentum negativo  | Bias short |
+| RSI incrocia 50 ↑  | Cambio momentum    | Buy signal |
+| RSI incrocia 50 ↓  | Cambio momentum    | Sell signal|
+
+------------------------------------------------------------------------------
+2.1.2 STOCHASTIC OSCILLATOR
+------------------------------------------------------------------------------
+
+FORMULA:
+    %K = 100 * (Close - Lowest Low) / (Highest High - Lowest Low)
+    %D = SMA(%K, 3)
+
+PARAMETRI TIPICI:
+- Fast Stochastic: %K(14), %D(3)
+- Slow Stochastic: %K smooth(14,3), %D(3)
+- Full Stochastic: %K(14,3), %D(3)
+
+SCALA: 0 - 100
+
+INTERPRETAZIONE:
+| Valore      | Zona          | Significato              |
+|-------------|---------------|--------------------------|
+| 0-20        | Ipervenduto   | Possibile rimbalzo       |
+| 20-80       | Neutro        | Segui trend              |
+| 80-100      | Ipercomprato  | Possibile correzione     |
+
+SEGNALI:
+| %K incrocia %D ↑ in zona OS | Buy signal  |
+| %K incrocia %D ↓ in zona OB | Sell signal |
+
+DIVERGENZE:
+Come RSI, cerca divergenze tra prezzo e oscillatore.
+
+------------------------------------------------------------------------------
+2.1.3 STOCHASTIC RSI
+------------------------------------------------------------------------------
+
+FORMULA:
+    StochRSI = (RSI - Lowest RSI) / (Highest RSI - Lowest RSI)
+
+SCALA: 0 - 1 (o 0 - 100)
+
+CARATTERISTICHE:
+- Piu' sensibile di RSI e Stochastic singoli
+- Piu' segnali ma anche piu' falsi positivi
+
+INTERPRETAZIONE:
+| > 0.80     | Ipercomprato  |
+| < 0.20     | Ipervenduto   |
+| Incrocio %K/%D | Come Stochastic |
+
+------------------------------------------------------------------------------
+2.1.4 WILLIAMS %R
+------------------------------------------------------------------------------
+
+FORMULA:
+    %R = -100 * (Highest High - Close) / (Highest High - Lowest Low)
+
+SCALA: -100 a 0
+
+INTERPRETAZIONE:
+| Valore       | Zona          | Significato              |
+|--------------|---------------|--------------------------|
+| -100 a -80   | Ipervenduto   | Possibile rimbalzo       |
+| -80 a -20    | Neutro        | Segui trend              |
+| -20 a 0      | Ipercomprato  | Possibile correzione     |
+
+NOTA: E' l'inverso dello Stochastic!
+
+------------------------------------------------------------------------------
+2.1.5 CCI - Commodity Channel Index
+------------------------------------------------------------------------------
+
+FORMULA:
+    TP = (High + Low + Close) / 3
+    CCI = (TP - SMA(TP)) / (0.015 * Mean Deviation)
+
+SCALA: Teoricamente illimitata, tipicamente -300 a +300
+
+INTERPRETAZIONE:
+| Valore        | Significato                         |
+|---------------|-------------------------------------|
+| > +200        | Estremamente ipercomprato           |
+| +100 a +200   | Ipercomprato                        |
+| -100 a +100   | Normale range                       |
+| -200 a -100   | Ipervenduto                         |
+| < -200        | Estremamente ipervenduto            |
+
+SEGNALI:
+| CCI incrocia +100 ↑ | Inizio trend rialzista    |
+| CCI incrocia +100 ↓ | Fine trend rialzista      |
+| CCI incrocia -100 ↓ | Inizio trend ribassista   |
+| CCI incrocia -100 ↑ | Fine trend ribassista     |
+
+------------------------------------------------------------------------------
+2.1.6 MFI - Money Flow Index
+------------------------------------------------------------------------------
+
+FORMULA:
+    Typical Price = (H + L + C) / 3
+    Raw Money Flow = TP * Volume
+    Positive MF = Sum of RMF on up days
+    Negative MF = Sum of RMF on down days
+    Money Ratio = Positive MF / Negative MF
+    MFI = 100 - (100 / (1 + Money Ratio))
+
+SCALA: 0 - 100
+
+E' chiamato "RSI ponderato per volume".
+
+INTERPRETAZIONE:
+| Valore      | Zona          | Significato              |
+|-------------|---------------|--------------------------|
+| > 80        | Ipercomprato  | Possibile top            |
+| 20-80       | Neutro        | Normal trading           |
+| < 20        | Ipervenduto   | Possibile bottom         |
+
+DIVERGENZE:
+Come RSI, particolarmente utile perche' incorpora il volume.
+
+------------------------------------------------------------------------------
+2.1.7 ULTIMATE OSCILLATOR
+------------------------------------------------------------------------------
+
+FORMULA:
+Combina momentum su 3 timeframe diversi.
+    UO = 100 * (4*BP7 + 2*BP14 + BP28) / (4*TR7 + 2*TR14 + TR28)
+
+SCALA: 0 - 100
+
+INTERPRETAZIONE:
+| > 70        | Ipercomprato  |
+| 30-70       | Neutro        |
+| < 30        | Ipervenduto   |
+
+SEGNALE BUY:
+1. Divergenza bullish
+2. UO sotto 30 durante divergenza
+3. UO rompe il suo massimo
+
+================================================================================
+2.2 OSCILLATORI NON BOUNDED
+================================================================================
+
+------------------------------------------------------------------------------
+2.2.1 MACD - Moving Average Convergence Divergence
+------------------------------------------------------------------------------
+
+FORMULA:
+    MACD Line = EMA(12) - EMA(26)
+    Signal Line = EMA(MACD, 9)
+    Histogram = MACD Line - Signal Line
+
+SCALA: Varia (positivo/negativo intorno a zero)
+
+INTERPRETAZIONE MACD LINE:
+| MACD > 0            | EMA veloce > EMA lenta | Momentum bullish  |
+| MACD < 0            | EMA veloce < EMA lenta | Momentum bearish  |
+| MACD crescente      | Momentum in aumento    | Forza aumenta     |
+| MACD decrescente    | Momentum in calo       | Forza diminuisce  |
+
+INTERPRETAZIONE CROSSOVER:
+| MACD incrocia Signal ↑     | Buy signal (bullish crossover)  |
+| MACD incrocia Signal ↓     | Sell signal (bearish crossover) |
+| MACD incrocia Zero ↑       | Trend diventa bullish           |
+| MACD incrocia Zero ↓       | Trend diventa bearish           |
+
+INTERPRETAZIONE HISTOGRAM:
+| Histogram positivo crescente | Strong bullish momentum |
+| Histogram positivo decrescente| Bullish momentum in calo|
+| Histogram negativo crescente | Bearish momentum in calo|
+| Histogram negativo decrescente| Strong bearish momentum|
+| Histogram cambia segno       | Potenziale reversal     |
+
+DIVERGENZE:
+| Prezzo higher high, MACD lower high | Bearish divergence | Sell |
+| Prezzo lower low, MACD higher low   | Bullish divergence | Buy  |
+
+------------------------------------------------------------------------------
+2.2.2 PPO - Percentage Price Oscillator
+------------------------------------------------------------------------------
+
+FORMULA:
+    PPO = (EMA(12) - EMA(26)) / EMA(26) * 100
+
+SCALA: Percentuale (tipicamente -5% a +5%)
+
+VANTAGGI:
+- Permette confronto tra asset con prezzi diversi
+- MACD in forma percentuale
+
+INTERPRETAZIONE:
+Come MACD ma in percentuale.
+
+------------------------------------------------------------------------------
+2.2.3 MOMENTUM INDICATOR
+------------------------------------------------------------------------------
+
+FORMULA:
+    Momentum = Close(t) - Close(t-n)
+
+O in forma ratio:
+    Momentum = Close(t) / Close(t-n) * 100
+
+SCALA: Varia / 100-centered
+
+INTERPRETAZIONE (ratio):
+| > 100     | Prezzo salito negli ultimi n periodi |
+| = 100     | Prezzo invariato                     |
+| < 100     | Prezzo sceso negli ultimi n periodi  |
+
+------------------------------------------------------------------------------
+2.2.4 ROC - Rate of Change
+------------------------------------------------------------------------------
+
+FORMULA:
+    ROC = (Close - Close[n]) / Close[n] * 100
+
+SCALA: Percentuale (positiva/negativa)
+
+INTERPRETAZIONE:
+| ROC > 0        | Momentum positivo      |
+| ROC < 0        | Momentum negativo      |
+| ROC crescente  | Momentum in aumento    |
+| ROC decrescente| Momentum in calo       |
+
+LIVELLI ESTREMI:
+Dipendono dall'asset. Usa percentili storici.
+
+------------------------------------------------------------------------------
+2.2.5 TRIX
+------------------------------------------------------------------------------
+
+FORMULA:
+    TRIX = 1-period ROC of triple-smoothed EMA
+
+SCALA: Percentuale intorno a zero
+
+CARATTERISTICHE:
+- Molto smooth
+- Filtra rumore
+- Identifica trend sottostante
+
+INTERPRETAZIONE:
+| TRIX > 0            | Trend up                |
+| TRIX < 0            | Trend down              |
+| TRIX incrocia zero ↑| Buy signal              |
+| TRIX incrocia zero ↓| Sell signal             |
+| TRIX incrocia Signal| Come MACD crossover     |
+
+------------------------------------------------------------------------------
+2.2.6 TSI - True Strength Index
+------------------------------------------------------------------------------
+
+FORMULA:
+    TSI = 100 * Double_Smoothed_PC / Double_Smoothed_Absolute_PC
+
+SCALA: -100 a +100
+
+INTERPRETAZIONE:
+| > +25      | Forte momentum up       |
+| -25 a +25  | Neutro                  |
+| < -25      | Forte momentum down     |
+
+Piu' smooth e affidabile del RSI per alcuni trader.
+
+
+================================================================================
+================================================================================
+                    PARTE 3: INDICATORI DI VOLATILITA'
+================================================================================
+================================================================================
+
+Gli indicatori di volatilita' misurano l'ampiezza delle oscillazioni di prezzo.
+
+================================================================================
+3.1 INDICATORI DI VOLATILITA' BASE
+================================================================================
+
+------------------------------------------------------------------------------
+3.1.1 ATR - Average True Range
+------------------------------------------------------------------------------
+
+FORMULA:
+    True Range = max(High-Low, |High-Close[1]|, |Low-Close[1]|)
+    ATR = SMA(TR, n) o EMA(TR, n)
+
+PARAMETRI TIPICI:
+- ATR(14): standard
+- ATR(10): piu' reattivo
+- ATR(20): piu' smooth
+
+SCALA: Stessa unita' del prezzo
+
+INTERPRETAZIONE:
+| ATR alto          | Alta volatilita'         | Stop piu' ampi     |
+| ATR basso         | Bassa volatilita'        | Stop piu' stretti  |
+| ATR crescente     | Volatilita' in aumento   | Cautela            |
+| ATR decrescente   | Volatilita' in calo      | Consolidamento     |
+
+USI PRATICI:
+- Stop Loss = Entry +/- N * ATR (tipicamente N=1.5 a 3)
+- Position Size = Risk Amount / (N * ATR)
+- Trailing Stop = Recent High/Low - N * ATR
+
+ATR PERCENTILE (ATRP):
+    ATRP = ATR / Close * 100
+
+Permette confronto tra asset con prezzi diversi.
+
+------------------------------------------------------------------------------
+3.1.2 BOLLINGER BANDS
+------------------------------------------------------------------------------
+
+FORMULA:
+    Middle Band = SMA(20)
+    Upper Band = SMA + K * StdDev(20)
+    Lower Band = SMA - K * StdDev(20)
+
+PARAMETRI TIPICI:
+- Periodo: 20
+- K (deviazioni): 2
+
+SCALA: Stessa scala del prezzo
+
+INTERPRETAZIONE BANDE:
+| Prezzo tocca Upper     | Esteso al rialzo    | Possibile resistenza |
+| Prezzo tocca Lower     | Esteso al ribasso   | Possibile supporto   |
+| Prezzo sopra Upper     | Forte momentum up   | Possibile breakout   |
+| Prezzo sotto Lower     | Forte momentum down | Possibile breakdown  |
+
+INTERPRETAZIONE BANDWIDTH:
+    Bandwidth = (Upper - Lower) / Middle * 100
+
+| Bandwidth alto        | Alta volatilita'        |
+| Bandwidth basso       | Bassa vol. (SQUEEZE)    |
+| Bandwidth in contrazione | Squeeze imminente    |
+| Squeeze seguito da expansion | Breakout         |
+
+INTERPRETAZIONE %B:
+    %B = (Close - Lower) / (Upper - Lower)
+
+| %B > 1.0     | Sopra banda superiore | Strong uptrend / OB |
+| %B = 1.0     | Alla banda superiore  |                     |
+| %B = 0.5     | Alla media            | Equilibrio          |
+| %B = 0.0     | Alla banda inferiore  |                     |
+| %B < 0.0     | Sotto banda inferiore | Strong downtrend/OS |
+
+STRATEGIE:
+- Mean Reversion: compra a lower band, vendi a upper
+- Breakout: compra quando esce da squeeze
+- Walking the band: in trend forte, prezzo "cammina" lungo la banda
+
+------------------------------------------------------------------------------
+3.1.3 KELTNER CHANNEL
+------------------------------------------------------------------------------
+
+FORMULA:
+    Middle = EMA(20)
+    Upper = EMA + Multiplier * ATR(10)
+    Lower = EMA - Multiplier * ATR(10)
+
+PARAMETRI TIPICI:
+- EMA: 20
+- ATR: 10
+- Multiplier: 1.5 o 2
+
+INTERPRETAZIONE:
+Simile a Bollinger ma piu' stabile.
+
+SQUEEZE:
+Quando Bollinger Bands sono DENTRO Keltner Channel = SQUEEZE.
+Indica bassa volatilita' e possibile breakout imminente.
+
+------------------------------------------------------------------------------
+3.1.4 DONCHIAN WIDTH
+------------------------------------------------------------------------------
+
+FORMULA:
+    Width = (Upper - Lower) / Close
+
+INTERPRETAZIONE:
+| Width alto     | Alta volatilita' recente  |
+| Width basso    | Bassa volatilita'         |
+| Width minimo   | Possibile breakout        |
+
+------------------------------------------------------------------------------
+3.1.5 STANDARD DEVIATION
+------------------------------------------------------------------------------
+
+FORMULA:
+    StdDev = sqrt(Sum((Close - Mean)^2) / n)
+
+SCALA: Stessa unita' del prezzo
+
+INTERPRETAZIONE:
+| StdDev alto    | Alta volatilita'        |
+| StdDev basso   | Bassa volatilita'       |
+| StdDev crescente | Vol. in aumento       |
+| StdDev decrescente | Vol. in calo        |
+
+------------------------------------------------------------------------------
+3.1.6 HISTORICAL VOLATILITY
+------------------------------------------------------------------------------
+
+FORMULA:
+    HV = StdDev(log returns) * sqrt(252) * 100
+
+SCALA: Percentuale annualizzata
+
+INTERPRETAZIONE:
+| HV = 20%   | Bassa volatilita' (es. large cap equity) |
+| HV = 40%   | Media volatilita'                        |
+| HV = 60%+  | Alta volatilita' (es. small cap, crypto) |
+| HV = 100%+ | Volatilita' estrema                      |
+
+------------------------------------------------------------------------------
+3.1.7 CHAIKIN VOLATILITY
+------------------------------------------------------------------------------
+
+FORMULA:
+    CHV = (EMA(H-L, 10) - EMA(H-L, 10)[10]) / EMA(H-L, 10)[10] * 100
+
+SCALA: Percentuale
+
+INTERPRETAZIONE:
+| CHV crescente  | Volatilita' in espansione  |
+| CHV decrescente| Volatilita' in contrazione |
+| CHV > 0        | Vol. sopra media 10gg      |
+| CHV < 0        | Vol. sotto media 10gg      |
+
+================================================================================
+3.2 INDICATORI DI VOLATILITA' AVANZATI
+================================================================================
+
+------------------------------------------------------------------------------
+3.2.1 VIX (per S&P 500) / VOLATILITY INDEX
+------------------------------------------------------------------------------
+
+E' la "volatilita' implicita" derivata dai prezzi delle opzioni.
+
+SCALA: Punti percentuali (annualizzati)
+
+INTERPRETAZIONE:
+| VIX 10-15    | Calma / Compiacenza        | Risk-on, bassa paura   |
+| VIX 15-20    | Normale                     | Condizioni standard    |
+| VIX 20-25    | Elevato                     | Preoccupazione         |
+| VIX 25-30    | Alto                        | Paura significativa    |
+| VIX 30-40    | Molto alto                  | Alta paura             |
+| VIX 40+      | Panico                      | Estrema paura          |
+
+RELAZIONE CON MERCATO:
+VIX tipicamente sale quando il mercato scende (correlazione negativa).
+
+MEAN REVERSION:
+VIX tende a tornare verso la media (18-20).
+VIX molto alto = opportunita' contrarian long equity.
+
+------------------------------------------------------------------------------
+3.2.2 RVI - Relative Volatility Index
+------------------------------------------------------------------------------
+
+Come RSI ma applicato alla deviazione standard.
+
+SCALA: 0 - 100
+
+INTERPRETAZIONE:
+| RVI > 50     | Volatilita' piu' up che down | Conferma uptrend  |
+| RVI < 50     | Volatilita' piu' down che up | Conferma downtrend|
+
+Usato principalmente come conferma.
+
+
+================================================================================
+================================================================================
+                    PARTE 4: INDICATORI DI VOLUME
+================================================================================
+================================================================================
+
+Il volume misura l'intensita' dell'attivita' di trading.
+"Volume precede il prezzo" - principio chiave.
+
+================================================================================
+4.1 INDICATORI DI VOLUME BASE
+================================================================================
+
+------------------------------------------------------------------------------
+4.1.1 VOLUME SEMPLICE
+------------------------------------------------------------------------------
+
+INTERPRETAZIONE:
+| Alto volume + prezzo up    | Conferma movimento up    | Bullish        |
+| Alto volume + prezzo down  | Conferma movimento down  | Bearish        |
+| Basso volume + prezzo up   | Movimento debole up      | Cautela        |
+| Basso volume + prezzo down | Movimento debole down    | Cautela        |
+| Volume crescente + trend   | Trend confermato         | Segui trend    |
+| Volume decrescente + trend | Trend in esaurimento     | Prepara exit   |
+
+VOLUME RELATIVO:
+    Volume Ratio = Volume / SMA(Volume, 20)
+
+| Ratio > 2    | Volume molto alto, evento significativo |
+| Ratio 1-2    | Volume sopra media                      |
+| Ratio < 1    | Volume sotto media                      |
+
+------------------------------------------------------------------------------
+4.1.2 OBV - On Balance Volume
+------------------------------------------------------------------------------
+
+FORMULA:
+    Se Close > Close[1]: OBV = OBV[1] + Volume
+    Se Close < Close[1]: OBV = OBV[1] - Volume
+    Se Close = Close[1]: OBV = OBV[1]
+
+SCALA: Cumulativa (valori assoluti non importanti, conta il trend)
+
+INTERPRETAZIONE:
+| OBV sale + Prezzo sale   | Trend up confermato    | Bullish       |
+| OBV scende + Prezzo scende| Trend down confermato | Bearish       |
+| OBV sale + Prezzo flat   | Accumulo               | Bullish setup |
+| OBV scende + Prezzo flat | Distribuzione          | Bearish setup |
+
+DIVERGENZE:
+| Prezzo higher high, OBV lower high | Bearish divergence | Sell |
+| Prezzo lower low, OBV higher low   | Bullish divergence | Buy  |
+
+------------------------------------------------------------------------------
+4.1.3 VWAP - Volume Weighted Average Price
+------------------------------------------------------------------------------
+
+FORMULA:
+    VWAP = Sum(Typical Price * Volume) / Sum(Volume)
+    (calcolato da inizio sessione)
+
+SCALA: Stessa scala del prezzo
+
+INTERPRETAZIONE:
+| Prezzo > VWAP  | Compratori in controllo  | Bias long    |
+| Prezzo < VWAP  | Venditori in controllo   | Bias short   |
+| Prezzo = VWAP  | Fair value               | Neutro       |
+
+USI:
+- Benchmark per execution
+- Supporto/Resistenza intraday
+- Entry/Exit points
+
+DEVIAZIONI STANDARD DA VWAP:
+- +1 StdDev: prima resistenza
+- +2 StdDev: esteso, possibile mean reversion
+- -1 StdDev: primo supporto
+- -2 StdDev: oversold, possibile rimbalzo
+
+------------------------------------------------------------------------------
+4.1.4 A/D LINE - Accumulation/Distribution Line
+------------------------------------------------------------------------------
+
+FORMULA:
+    CLV = ((Close - Low) - (High - Close)) / (High - Low)
+    AD = AD[1] + CLV * Volume
+
+SCALA: Cumulativa
+
+INTERPRETAZIONE:
+Come OBV ma considera anche la posizione della chiusura nel range.
+
+| AD sale + Prezzo sale   | Accumulo + Uptrend       | Bullish |
+| AD scende + Prezzo scende| Distribuzione + Downtrend| Bearish |
+| Divergenza              | Come OBV                  |         |
+
+------------------------------------------------------------------------------
+4.1.5 CHAIKIN MONEY FLOW (CMF)
+------------------------------------------------------------------------------
+
+FORMULA:
+    CMF = Sum(Money Flow Volume, 20) / Sum(Volume, 20)
+    Money Flow Volume = CLV * Volume
+
+SCALA: -1 a +1
+
+INTERPRETAZIONE:
+| CMF > 0        | Accumulo / Buying pressure  | Bullish |
+| CMF < 0        | Distribuzione / Selling     | Bearish |
+| CMF > +0.25    | Forte accumulo              | Strong buy |
+| CMF < -0.25    | Forte distribuzione         | Strong sell|
+
+------------------------------------------------------------------------------
+4.1.6 CHAIKIN OSCILLATOR
+------------------------------------------------------------------------------
+
+FORMULA:
+    CO = EMA(AD, 3) - EMA(AD, 10)
+
+SCALA: Varia (positivo/negativo)
+
+INTERPRETAZIONE:
+| CO > 0                  | Momentum di accumulo      |
+| CO < 0                  | Momentum di distribuzione |
+| CO incrocia zero ↑      | Buy signal                |
+| CO incrocia zero ↓      | Sell signal               |
+
+------------------------------------------------------------------------------
+4.1.7 FORCE INDEX
+------------------------------------------------------------------------------
+
+FORMULA:
+    Force Index = (Close - Close[1]) * Volume
+
+Con smoothing:
+    FI = EMA(Force Index, 13)
+
+SCALA: Varia
+
+INTERPRETAZIONE:
+| FI > 0 crescente  | Compratori dominano, forza up    | Buy    |
+| FI < 0 decrescente| Venditori dominano, forza down   | Sell   |
+| FI incrocia zero  | Cambio di forza                  | Signal |
+
+------------------------------------------------------------------------------
+4.1.8 EASE OF MOVEMENT (EMV)
+------------------------------------------------------------------------------
+
+FORMULA:
+    Distance Moved = ((H + L)/2 - (H[1] + L[1])/2)
+    Box Ratio = (Volume/1000000) / (H - L)
+    EMV = Distance Moved / Box Ratio
+    EMV SMA = SMA(EMV, 14)
+
+SCALA: Varia
+
+INTERPRETAZIONE:
+| EMV > 0     | Facilita' movimento up    | Bullish |
+| EMV < 0     | Facilita' movimento down  | Bearish |
+| Alto EMV    | Facile muovere prezzo     |         |
+| Basso EMV   | Difficile muovere prezzo  |         |
+
+------------------------------------------------------------------------------
+4.1.9 KLINGER OSCILLATOR
+------------------------------------------------------------------------------
+
+FORMULA:
+Combina volume con trend di prezzo.
+    KO = EMA(VF, 34) - EMA(VF, 55)
+    Signal = EMA(KO, 13)
+
+SCALA: Varia
+
+INTERPRETAZIONE:
+| KO > Signal | Buy signal  |
+| KO < Signal | Sell signal |
+
+Utile per confermare breakout.
+
+================================================================================
+4.2 VOLUME PROFILE
+================================================================================
+
+Non e' un indicatore tradizionale ma un metodo di analisi.
+
+COMPONENTI:
+- POC (Point of Control): prezzo con piu' volume
+- Value Area High (VAH): limite superiore area di valore
+- Value Area Low (VAL): limite inferiore area di valore
+- Value Area: range che contiene 70% del volume
+
+INTERPRETAZIONE:
+| POC            | Livello di forte supporto/resistenza      |
+| VAH            | Resistenza se prezzo sotto, supporto se sopra |
+| VAL            | Supporto se prezzo sopra, resistenza se sotto |
+| High Volume Node (HVN) | Aree di equilibrio, congestione       |
+| Low Volume Node (LVN)  | Aree di inefficienza, movimento rapido |
+
+
+================================================================================
+================================================================================
+                    PARTE 5: INDICATORI DI FORZA RELATIVA
+================================================================================
+================================================================================
+
+Confrontano la performance di un asset con un altro (benchmark).
+
+================================================================================
+5.1 INDICATORI DI FORZA RELATIVA
+================================================================================
+
+------------------------------------------------------------------------------
+5.1.1 RELATIVE STRENGTH (RS)
+------------------------------------------------------------------------------
+
+FORMULA:
+    RS = Asset Price / Benchmark Price
+
+O come ratio:
+    RS = (Asset / Asset[n]) / (Benchmark / Benchmark[n])
+
+INTERPRETAZIONE:
+| RS sale       | Asset outperforma benchmark | Long asset    |
+| RS scende     | Asset underperforma         | Avoid/Short   |
+| RS piatto     | Performance allineata       | Neutro        |
+
+USI:
+- Stock vs Index
+- Altcoin vs BTC
+- Sector rotation
+
+------------------------------------------------------------------------------
+5.1.2 BETA
+------------------------------------------------------------------------------
+
+FORMULA:
+    Beta = Cov(Asset, Market) / Var(Market)
+
+SCALA: Tipicamente 0 - 2 (puo' essere negativo)
+
+INTERPRETAZIONE:
+| Beta = 1     | Stesso movimento del mercato     |
+| Beta > 1     | Piu' volatile del mercato        |
+| Beta < 1     | Meno volatile del mercato        |
+| Beta < 0     | Si muove in direzione opposta    |
+
+USI:
+- Hedging
+- Risk assessment
+- Portfolio construction
+
+------------------------------------------------------------------------------
+5.1.3 CORRELATION
+------------------------------------------------------------------------------
+
+FORMULA:
+    Correlation = Cov(X, Y) / (StdDev(X) * StdDev(Y))
+
+SCALA: -1 a +1
+
+INTERPRETAZIONE:
+| +0.7 a +1.0  | Forte correlazione positiva    |
+| +0.3 a +0.7  | Moderata correlazione positiva |
+| -0.3 a +0.3  | Debole/No correlazione         |
+| -0.7 a -0.3  | Moderata correlazione negativa |
+| -1.0 a -0.7  | Forte correlazione negativa    |
+
+
+================================================================================
+================================================================================
+                    PARTE 6: INDICATORI DI CICLO
+================================================================================
+================================================================================
+
+Identificano pattern ciclici nei prezzi.
+
+================================================================================
+6.1 INDICATORI DI CICLO
+================================================================================
+
+------------------------------------------------------------------------------
+6.1.1 DETRENDED PRICE OSCILLATOR (DPO)
+------------------------------------------------------------------------------
+
+FORMULA:
+    DPO = Close - SMA(Close, n/2 + 1) shifted back n/2 + 1
+
+SCALA: Varia intorno a zero
+
+INTERPRETAZIONE:
+Rimuove il trend per identificare cicli.
+| DPO > 0     | Prezzo sopra il ciclo    |
+| DPO < 0     | Prezzo sotto il ciclo    |
+| Picchi/Valli| Identificano il ciclo    |
+
+------------------------------------------------------------------------------
+6.1.2 SCHAFF TREND CYCLE (STC)
+------------------------------------------------------------------------------
+
+FORMULA:
+Combina MACD con ciclo stocastico.
+
+SCALA: 0 - 100
+
+INTERPRETAZIONE:
+| > 75        | Ipercomprato / Trend up forte  |
+| < 25        | Ipervenduto / Trend down forte |
+| Incrocia 25 ↑| Buy signal                    |
+| Incrocia 75 ↓| Sell signal                   |
+
+Piu' veloce del MACD tradizionale.
+
+------------------------------------------------------------------------------
+6.1.3 FISHER TRANSFORM
+------------------------------------------------------------------------------
+
+FORMULA:
+Trasforma la distribuzione dei prezzi in gaussiana.
+    Value = 0.5 * ln((1+x)/(1-x))
+
+SCALA: Tipicamente -3 a +3
+
+INTERPRETAZIONE:
+| > 0         | Bullish        |
+| < 0         | Bearish        |
+| Estremi (>2 o <-2) | Possibile reversal |
+| Incrocio con trigger | Signal    |
+
+------------------------------------------------------------------------------
+6.1.4 COPPOCK CURVE
+------------------------------------------------------------------------------
+
+FORMULA:
+    CC = WMA(ROC(14) + ROC(11), 10)
+
+SCALA: Varia
+
+INTERPRETAZIONE:
+Originariamente per identificare bottom di lungo termine.
+| CC < 0 che gira ↑ | Buy signal (bottom) |
+| CC > 0 che gira ↓ | Sell signal (top)   |
+
+
+================================================================================
+================================================================================
+                    PARTE 7: INDICATORI COMPOSITI
+================================================================================
+================================================================================
+
+Combinano multiple letture in un singolo valore.
+
+================================================================================
+7.1 INDICATORI COMPOSITI
+================================================================================
+
+------------------------------------------------------------------------------
+7.1.1 ADL - Advance/Decline Line
+------------------------------------------------------------------------------
+
+FORMULA (per indici):
+    ADL = ADL[1] + (Advances - Declines)
+
+INTERPRETAZIONE:
+| ADL sale + Index sale  | Trend sano, breadth positiva    |
+| ADL scende + Index sale| Divergenza bearish, pochi titoli|
+| ADL sale + Index scende| Divergenza bullish              |
+
+------------------------------------------------------------------------------
+7.1.2 MCCLELLAN OSCILLATOR
+------------------------------------------------------------------------------
+
+FORMULA:
+    MCO = EMA(Advances-Declines, 19) - EMA(Advances-Declines, 39)
+
+SCALA: Varia (tipicamente -150 a +150)
+
+INTERPRETAZIONE:
+| MCO > +100  | Ipercomprato di breadth   |
+| MCO < -100  | Ipervenduto di breadth    |
+| MCO > 0     | Breadth positiva          |
+| MCO < 0     | Breadth negativa          |
+
+------------------------------------------------------------------------------
+7.1.3 FEAR & GREED INDEX
+------------------------------------------------------------------------------
+
+Composito di 7 indicatori:
+1. Stock Price Momentum
+2. Stock Price Strength
+3. Stock Price Breadth
+4. Put and Call Options
+5. Junk Bond Demand
+6. Market Volatility (VIX)
+7. Safe Haven Demand
+
+SCALA: 0 - 100
+
+INTERPRETAZIONE:
+| 0-25        | Extreme Fear    | Contrarian buy  |
+| 25-45       | Fear            | Cautious        |
+| 45-55       | Neutral         | Normal          |
+| 55-75       | Greed           | Cautious        |
+| 75-100      | Extreme Greed   | Contrarian sell |
+
+------------------------------------------------------------------------------
+7.1.4 CRYPTO FEAR & GREED INDEX
+------------------------------------------------------------------------------
+
+Composito di:
+- Volatilita' (25%)
+- Momentum/Volume (25%)
+- Social Media (15%)
+- Surveys (15%)
+- Dominance BTC (10%)
+- Trends (10%)
+
+SCALA: 0 - 100 (stessa interpretazione)
+
+------------------------------------------------------------------------------
+7.1.5 CONNORS RSI
+------------------------------------------------------------------------------
+
+FORMULA:
+    CRSI = (RSI(3) + RSI(UpDown, 2) + ROC_Rank(100)) / 3
+
+SCALA: 0 - 100
+
+INTERPRETAZIONE:
+| < 10        | Estremamente ipervenduto  | Strong buy  |
+| 10-20       | Ipervenduto               | Buy         |
+| 80-90       | Ipercomprato              | Sell        |
+| > 90        | Estremamente ipercomprato | Strong sell |
+
+
+================================================================================
+================================================================================
+                    PARTE 8: INDICATORI ON-CHAIN (CRYPTO)
+================================================================================
+================================================================================
+
+Specifici per criptovalute, basati su dati blockchain.
+
+================================================================================
+8.1 INDICATORI ON-CHAIN
+================================================================================
+
+------------------------------------------------------------------------------
+8.1.1 MVRV - Market Value to Realized Value
+------------------------------------------------------------------------------
+
+FORMULA:
+    MVRV = Market Cap / Realized Cap
+
+Realized Cap = ogni UTXO valutato al prezzo dell'ultimo movimento.
+
+SCALA: Tipicamente 0.5 - 5
+
+INTERPRETAZIONE:
+| MVRV > 3.5  | Molto sopravvalutato   | Top zone     | Strong sell |
+| MVRV 2-3.5  | Sopravvalutato         | Attenzione   | Reduce      |
+| MVRV 1-2    | Fair value             | Hold         | Normal      |
+| MVRV < 1    | Sottovalutato          | Bottom zone  | Accumulate  |
+| MVRV < 0.8  | Fortemente sottovalutato| Capitulation| Strong buy  |
+
+MVRV Z-SCORE:
+Normalizzato, piu' preciso per identificare top e bottom.
+
+------------------------------------------------------------------------------
+8.1.2 NUPL - Net Unrealized Profit/Loss
+------------------------------------------------------------------------------
+
+FORMULA:
+    NUPL = (Market Cap - Realized Cap) / Market Cap
+
+SCALA: -1 a +1
+
+INTERPRETAZIONE:
+| > 0.75      | Euphoria/Greed    | Top imminente  |
+| 0.5-0.75    | Belief/Denial     | Trend maturo   |
+| 0.25-0.5    | Optimism/Anxiety  | Recovery       |
+| 0-0.25      | Hope/Fear         | Accumulation   |
+| < 0         | Capitulation      | Bottom zone    |
+
+------------------------------------------------------------------------------
+8.1.3 SOPR - Spent Output Profit Ratio
+------------------------------------------------------------------------------
+
+FORMULA:
+    SOPR = Realized Value / Value at Creation
+
+SCALA: Intorno a 1
+
+INTERPRETAZIONE:
+| SOPR > 1    | In media, venditori in profitto  | Bullish if trend up |
+| SOPR < 1    | In media, venditori in perdita   | Capitulation        |
+| SOPR = 1    | Breakeven, supporto psicologico  | Key level           |
+
+SOPR reset a 1 durante correzioni bullish = supporto.
+SOPR reset a 1 durante rally bearish = resistenza.
+
+------------------------------------------------------------------------------
+8.1.4 NVT - Network Value to Transactions
+------------------------------------------------------------------------------
+
+FORMULA:
+    NVT = Market Cap / Daily Transaction Volume (in USD)
+
+Simile al PE ratio per azioni.
+
+SCALA: Varia (tipicamente 20-200 per BTC)
+
+INTERPRETAZIONE:
+| NVT alto    | Overvalued o store of value narrative |
+| NVT basso   | Undervalued o alta attivita'          |
+
+NVT SIGNAL (smoothed):
+Usa media 90 giorni del transaction volume.
+
+------------------------------------------------------------------------------
+8.1.5 EXCHANGE FLOWS
+------------------------------------------------------------------------------
+
+EXCHANGE INFLOW:
+BTC depositati su exchange.
+| Alto inflow | Pressione di vendita potenziale |
+
+EXCHANGE OUTFLOW:
+BTC ritirati da exchange.
+| Alto outflow | Accumulo, HODLing |
+
+EXCHANGE NETFLOW:
+    Netflow = Inflow - Outflow
+
+| Netflow positivo | Preparazione a vendere |
+| Netflow negativo | Accumulo in corso      |
+
+EXCHANGE RESERVE:
+BTC totali su exchange.
+| Reserve scende | Supply squeeze bullish |
+| Reserve sale   | Pressione bearish      |
+
+------------------------------------------------------------------------------
+8.1.6 HASH RATE E DIFFICULTY
+------------------------------------------------------------------------------
+
+HASH RATE:
+Potenza computazionale della rete.
+| Hash rate sale  | Rete sicura, miner fiduciosi | Bullish long term |
+| Hash rate scende| Miner spengono, capitulation | Caution           |
+
+HASH RIBBONS:
+    Buy signal quando SMA(30) del hash rate incrocia SMA(60) dal basso.
+
+------------------------------------------------------------------------------
+8.1.7 PUELL MULTIPLE
+------------------------------------------------------------------------------
+
+FORMULA:
+    Puell = Daily Issuance Value / 365-day MA of Daily Issuance Value
+
+SCALA: Tipicamente 0.3 - 5
+
+INTERPRETAZIONE:
+| > 4         | Miner ricavi molto alti | Top zone   |
+| 1.5-4       | Sopra media             | Attenzione |
+| 0.5-1.5     | Normale                 | Hold       |
+| < 0.5       | Miner ricavi molto bassi| Bottom     |
+
+------------------------------------------------------------------------------
+8.1.8 STOCK-TO-FLOW (S2F)
+------------------------------------------------------------------------------
+
+FORMULA:
+    S2F = Stock (supply esistente) / Flow (nuova supply annuale)
+
+Per BTC, S2F raddoppia ogni halving.
+
+MODELLO S2F (PlanB):
+    Prezzo previsto = exp(-1.84) * S2F^3.36
+
+INTERPRETAZIONE:
+| Prezzo < Modello | Sottovalutato |
+| Prezzo > Modello | Sopravvalutato|
+
+NOTA: Modello controverso, non garantisce previsioni accurate.
+
+------------------------------------------------------------------------------
+8.1.9 ACTIVE ADDRESSES
+------------------------------------------------------------------------------
+
+Indirizzi unici attivi (inviano o ricevono) in un periodo.
+
+INTERPRETAZIONE:
+| Active addresses sale  | Attivita' crescente | Bullish |
+| Active addresses scende| Attivita' in calo   | Bearish |
+
+Correlazione con prezzo nel medio termine.
+
+------------------------------------------------------------------------------
+8.1.10 COIN DAYS DESTROYED (CDD)
+------------------------------------------------------------------------------
+
+FORMULA:
+    CDD = Coins moved * Days since last moved
+
+Alto CDD = vecchi coin si muovono (smart money attivo).
+
+INTERPRETAZIONE:
+| CDD spike     | Long-term holders muovono | Potenziale distribuzione |
+| CDD basso     | Coin dormienti            | Accumulo                 |
+
+
+================================================================================
+================================================================================
+                    PARTE 9: INDICATORI DI SENTIMENT
+================================================================================
+================================================================================
+
+Misurano la psicologia dei partecipanti al mercato.
+
+================================================================================
+9.1 INDICATORI DI SENTIMENT
+================================================================================
+
+------------------------------------------------------------------------------
+9.1.1 PUT/CALL RATIO
+------------------------------------------------------------------------------
+
+FORMULA:
+    P/C = Put Volume / Call Volume
+
+SCALA: Tipicamente 0.5 - 1.5
+
+INTERPRETAZIONE:
+| P/C > 1.0   | Piu' put che call | Bearish sentiment | Contrarian bullish |
+| P/C < 0.7   | Piu' call che put | Bullish sentiment | Contrarian bearish |
+| P/C = 0.8-1 | Equilibrio        | Neutral           |                    |
+
+ESTREMI:
+| P/C > 1.2   | Extreme fear   | Strong contrarian buy  |
+| P/C < 0.5   | Extreme greed  | Strong contrarian sell |
+
+------------------------------------------------------------------------------
+9.1.2 FUNDING RATE (Crypto Perpetuals)
+------------------------------------------------------------------------------
+
+Tasso pagato tra long e short ogni 8 ore.
+
+SCALA: Tipicamente -0.1% a +0.3%
+
+INTERPRETAZIONE:
+| Funding positivo alto (>0.1%) | Troppi long    | Possibile correzione |
+| Funding negativo (<0)         | Troppi short   | Possibile squeeze    |
+| Funding neutro (0-0.01%)      | Equilibrio     | Normal               |
+
+EXTREME:
+| Funding > 0.3% | Euphoria extreme | High risk long |
+| Funding < -0.1%| Panic extreme    | Contrarian long|
+
+------------------------------------------------------------------------------
+9.1.3 OPEN INTEREST
+------------------------------------------------------------------------------
+
+Totale contratti future/opzioni aperti.
+
+INTERPRETAZIONE:
+| OI sale + Prezzo sale   | Nuovi long entrano   | Trend confermato |
+| OI sale + Prezzo scende | Nuovi short entrano  | Trend confermato |
+| OI scende + Prezzo sale | Short closing        | Rally debole     |
+| OI scende + Prezzo scende| Long closing        | Selloff debole   |
+
+------------------------------------------------------------------------------
+9.1.4 LONG/SHORT RATIO
+------------------------------------------------------------------------------
+
+Rapporto tra posizioni long e short su exchange.
+
+SCALA: Tipicamente 0.5 - 3
+
+INTERPRETAZIONE:
+| Ratio > 1.5 | Troppi long | Contrarian bearish |
+| Ratio < 0.7 | Troppi short| Contrarian bullish |
+
+------------------------------------------------------------------------------
+9.1.5 SOCIAL SENTIMENT
+------------------------------------------------------------------------------
+
+Analisi di social media (Twitter, Reddit, ecc.)
+
+METRICHE:
+- Volume menzioni
+- Sentiment score (-1 a +1)
+- Weighted sentiment (per follower/engagement)
+
+INTERPRETAZIONE:
+| Sentiment molto positivo | Euphoria    | Top vicino      |
+| Sentiment molto negativo | Capitulation| Bottom vicino   |
+| Volume spike             | Attenzione  | Volatilita'     |
+
+------------------------------------------------------------------------------
+9.1.6 GOOGLE TRENDS
+------------------------------------------------------------------------------
+
+Volume di ricerche per keyword (es. "Bitcoin", "buy Bitcoin").
+
+SCALA: 0 - 100 (relativo al picco)
+
+INTERPRETAZIONE:
+| Search spike       | Retail FOMO    | Possibile top locale |
+| Search a minimo    | Disinteresse   | Accumulation zone    |
+
+"Buy Bitcoin" spike = retail sta entrando = possibile top.
+
+
+================================================================================
+================================================================================
+                    PARTE 10: TABELLE RIASSUNTIVE
+================================================================================
+================================================================================
+
+================================================================================
+10.1 QUICK REFERENCE - TUTTI GLI INDICATORI
+================================================================================
+
+INDICATORI DI TREND:
+| Indicatore      | Scala       | Bullish             | Bearish            |
+|-----------------|-------------|---------------------|-------------------|
+| SMA/EMA         | Prezzo      | Prezzo > MA         | Prezzo < MA       |
+| ADX             | 0-100       | ADX>25, +DI>-DI     | ADX>25, -DI>+DI   |
+| Aroon           | 0-100       | Up>70, Down<30      | Down>70, Up<30    |
+| Parabolic SAR   | Prezzo      | SAR sotto prezzo    | SAR sopra prezzo  |
+| Supertrend      | Prezzo      | Linea verde         | Linea rossa       |
+| Ichimoku        | Prezzo      | Prezzo sopra Kumo   | Prezzo sotto Kumo |
+
+INDICATORI DI MOMENTUM:
+| Indicatore      | Scala       | Oversold    | Overbought  | Neutral      |
+|-----------------|-------------|-------------|-------------|--------------|
+| RSI             | 0-100       | <30         | >70         | 30-70        |
+| Stochastic      | 0-100       | <20         | >80         | 20-80        |
+| Williams %R     | -100 to 0   | <-80        | >-20        | -80 to -20   |
+| CCI             | Unbounded   | <-100       | >+100       | -100 to +100 |
+| MFI             | 0-100       | <20         | >80         | 20-80        |
+| MACD            | Unbounded   | Crossover ↑ | Crossover ↓ | -            |
+
+INDICATORI DI VOLATILITA':
+| Indicatore      | Scala       | Alta Vol          | Bassa Vol        |
+|-----------------|-------------|-------------------|------------------|
+| ATR             | Prezzo      | ATR alto          | ATR basso        |
+| Bollinger Width | %           | Width alto        | Width basso      |
+| VIX             | 0-100+      | >25               | <15              |
+
+INDICATORI DI VOLUME:
+| Indicatore      | Scala       | Bullish             | Bearish            |
+|-----------------|-------------|---------------------|-------------------|
+| OBV             | Cumulative  | OBV sale            | OBV scende        |
+| CMF             | -1 to +1    | >0                  | <0                |
+| VWAP            | Prezzo      | Prezzo > VWAP       | Prezzo < VWAP     |
+
+================================================================================
+10.2 CONFLUENZA - COME COMBINARE GLI INDICATORI
+================================================================================
+
+REGOLA D'ORO: Mai usare indicatori dello stesso tipo insieme.
+
+COMBINAZIONE IDEALE:
+1. Un indicatore di TREND (conferma direzione)
+2. Un indicatore di MOMENTUM (timing entry)
+3. Un indicatore di VOLUME (conferma forza)
+4. Supporto/Resistenza o Pattern (livelli)
+
+ESEMPIO SETUP LONG:
+| Check                    | Indicatore        | Condizione       |
+|--------------------------|-------------------|------------------|
+| 1. Trend confermato      | EMA 50/200        | Prezzo > EMAs    |
+| 2. Trend forte           | ADX               | > 25             |
+| 3. Non ipercomprato      | RSI               | < 70             |
+| 4. Momentum positivo     | MACD              | Sopra signal     |
+| 5. Volume conferma       | OBV               | Trend up         |
+| 6. Livello chiave        | Supporto          | Pullback to supp.|
+
+PUNTEGGIO:
+- 6/6 checks = Setup A+ (massima confidenza)
+- 5/6 checks = Setup A
+- 4/6 checks = Setup B
+- 3/6 checks = Setup C (evitare)
+- <3 checks = No trade
+
+================================================================================
+10.3 TIMEFRAME E INDICATORI
+================================================================================
+
+| Timeframe   | Indicatori Preferiti                           |
+|-------------|------------------------------------------------|
+| 1m-5m       | VWAP, EMA 9/21, RSI(7), Volume                 |
+| 15m-1h      | EMA 20/50, RSI(14), MACD, Bollinger            |
+| 4h          | EMA 20/50/200, RSI, MACD, Ichimoku             |
+| Daily       | SMA 50/200, ADX, RSI, MACD, Weekly levels      |
+| Weekly      | SMA 20/50, RSI, MACD, On-chain metrics         |
+
+MULTI-TIMEFRAME ANALYSIS:
+1. Timeframe alto: determina trend e bias
+2. Timeframe medio: identifica setup
+3. Timeframe basso: timing preciso entry
+
+================================================================================
+                              FINE DOCUMENTO
+================================================================================
+
+Prossimo: 10_Pattern_Grafici_Completi.txt

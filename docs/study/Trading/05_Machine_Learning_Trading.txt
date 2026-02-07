@@ -1,0 +1,1315 @@
+================================================================================
+                      MACHINE LEARNING PER IL TRADING
+                 Algoritmi e Applicazioni nel Trading Quantitativo
+================================================================================
+
+INDICE
+------
+1. Introduzione al ML nel Trading
+2. Preprocessing dei Dati Finanziari
+3. Feature Engineering
+4. Modelli Supervisionati
+5. Modelli Non Supervisionati
+6. Deep Learning per il Trading
+7. Reinforcement Learning
+8. Validazione e Overfitting
+9. Deployment e Produzione
+10. Codice Python Completo
+
+================================================================================
+1. INTRODUZIONE AL ML NEL TRADING
+================================================================================
+
+------------------------------------------------------------------------------
+1.1 PERCHE' IL MACHINE LEARNING?
+------------------------------------------------------------------------------
+
+VANTAGGI:
+- Trova pattern non lineari nei dati
+- Gestisce grandi quantita' di feature
+- Si adatta a condizioni di mercato che cambiano
+- Automatizza decisioni complesse
+
+SFIDE UNICHE NEL TRADING:
+- Dati con basso rapporto segnale/rumore
+- Non stazionarieta' (le relazioni cambiano nel tempo)
+- Overfitting molto facile
+- Costi di transazione da considerare
+- Regime changes (bull/bear market)
+
+------------------------------------------------------------------------------
+1.2 TIPI DI PROBLEMI
+------------------------------------------------------------------------------
+
+CLASSIFICAZIONE:
+- Prevedere direzione: su/giu/laterale
+- Segnali di trading: buy/sell/hold
+- Regime detection: trending/ranging
+
+REGRESSIONE:
+- Prevedere rendimento futuro
+- Prevedere volatilita'
+- Prevedere prezzo target
+
+CLUSTERING:
+- Raggruppare asset simili
+- Identificare regimi di mercato
+- Anomaly detection
+
+REINFORCEMENT LEARNING:
+- Ottimizzare strategia di trading
+- Position sizing dinamico
+- Execution optimization
+
+------------------------------------------------------------------------------
+1.3 WORKFLOW ML NEL TRADING
+------------------------------------------------------------------------------
+
+1. Data Collection
+   - Prezzi OHLCV
+   - Dati fondamentali
+   - Dati alternativi (sentiment, on-chain)
+
+2. Feature Engineering
+   - Indicatori tecnici
+   - Trasformazioni statistiche
+   - Lag features
+
+3. Data Splitting (CRITICO!)
+   - Mai random split per serie temporali
+   - Walk-forward validation
+   - Purging e embargo
+
+4. Model Training
+   - Selezione algoritmo
+   - Hyperparameter tuning
+   - Cross-validation temporale
+
+5. Backtesting
+   - Test su dati out-of-sample
+   - Simulazione realistica
+   - Transaction costs
+
+6. Deployment
+   - Paper trading
+   - Live trading con size ridotto
+   - Monitoring continuo
+
+================================================================================
+2. PREPROCESSING DEI DATI FINANZIARI
+================================================================================
+
+------------------------------------------------------------------------------
+2.1 GESTIONE DATI MANCANTI
+------------------------------------------------------------------------------
+
+CAUSE NEL TRADING:
+- Exchange chiusi (weekend, festivita')
+- Delisting
+- Errori di feed
+- Gap nei dati
+
+SOLUZIONI:
+- Forward fill (ffill): usa ultimo valore valido
+- Interpolazione lineare
+- Rimuovi periodi con troppi missing
+- Non interpolare mai i rendimenti!
+
+CODICE:
+```python
+# Forward fill per prezzi
+prices = prices.fillna(method='ffill')
+
+# Rimuovi righe con troppi NaN
+df = df.dropna(thresh=len(df.columns) * 0.8)
+```
+
+------------------------------------------------------------------------------
+2.2 GESTIONE OUTLIER
+------------------------------------------------------------------------------
+
+IDENTIFICAZIONE:
+- Z-score: |z| > 3
+- IQR: fuori da Q1 - 1.5*IQR, Q3 + 1.5*IQR
+- MAD (Median Absolute Deviation)
+
+ATTENZIONE NEL TRADING:
+- Gli outlier possono essere eventi reali (flash crash)
+- Non rimuovere ciecamente
+- Meglio winsorizzare che rimuovere
+
+WINSORIZATION:
+Sostituire valori estremi con percentili
+```python
+from scipy.stats import mstats
+returns_winsorized = mstats.winsorize(returns, limits=[0.01, 0.01])
+```
+
+------------------------------------------------------------------------------
+2.3 NORMALIZZAZIONE E SCALING
+------------------------------------------------------------------------------
+
+STANDARDIZATION (Z-score):
+    x_scaled = (x - mean) / std
+
+Utile per: SVM, Neural Networks, regressione regolarizzata
+
+MIN-MAX SCALING:
+    x_scaled = (x - min) / (max - min)
+
+Range [0, 1], utile per neural networks
+
+ROBUST SCALING:
+    x_scaled = (x - median) / IQR
+
+Robusto agli outlier
+
+ATTENZIONE:
+- Calcola parametri SOLO su training set
+- Applica stessi parametri a validation/test
+- Altrimenti data leakage!
+
+------------------------------------------------------------------------------
+2.4 STAZIONARIZZAZIONE
+------------------------------------------------------------------------------
+
+I modelli ML assumono spesso dati stazionari.
+
+TRASFORMAZIONI:
+- Rendimenti: r_t = (P_t - P_{t-1}) / P_{t-1}
+- Log-rendimenti: r_t = ln(P_t / P_{t-1})
+- Differenziazione: delta_t = X_t - X_{t-1}
+- Fractional differencing: preserva memoria con stazionarieta'
+
+FRACTIONAL DIFFERENCING:
+Bilancia stazionarieta' e memoria storica.
+d tra 0 e 1 (tipicamente 0.3-0.5)
+
+================================================================================
+3. FEATURE ENGINEERING
+================================================================================
+
+------------------------------------------------------------------------------
+3.1 FEATURE TECNICHE
+------------------------------------------------------------------------------
+
+TREND:
+- SMA, EMA (varie finestre)
+- MACD e MACD Signal
+- ADX (Average Directional Index)
+- Aroon Indicator
+
+MOMENTUM:
+- RSI (Relative Strength Index)
+- Stochastic Oscillator
+- ROC (Rate of Change)
+- Williams %R
+
+VOLATILITA':
+- ATR (Average True Range)
+- Bollinger Band Width
+- Historical Volatility
+- Parkinson Volatility
+
+VOLUME:
+- OBV (On-Balance Volume)
+- Volume SMA ratio
+- VWAP deviation
+- Accumulation/Distribution
+
+------------------------------------------------------------------------------
+3.2 FEATURE STATISTICHE
+------------------------------------------------------------------------------
+
+ROLLING STATISTICS:
+- Rolling mean, std, skew, kurtosis
+- Rolling min, max
+- Rolling percentile rank
+- Rolling correlation con benchmark
+
+LAG FEATURES:
+- Rendimenti laggati: r_{t-1}, r_{t-2}, ..., r_{t-n}
+- Indicatori laggati
+- Attenzione: troppi lag = overfitting
+
+DIFFERENZE:
+- Variazione rispetto a n periodi fa
+- Accelerazione (seconda differenza)
+
+------------------------------------------------------------------------------
+3.3 FEATURE DERIVATE
+------------------------------------------------------------------------------
+
+PRICE PATTERNS:
+- Higher highs/lower lows count
+- Distance from support/resistance
+- Inside/outside bars
+
+CROSS-ASSET:
+- Spread con benchmark (BTC per altcoin)
+- Correlazione rolling con indici
+- Relative strength
+
+TIME-BASED:
+- Ora del giorno (per intraday)
+- Giorno della settimana
+- Mese dell'anno
+- Distanza da eventi (FOMC, expiry)
+
+------------------------------------------------------------------------------
+3.4 FEATURE SELECTION
+------------------------------------------------------------------------------
+
+FILTER METHODS:
+- Correlation con target
+- Mutual information
+- Variance threshold
+
+WRAPPER METHODS:
+- Forward selection
+- Backward elimination
+- Recursive Feature Elimination (RFE)
+
+EMBEDDED METHODS:
+- L1 regularization (Lasso)
+- Feature importance da tree models
+- Permutation importance
+
+ATTENZIONE:
+- Fai feature selection SOLO su training set
+- Feature importance puo' essere instabile
+- Preferisci feature con interpretazione economica
+
+------------------------------------------------------------------------------
+3.5 RIDUZIONE DIMENSIONALITA'
+------------------------------------------------------------------------------
+
+PCA (Principal Component Analysis):
+- Riduce feature correlate
+- Mantieni componenti che spiegano 95% varianza
+- Utile per evitare multicollinearita'
+
+AUTOENCODERS:
+- Riduzione non lineare
+- Possono catturare relazioni complesse
+- Richiedono piu' dati
+
+================================================================================
+4. MODELLI SUPERVISIONATI
+================================================================================
+
+------------------------------------------------------------------------------
+4.1 REGRESSIONE LINEARE E REGOLARIZZATA
+------------------------------------------------------------------------------
+
+REGRESSIONE LINEARE:
+    y = beta_0 + beta_1*x_1 + ... + beta_n*x_n + epsilon
+
+Semplice ma spesso insufficiente per relazioni non lineari.
+
+RIDGE (L2):
+    min ||y - X*beta||^2 + lambda*||beta||^2
+
+Shrinka i coefficienti, non li azzera.
+
+LASSO (L1):
+    min ||y - X*beta||^2 + lambda*||beta||_1
+
+Fa feature selection (coefficienti a zero).
+
+ELASTIC NET:
+Combinazione di L1 e L2.
+
+APPLICAZIONE:
+- Predizione rendimenti (difficile!)
+- Factor models
+- Stima beta di mercato
+
+------------------------------------------------------------------------------
+4.2 LOGISTIC REGRESSION
+------------------------------------------------------------------------------
+
+Per classificazione binaria (up/down).
+
+    P(y=1) = 1 / (1 + e^(-z))
+    z = beta_0 + beta_1*x_1 + ... + beta_n*x_n
+
+VANTAGGI:
+- Interpretabile (odds ratio)
+- Probabilita' calibrate
+- Funziona bene con poche feature
+
+OUTPUT:
+- Probabilita' di movimento up
+- Soglia tipica 0.5, ma ottimizzabile
+
+------------------------------------------------------------------------------
+4.3 SUPPORT VECTOR MACHINES (SVM)
+------------------------------------------------------------------------------
+
+Trova iperpiano che massimizza il margine tra classi.
+
+KERNEL TRICK:
+Mappa dati in spazio ad alta dimensione.
+- Linear: dati linearmente separabili
+- RBF (Radial Basis Function): relazioni non lineari
+- Polynomial: interazioni polinomiali
+
+IPERPARAMETRI:
+- C: trade-off margine vs errori
+- gamma (RBF): influenza di singoli punti
+
+APPLICAZIONE:
+- Classificazione regime (trending/ranging)
+- Pattern recognition
+
+------------------------------------------------------------------------------
+4.4 DECISION TREES
+------------------------------------------------------------------------------
+
+Divide lo spazio delle feature con regole if-then.
+
+VANTAGGI:
+- Molto interpretabile
+- Gestisce non linearita'
+- Non richiede scaling
+
+SVANTAGGI:
+- Overfitting facile
+- Instabile (piccoli cambiamenti dati = albero diverso)
+- Raramente usato da solo
+
+IPERPARAMETRI:
+- max_depth: profondita' massima
+- min_samples_split: minimo campioni per split
+- min_samples_leaf: minimo campioni per foglia
+
+------------------------------------------------------------------------------
+4.5 RANDOM FOREST
+------------------------------------------------------------------------------
+
+Ensemble di decision trees con bagging.
+
+ALGORITMO:
+1. Crea N alberi su bootstrap samples
+2. Ogni split considera solo subset di feature
+3. Predizione finale = media (regressione) o voto (classificazione)
+
+VANTAGGI:
+- Riduce overfitting rispetto a singolo albero
+- Feature importance
+- Robusto a outlier
+
+IPERPARAMETRI:
+- n_estimators: numero alberi (100-1000)
+- max_features: feature per split (sqrt(n) per classificazione)
+- max_depth: profondita' alberi
+
+APPLICAZIONE:
+- Classificazione direzione
+- Feature importance per selezione
+
+------------------------------------------------------------------------------
+4.6 GRADIENT BOOSTING (XGBoost, LightGBM, CatBoost)
+------------------------------------------------------------------------------
+
+Costruisce alberi sequenzialmente, ognuno corregge errori precedenti.
+
+XGBOOST:
+- Molto popolare in competizioni
+- Regolarizzazione integrata
+- Gestisce missing values
+
+LIGHTGBM:
+- Piu' veloce di XGBoost
+- Usa histogram-based splitting
+- Ottimo per grandi dataset
+
+CATBOOST:
+- Gestisce feature categoriche nativamente
+- Meno tuning richiesto
+- Ordered boosting per ridurre overfitting
+
+IPERPARAMETRI CHIAVE:
+- learning_rate: quanto ogni albero contribuisce (0.01-0.3)
+- n_estimators: numero iterazioni
+- max_depth: profondita' alberi (3-10)
+- subsample: frazione dati per albero
+- colsample_bytree: frazione feature
+
+APPLICAZIONE:
+Stato dell'arte per molti problemi tabulari di trading.
+
+================================================================================
+5. MODELLI NON SUPERVISIONATI
+================================================================================
+
+------------------------------------------------------------------------------
+5.1 K-MEANS CLUSTERING
+------------------------------------------------------------------------------
+
+Raggruppa dati in K cluster minimizzando varianza intra-cluster.
+
+ALGORITMO:
+1. Inizializza K centroidi
+2. Assegna ogni punto al centroide piu' vicino
+3. Ricalcola centroidi
+4. Ripeti fino a convergenza
+
+SCELTA DI K:
+- Elbow method: cerca "gomito" nel grafico SSE vs K
+- Silhouette score: misura quanto punti sono simili al proprio cluster
+
+APPLICAZIONE:
+- Raggruppare asset per comportamento simile
+- Identificare regimi di mercato
+- Segmentare periodi di trading
+
+------------------------------------------------------------------------------
+5.2 HIERARCHICAL CLUSTERING
+------------------------------------------------------------------------------
+
+Costruisce gerarchia di cluster (dendrogramma).
+
+AGGLOMERATIVE:
+- Inizia con ogni punto come cluster
+- Unisce iterativamente cluster piu' vicini
+
+LINKAGE:
+- Single: distanza minima
+- Complete: distanza massima
+- Average: distanza media
+- Ward: minimizza varianza
+
+APPLICAZIONE:
+- Costruire portafogli gerarchici (HRP)
+- Visualizzare relazioni tra asset
+
+------------------------------------------------------------------------------
+5.3 GAUSSIAN MIXTURE MODELS (GMM)
+------------------------------------------------------------------------------
+
+Modella dati come mix di distribuzioni gaussiane.
+
+VANTAGGI:
+- Cluster con forme ellittiche
+- Probabilita' di appartenenza (soft clustering)
+- Puo' modellare regimi di volatilita'
+
+APPLICAZIONE:
+- Regime detection (alta/bassa volatilita')
+- Modellare distribuzioni di rendimenti
+
+------------------------------------------------------------------------------
+5.4 HIDDEN MARKOV MODELS (HMM)
+------------------------------------------------------------------------------
+
+Modello per sequenze con stati nascosti.
+
+COMPONENTI:
+- Stati nascosti (es. bull/bear/sideways)
+- Probabilita' di transizione tra stati
+- Probabilita' di emissione (osservazioni dato lo stato)
+
+APPLICAZIONE:
+- Regime detection
+- Identificare fase del ciclo di mercato
+- Filtrare rumore
+
+================================================================================
+6. DEEP LEARNING PER IL TRADING
+================================================================================
+
+------------------------------------------------------------------------------
+6.1 NEURAL NETWORKS (MLP)
+------------------------------------------------------------------------------
+
+Multi-Layer Perceptron: strati di neuroni fully connected.
+
+ARCHITETTURA:
+- Input layer: feature
+- Hidden layers: trasformazioni non lineari
+- Output layer: predizione
+
+ATTIVAZIONI:
+- ReLU: max(0, x) - standard per hidden layers
+- Sigmoid: output [0,1] - classificazione binaria
+- Softmax: probabilita' multi-classe
+- Tanh: output [-1,1]
+
+TRAINING:
+- Backpropagation
+- Optimizers: Adam, SGD with momentum
+- Learning rate scheduling
+
+REGOLARIZZAZIONE:
+- Dropout: disattiva neuroni random durante training
+- L1/L2 regularization
+- Batch normalization
+- Early stopping
+
+------------------------------------------------------------------------------
+6.2 RECURRENT NEURAL NETWORKS (RNN)
+------------------------------------------------------------------------------
+
+Per dati sequenziali (serie temporali).
+
+RNN VANILLA:
+h_t = tanh(W_hh * h_{t-1} + W_xh * x_t)
+
+Problema: vanishing/exploding gradients per sequenze lunghe.
+
+LSTM (Long Short-Term Memory):
+- Memoria a lungo termine (cell state)
+- Gates: forget, input, output
+- Risolve vanishing gradient
+
+GRU (Gated Recurrent Unit):
+- Versione semplificata di LSTM
+- 2 gates invece di 3
+- Performance simile, piu' veloce
+
+APPLICAZIONE:
+- Predizione prezzo/direzione
+- Sequence-to-sequence (prevedere prossimi N valori)
+
+------------------------------------------------------------------------------
+6.3 CONVOLUTIONAL NEURAL NETWORKS (CNN)
+------------------------------------------------------------------------------
+
+Originariamente per immagini, applicabile a serie temporali.
+
+1D CONVOLUTIONS:
+Filtri scorrono sulla sequenza temporale.
+Catturano pattern locali.
+
+ARCHITETTURA:
+- Conv1D layers
+- Pooling (Max o Average)
+- Flatten + Dense layers
+
+APPLICAZIONE:
+- Pattern recognition su candlestick
+- Feature extraction automatica
+
+------------------------------------------------------------------------------
+6.4 TRANSFORMER E ATTENTION
+------------------------------------------------------------------------------
+
+Architettura che ha rivoluzionato NLP, applicabile a trading.
+
+SELF-ATTENTION:
+Ogni timestep "guarda" tutti gli altri timestep.
+Cattura dipendenze a lungo raggio senza problemi di RNN.
+
+TRANSFORMER:
+- Multi-head attention
+- Positional encoding
+- Feed-forward networks
+
+APPLICAZIONE:
+- Temporal Fusion Transformer
+- Time series forecasting
+- Multi-asset modeling
+
+------------------------------------------------------------------------------
+6.5 AUTOENCODERS
+------------------------------------------------------------------------------
+
+Comprime e ricostruisce dati.
+
+ENCODER: input -> rappresentazione compressa
+DECODER: rappresentazione -> ricostruzione
+
+VARIANTI:
+- Denoising autoencoder: ricostruisce da input corrotto
+- Variational autoencoder (VAE): genera nuovi dati
+
+APPLICAZIONE:
+- Feature extraction
+- Anomaly detection (errore ricostruzione alto = anomalia)
+- Riduzione dimensionalita' non lineare
+
+================================================================================
+7. REINFORCEMENT LEARNING
+================================================================================
+
+------------------------------------------------------------------------------
+7.1 CONCETTI BASE
+------------------------------------------------------------------------------
+
+COMPONENTI:
+- Agent: il trader/algoritmo
+- Environment: il mercato
+- State: informazione disponibile (prezzi, indicatori)
+- Action: buy, sell, hold (+ sizing)
+- Reward: profitto/perdita
+
+OBIETTIVO:
+Massimizzare reward cumulativo (futuro scontato).
+
+MDP (Markov Decision Process):
+- Stato futuro dipende solo da stato corrente e azione
+- Approssimazione per mercati (non perfettamente Markoviano)
+
+------------------------------------------------------------------------------
+7.2 Q-LEARNING
+------------------------------------------------------------------------------
+
+Impara funzione Q(s, a) = valore atteso di fare azione a in stato s.
+
+BELLMAN EQUATION:
+Q(s, a) = r + gamma * max_a' Q(s', a')
+
+Dove gamma e' il discount factor.
+
+DEEP Q-NETWORK (DQN):
+- Usa neural network per approssimare Q
+- Experience replay: salva transizioni, campiona random
+- Target network: stabilizza training
+
+------------------------------------------------------------------------------
+7.3 POLICY GRADIENT
+------------------------------------------------------------------------------
+
+Ottimizza direttamente la policy (probabilita' azioni).
+
+REINFORCE:
+- Campiona azioni dalla policy
+- Aggiorna policy nella direzione che aumenta reward
+
+ACTOR-CRITIC:
+- Actor: policy network
+- Critic: value network (stima quanto e' buono lo stato)
+- Combina vantaggi di entrambi
+
+PPO (Proximal Policy Optimization):
+- Stato dell'arte per molte applicazioni
+- Clipping per update stabili
+- Relativamente facile da tuning
+
+------------------------------------------------------------------------------
+7.4 APPLICAZIONI NEL TRADING
+------------------------------------------------------------------------------
+
+PORTFOLIO MANAGEMENT:
+- Stato: prezzi storici, posizioni correnti
+- Azione: pesi del portafoglio
+- Reward: rendimento - costo transazioni
+
+EXECUTION:
+- Stato: ordine da eseguire, order book
+- Azione: quanto eseguire ora
+- Reward: -implementation shortfall
+
+MARKET MAKING:
+- Stato: inventory, spread, order flow
+- Azione: quote bid/ask
+- Reward: profitto - rischio inventory
+
+SFIDE:
+- Ambiente non stazionario
+- Reward sparso e ritardato
+- Simulazione realistica difficile
+
+================================================================================
+8. VALIDAZIONE E OVERFITTING
+================================================================================
+
+------------------------------------------------------------------------------
+8.1 IL PROBLEMA DELL'OVERFITTING
+------------------------------------------------------------------------------
+
+NEL TRADING E' PARTICOLARMENTE GRAVE:
+- Dati limitati (anni, non milioni di sample)
+- Basso signal-to-noise ratio
+- Costi reali se modello non generalizza
+
+SEGNALI DI OVERFITTING:
+- Performance training >> validation
+- Troppi parametri rispetto ai dati
+- Complessita' non giustificata
+- Feature senza senso economico
+
+------------------------------------------------------------------------------
+8.2 TRAIN/VALIDATION/TEST SPLIT
+------------------------------------------------------------------------------
+
+MAI RANDOM SPLIT PER SERIE TEMPORALI!
+
+CORRETTO:
+|---- Training ----|---- Validation ----|---- Test ----|
+     (passato)           (futuro)          (piu' futuro)
+
+PROPORZIONI TIPICHE:
+- Training: 60-70%
+- Validation: 15-20%
+- Test: 15-20%
+
+------------------------------------------------------------------------------
+8.3 WALK-FORWARD VALIDATION
+------------------------------------------------------------------------------
+
+Simula come useresti il modello in produzione.
+
+PROCEDURA:
+1. Allena su periodo 1-T
+2. Testa su periodo T+1 a T+K
+3. Ri-allena su periodo 1 a T+K
+4. Testa su T+K+1 a T+2K
+5. Ripeti
+
+VANTAGGI:
+- Piu' robusto di singolo split
+- Misura capacita' di adattamento
+- Simula riallenamento periodico
+
+VARIANTI:
+- Expanding window: training cresce sempre
+- Rolling window: training ha lunghezza fissa
+
+------------------------------------------------------------------------------
+8.4 PURGING E EMBARGO
+------------------------------------------------------------------------------
+
+PROBLEMA: Information leakage temporale
+
+PURGING:
+Rimuovi dal training osservazioni vicine al test set.
+Evita che feature laggati nel test "vedano" il training.
+
+EMBARGO:
+Periodo di gap tra training e test.
+Tipicamente: lunghezza massima del lookahead nelle feature.
+
+ESEMPIO:
+Se usi feature con lag fino a 5 giorni:
+|--- Training ---|-- Purge (5gg) --|-- Test --|
+
+------------------------------------------------------------------------------
+8.5 COMBINATORIAL PURGED CROSS-VALIDATION
+------------------------------------------------------------------------------
+
+Tecnica avanzata di Marcos Lopez de Prado.
+
+- Crea tutti i possibili train/test splits
+- Applica purging e embargo
+- Media i risultati
+
+Piu' robusto di walk-forward singolo.
+
+------------------------------------------------------------------------------
+8.6 METRICHE PER IL TRADING
+------------------------------------------------------------------------------
+
+NON USARE SOLO ACCURACY!
+
+CLASSIFICAZIONE:
+- Precision: quanti segnali buy erano corretti
+- Recall: quanti veri buy hai catturato
+- F1-score: media armonica precision/recall
+- AUC-ROC: performance a varie soglie
+
+REGRESSIONE:
+- MSE, RMSE, MAE
+- R-squared
+- Directional accuracy: % volte direzione corretta
+
+METRICHE FINANZIARIE:
+- Sharpe Ratio
+- Sortino Ratio (penalizza solo downside)
+- Maximum Drawdown
+- Calmar Ratio (return/max drawdown)
+- Win rate
+- Profit factor
+
+================================================================================
+9. DEPLOYMENT E PRODUZIONE
+================================================================================
+
+------------------------------------------------------------------------------
+9.1 PAPER TRADING
+------------------------------------------------------------------------------
+
+Prima di andare live:
+1. Testa su dati simulati real-time
+2. Verifica execution logic
+3. Monitora per almeno 1-3 mesi
+4. Confronta con backtest
+
+------------------------------------------------------------------------------
+9.2 POSITION SIZING
+------------------------------------------------------------------------------
+
+Mai andare all-in!
+
+APPROCCI:
+- Fixed fractional: rischia X% per trade
+- Kelly criterion: ottimo ma aggressivo
+- Half-Kelly: piu' conservativo
+- Volatility targeting: aggiusta size per vol
+
+------------------------------------------------------------------------------
+9.3 MONITORING
+------------------------------------------------------------------------------
+
+MONITORA:
+- Performance vs backtest
+- Feature distributions (drift?)
+- Prediction distributions
+- Execution quality (slippage)
+
+ALERT:
+- Drawdown oltre soglia
+- Performance sotto aspettative
+- Anomalie nei dati
+
+------------------------------------------------------------------------------
+9.4 MODEL RETRAINING
+------------------------------------------------------------------------------
+
+I mercati cambiano, i modelli decadono.
+
+STRATEGIE:
+- Retraining periodico (settimanale, mensile)
+- Retraining su trigger (performance sotto soglia)
+- Online learning (aggiornamento continuo)
+
+ATTENZIONE:
+- Evita di riallenare troppo spesso (overfitting a rumore recente)
+- Mantieni test set sempre out-of-sample
+
+================================================================================
+10. CODICE PYTHON COMPLETO
+================================================================================
+
+```python
+import numpy as np
+import pandas as pd
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import TimeSeriesSplit
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+from sklearn.metrics import classification_report, confusion_matrix
+import warnings
+warnings.filterwarnings('ignore')
+
+# ============================================
+# GENERAZIONE DATI DI ESEMPIO
+# ============================================
+
+np.random.seed(42)
+n_samples = 1000
+
+# Simula prezzi con random walk + trend
+returns = np.random.normal(0.0002, 0.02, n_samples)
+prices = 100 * np.cumprod(1 + returns)
+
+df = pd.DataFrame({
+    'close': prices,
+    'returns': returns,
+    'volume': np.random.lognormal(10, 0.5, n_samples)
+})
+
+# Simula OHLC
+df['high'] = df['close'] * (1 + np.abs(np.random.normal(0, 0.01, n_samples)))
+df['low'] = df['close'] * (1 - np.abs(np.random.normal(0, 0.01, n_samples)))
+df['open'] = df['close'].shift(1).fillna(df['close'].iloc[0])
+
+print("="*60)
+print("MACHINE LEARNING PER TRADING - ESEMPIO COMPLETO")
+print("="*60)
+
+# ============================================
+# FEATURE ENGINEERING
+# ============================================
+
+def create_features(df, windows=[5, 10, 20, 50]):
+    """Crea feature tecniche per ML"""
+    features = pd.DataFrame(index=df.index)
+
+    # Returns
+    features['returns'] = df['close'].pct_change()
+
+    # Lagged returns
+    for lag in [1, 2, 3, 5]:
+        features[f'returns_lag_{lag}'] = features['returns'].shift(lag)
+
+    # Moving averages
+    for w in windows:
+        features[f'sma_{w}'] = df['close'].rolling(w).mean()
+        features[f'sma_ratio_{w}'] = df['close'] / features[f'sma_{w}']
+
+    # Volatility
+    for w in windows:
+        features[f'volatility_{w}'] = features['returns'].rolling(w).std()
+
+    # RSI
+    for w in [14]:
+        delta = df['close'].diff()
+        gain = delta.where(delta > 0, 0).rolling(w).mean()
+        loss = (-delta.where(delta < 0, 0)).rolling(w).mean()
+        rs = gain / loss
+        features[f'rsi_{w}'] = 100 - (100 / (1 + rs))
+
+    # MACD
+    ema12 = df['close'].ewm(span=12).mean()
+    ema26 = df['close'].ewm(span=26).mean()
+    features['macd'] = ema12 - ema26
+    features['macd_signal'] = features['macd'].ewm(span=9).mean()
+    features['macd_hist'] = features['macd'] - features['macd_signal']
+
+    # Bollinger Bands
+    for w in [20]:
+        sma = df['close'].rolling(w).mean()
+        std = df['close'].rolling(w).std()
+        features[f'bb_upper_{w}'] = sma + 2*std
+        features[f'bb_lower_{w}'] = sma - 2*std
+        features[f'bb_position_{w}'] = (df['close'] - features[f'bb_lower_{w}']) / \
+                                        (features[f'bb_upper_{w}'] - features[f'bb_lower_{w}'])
+
+    # ATR
+    high_low = df['high'] - df['low']
+    high_close = np.abs(df['high'] - df['close'].shift())
+    low_close = np.abs(df['low'] - df['close'].shift())
+    tr = pd.concat([high_low, high_close, low_close], axis=1).max(axis=1)
+    features['atr_14'] = tr.rolling(14).mean()
+
+    # Volume features
+    features['volume_sma_20'] = df['volume'].rolling(20).mean()
+    features['volume_ratio'] = df['volume'] / features['volume_sma_20']
+
+    # Rolling statistics
+    for w in [10, 20]:
+        features[f'skew_{w}'] = features['returns'].rolling(w).skew()
+        features[f'kurt_{w}'] = features['returns'].rolling(w).kurt()
+
+    return features
+
+print("\n1. FEATURE ENGINEERING")
+print("-"*40)
+features = create_features(df)
+print(f"Feature create: {len(features.columns)}")
+print(f"Feature names: {list(features.columns)[:10]}...")
+
+# ============================================
+# TARGET VARIABLE
+# ============================================
+
+def create_target(df, horizon=1, threshold=0):
+    """
+    Crea target: 1 se rendimento futuro > threshold, 0 altrimenti
+    """
+    future_returns = df['close'].pct_change(horizon).shift(-horizon)
+    target = (future_returns > threshold).astype(int)
+    return target
+
+target = create_target(df, horizon=1, threshold=0)
+print(f"\nTarget distribution:")
+print(target.value_counts(normalize=True))
+
+# ============================================
+# DATA PREPARATION
+# ============================================
+
+def prepare_data(features, target, train_size=0.7, val_size=0.15):
+    """Prepara dati per ML con split temporale"""
+
+    # Combina feature e target
+    data = features.copy()
+    data['target'] = target
+
+    # Rimuovi NaN
+    data = data.dropna()
+
+    # Split temporale
+    n = len(data)
+    train_end = int(n * train_size)
+    val_end = int(n * (train_size + val_size))
+
+    train = data.iloc[:train_end]
+    val = data.iloc[train_end:val_end]
+    test = data.iloc[val_end:]
+
+    # Separa X e y
+    feature_cols = [c for c in data.columns if c != 'target']
+
+    X_train, y_train = train[feature_cols], train['target']
+    X_val, y_val = val[feature_cols], val['target']
+    X_test, y_test = test[feature_cols], test['target']
+
+    return X_train, X_val, X_test, y_train, y_val, y_test, feature_cols
+
+X_train, X_val, X_test, y_train, y_val, y_test, feature_cols = prepare_data(features, target)
+
+print(f"\n2. DATA SPLIT")
+print("-"*40)
+print(f"Training samples: {len(X_train)}")
+print(f"Validation samples: {len(X_val)}")
+print(f"Test samples: {len(X_test)}")
+
+# ============================================
+# SCALING
+# ============================================
+
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_val_scaled = scaler.transform(X_val)
+X_test_scaled = scaler.transform(X_test)
+
+# ============================================
+# MODELLI
+# ============================================
+
+print(f"\n3. TRAINING MODELLI")
+print("-"*40)
+
+models = {
+    'Logistic Regression': LogisticRegression(random_state=42, max_iter=1000),
+    'Random Forest': RandomForestClassifier(n_estimators=100, max_depth=5,
+                                            random_state=42, n_jobs=-1),
+    'Gradient Boosting': GradientBoostingClassifier(n_estimators=100, max_depth=3,
+                                                     learning_rate=0.1, random_state=42)
+}
+
+results = {}
+
+for name, model in models.items():
+    print(f"\nTraining {name}...")
+
+    # Usa dati scalati per Logistic Regression, non scalati per tree models
+    if 'Logistic' in name:
+        model.fit(X_train_scaled, y_train)
+        y_pred_val = model.predict(X_val_scaled)
+        y_pred_test = model.predict(X_test_scaled)
+        y_prob_test = model.predict_proba(X_test_scaled)[:, 1]
+    else:
+        model.fit(X_train, y_train)
+        y_pred_val = model.predict(X_val)
+        y_pred_test = model.predict(X_test)
+        y_prob_test = model.predict_proba(X_test)[:, 1]
+
+    # Metriche validation
+    val_acc = accuracy_score(y_val, y_pred_val)
+
+    # Metriche test
+    test_acc = accuracy_score(y_test, y_pred_test)
+    test_prec = precision_score(y_test, y_pred_test)
+    test_rec = recall_score(y_test, y_pred_test)
+    test_f1 = f1_score(y_test, y_pred_test)
+
+    results[name] = {
+        'val_accuracy': val_acc,
+        'test_accuracy': test_acc,
+        'test_precision': test_prec,
+        'test_recall': test_rec,
+        'test_f1': test_f1,
+        'predictions': y_pred_test,
+        'probabilities': y_prob_test
+    }
+
+    print(f"  Validation Accuracy: {val_acc:.4f}")
+    print(f"  Test Accuracy: {test_acc:.4f}")
+    print(f"  Test F1-Score: {test_f1:.4f}")
+
+# ============================================
+# CONFRONTO MODELLI
+# ============================================
+
+print(f"\n4. CONFRONTO MODELLI")
+print("-"*40)
+print(f"{'Model':<25}{'Val Acc':<12}{'Test Acc':<12}{'Test F1':<12}")
+print("-"*60)
+
+for name, metrics in results.items():
+    print(f"{name:<25}{metrics['val_accuracy']:<12.4f}{metrics['test_accuracy']:<12.4f}{metrics['test_f1']:<12.4f}")
+
+# ============================================
+# FEATURE IMPORTANCE
+# ============================================
+
+print(f"\n5. FEATURE IMPORTANCE (Random Forest)")
+print("-"*40)
+
+rf_model = models['Random Forest']
+importances = pd.Series(rf_model.feature_importances_, index=feature_cols)
+importances = importances.sort_values(ascending=False)
+
+print("Top 10 Features:")
+for feat, imp in importances.head(10).items():
+    print(f"  {feat}: {imp:.4f}")
+
+# ============================================
+# WALK-FORWARD VALIDATION
+# ============================================
+
+print(f"\n6. WALK-FORWARD VALIDATION")
+print("-"*40)
+
+def walk_forward_validation(X, y, model, n_splits=5, train_size=0.6):
+    """Walk-forward validation per serie temporali"""
+
+    n = len(X)
+    results = []
+
+    # Calcola dimensioni finestre
+    test_size = (1 - train_size) / n_splits
+
+    for i in range(n_splits):
+        # Indici
+        train_end = int(n * (train_size + i * test_size))
+        test_end = int(n * (train_size + (i + 1) * test_size))
+
+        if test_end > n:
+            break
+
+        # Split
+        X_train_wf = X.iloc[:train_end]
+        y_train_wf = y.iloc[:train_end]
+        X_test_wf = X.iloc[train_end:test_end]
+        y_test_wf = y.iloc[train_end:test_end]
+
+        # Train e predict
+        model_clone = model.__class__(**model.get_params())
+        model_clone.fit(X_train_wf, y_train_wf)
+        y_pred = model_clone.predict(X_test_wf)
+
+        # Metriche
+        acc = accuracy_score(y_test_wf, y_pred)
+        results.append({
+            'fold': i + 1,
+            'train_size': len(X_train_wf),
+            'test_size': len(X_test_wf),
+            'accuracy': acc
+        })
+
+    return pd.DataFrame(results)
+
+# Prepara dati completi (senza split)
+data_full = features.copy()
+data_full['target'] = target
+data_full = data_full.dropna()
+X_full = data_full[[c for c in data_full.columns if c != 'target']]
+y_full = data_full['target']
+
+wf_results = walk_forward_validation(X_full, y_full,
+                                      RandomForestClassifier(n_estimators=100,
+                                                            max_depth=5,
+                                                            random_state=42))
+
+print(wf_results.to_string(index=False))
+print(f"\nMean Accuracy: {wf_results['accuracy'].mean():.4f}")
+print(f"Std Accuracy: {wf_results['accuracy'].std():.4f}")
+
+# ============================================
+# BACKTEST SEMPLICE
+# ============================================
+
+print(f"\n7. BACKTEST SEMPLICE")
+print("-"*40)
+
+def simple_backtest(prices, predictions, initial_capital=10000):
+    """
+    Backtest semplice: long quando predict=1, flat quando predict=0
+    """
+    # Allinea prezzi e predizioni
+    prices = prices.iloc[-len(predictions):].values
+
+    capital = initial_capital
+    position = 0
+    equity_curve = [capital]
+
+    for i in range(1, len(predictions)):
+        # Rendimento del periodo
+        ret = (prices[i] - prices[i-1]) / prices[i-1]
+
+        # Aggiorna capitale se in posizione
+        if position == 1:
+            capital *= (1 + ret)
+
+        # Nuova posizione basata su predizione
+        position = predictions[i]
+
+        equity_curve.append(capital)
+
+    equity_curve = np.array(equity_curve)
+
+    # Calcola metriche
+    total_return = (equity_curve[-1] / equity_curve[0]) - 1
+
+    # Buy and hold per confronto
+    bh_return = (prices[-1] / prices[0]) - 1
+
+    # Sharpe (semplificato)
+    returns = np.diff(equity_curve) / equity_curve[:-1]
+    sharpe = np.mean(returns) / np.std(returns) * np.sqrt(252) if np.std(returns) > 0 else 0
+
+    # Max drawdown
+    peak = np.maximum.accumulate(equity_curve)
+    drawdown = (peak - equity_curve) / peak
+    max_dd = np.max(drawdown)
+
+    return {
+        'total_return': total_return,
+        'buy_hold_return': bh_return,
+        'sharpe_ratio': sharpe,
+        'max_drawdown': max_dd,
+        'equity_curve': equity_curve
+    }
+
+# Usa predizioni del modello migliore
+best_model = 'Random Forest'
+backtest_results = simple_backtest(df['close'], results[best_model]['predictions'])
+
+print(f"Strategy Return: {backtest_results['total_return']:.2%}")
+print(f"Buy & Hold Return: {backtest_results['buy_hold_return']:.2%}")
+print(f"Sharpe Ratio: {backtest_results['sharpe_ratio']:.2f}")
+print(f"Max Drawdown: {backtest_results['max_drawdown']:.2%}")
+
+# ============================================
+# TIME SERIES CROSS-VALIDATION
+# ============================================
+
+print(f"\n8. TIME SERIES CROSS-VALIDATION (sklearn)")
+print("-"*40)
+
+tscv = TimeSeriesSplit(n_splits=5)
+
+cv_scores = []
+for train_idx, test_idx in tscv.split(X_full):
+    X_train_cv = X_full.iloc[train_idx]
+    X_test_cv = X_full.iloc[test_idx]
+    y_train_cv = y_full.iloc[train_idx]
+    y_test_cv = y_full.iloc[test_idx]
+
+    model_cv = RandomForestClassifier(n_estimators=100, max_depth=5, random_state=42)
+    model_cv.fit(X_train_cv, y_train_cv)
+    score = model_cv.score(X_test_cv, y_test_cv)
+    cv_scores.append(score)
+
+print(f"CV Scores: {[f'{s:.4f}' for s in cv_scores]}")
+print(f"Mean CV Score: {np.mean(cv_scores):.4f} (+/- {np.std(cv_scores):.4f})")
+
+# ============================================
+# CLASSIFICATION REPORT FINALE
+# ============================================
+
+print(f"\n9. CLASSIFICATION REPORT FINALE ({best_model})")
+print("-"*40)
+print(classification_report(y_test, results[best_model]['predictions']))
+
+print("\nConfusion Matrix:")
+cm = confusion_matrix(y_test, results[best_model]['predictions'])
+print(cm)
+
+print("\n" + "="*60)
+print("FINE ESEMPIO ML TRADING")
+print("="*60)
+```
+
+================================================================================
+                              FINE DOCUMENTO
+================================================================================
+
+Prossimo: 06_Strategie_Trading.txt

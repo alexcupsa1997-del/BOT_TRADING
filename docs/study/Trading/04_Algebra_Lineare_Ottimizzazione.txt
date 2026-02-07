@@ -1,0 +1,437 @@
+================================================================================
+                    ALGEBRA LINEARE E OTTIMIZZAZIONE
+                    Applicazioni nel Trading Quantitativo
+================================================================================
+
+INDICE
+------
+1. Vettori e Operazioni
+2. Matrici e Operazioni  
+3. Autovalori e Autovettori
+4. Decomposizioni Matriciali
+5. Ottimizzazione Fondamenti
+6. Portfolio Optimization
+7. Codice Python Completo
+
+================================================================================
+1. VETTORI E OPERAZIONI
+================================================================================
+
+Un VETTORE è una lista ordinata di numeri.
+
+Nel trading rappresenta:
+- Pesi portafoglio: w = [0.4, 0.3, 0.3]
+- Rendimenti: r = [0.02, -0.01, 0.03]
+- Prezzi storici
+
+OPERAZIONI FONDAMENTALI:
+
+Prodotto Scalare (Dot Product):
+    x · y = Σᵢ xᵢyᵢ
+
+Esempio - Rendimento portafoglio:
+    R_port = w'r = 0.4×0.02 + 0.3×(-0.01) + 0.3×0.03 = 1.4%
+
+Norma L2 (lunghezza):
+    ||x||₂ = √(Σᵢ xᵢ²)
+
+Norma L1:
+    ||x||₁ = Σᵢ |xᵢ|
+
+================================================================================
+2. MATRICI E OPERAZIONI
+================================================================================
+
+Una MATRICE è un array bidimensionale m × n.
+
+MATRICI NEL TRADING:
+- Covarianza (n × n): misura come gli asset si muovono insieme
+- Correlazione (n × n): covarianza normalizzata
+- Rendimenti (T × n): T periodi, n asset
+
+OPERAZIONI:
+
+Moltiplicazione: C = A × B (dimensioni devono essere compatibili)
+Trasposta: A' scambia righe e colonne
+Inversa: A⁻¹ tale che A × A⁻¹ = I
+Determinante: det(A) - se = 0, matrice non invertibile
+Traccia: tr(A) = somma elementi diagonali
+
+VARIANZA PORTAFOGLIO:
+    σ²_port = w'Σw
+
+Dove Σ è la matrice di covarianza.
+
+================================================================================
+3. AUTOVALORI E AUTOVETTORI
+================================================================================
+
+Per matrice A, se Av = λv:
+- λ è AUTOVALORE
+- v è AUTOVETTORE
+
+SIGNIFICATO NEL TRADING:
+
+Matrice di covarianza:
+- Autovalori = varianze nelle direzioni principali
+- Autovettori = direzioni di massima/minima variazione
+- Primo autovettore ≈ "fattore di mercato"
+
+DIAGONALIZZAZIONE:
+    A = PDP⁻¹
+
+Dove D ha autovalori sulla diagonale.
+
+================================================================================
+4. DECOMPOSIZIONI MATRICIALI
+================================================================================
+
+SVD (Singular Value Decomposition):
+    A = UΣV'
+
+Funziona per qualsiasi matrice.
+Usata per: PCA, noise reduction, pseudo-inversa.
+
+CHOLESKY:
+    A = LL' (per matrici definite positive)
+
+Usata per: generare variabili correlate, simulazioni.
+
+PCA (Principal Component Analysis):
+1. Centra i dati
+2. Calcola covarianza
+3. Estrai autovalori/autovettori
+4. Proietta su prime k componenti
+
+Applicazioni:
+- Riduzione dimensionalità
+- Identificare fattori latenti
+- Comprimere indicatori
+
+================================================================================
+5. OTTIMIZZAZIONE FONDAMENTI
+================================================================================
+
+PROBLEMA:
+    min f(x)  subject to constraints
+
+CONDIZIONI NECESSARIE:
+- Gradiente ∇f(x*) = 0 al minimo
+- Hessiana H(x*) semi-definita positiva
+
+FUNZIONI CONVESSE:
+- Ogni minimo locale è globale
+- Portfolio optimization è convesso!
+
+ALGORITMI:
+- Gradient Descent: x_{k+1} = x_k - α∇f(x_k)
+- Newton: usa anche Hessiana, converge più veloce
+- BFGS: quasi-Newton, buon compromesso
+
+VINCOLI (KKT conditions):
+- Moltiplicatori di Lagrange per uguaglianze
+- Condizioni di complementarità per disuguaglianze
+
+================================================================================
+6. PORTFOLIO OPTIMIZATION
+================================================================================
+
+MEAN-VARIANCE (Markowitz):
+
+    min  ½w'Σw           (minimizza varianza)
+    s.t. w'μ = target    (rendimento target)
+         w'1 = 1         (pesi sommano a 1)
+         w ≥ 0           (long only, opzionale)
+
+MINIMUM VARIANCE PORTFOLIO:
+    w_GMV = Σ⁻¹1 / (1'Σ⁻¹1)
+
+MAXIMUM SHARPE:
+    max (w'μ - rf) / √(w'Σw)
+
+TANGENT PORTFOLIO:
+    w_tan = Σ⁻¹(μ - rf·1) / (1'Σ⁻¹(μ - rf·1))
+
+RISK PARITY:
+Ogni asset contribuisce ugualmente al rischio totale.
+    wᵢ ∝ 1/σᵢ (caso semplificato senza correlazioni)
+
+BLACK-LITTERMAN:
+Combina equilibrio di mercato con view dell'investitore.
+
+================================================================================
+7. CODICE PYTHON COMPLETO
+================================================================================
+
+```python
+import numpy as np
+from scipy.optimize import minimize
+
+# ============================================
+# SETUP DATI
+# ============================================
+
+np.random.seed(42)
+n_assets = 4
+n_periods = 252
+
+# Rendimenti medi annuali
+mu = np.array([0.12, 0.10, 0.08, 0.06])
+
+# Matrice covarianza annuale
+cov = np.array([
+    [0.040, 0.020, 0.010, 0.005],
+    [0.020, 0.030, 0.015, 0.008],
+    [0.010, 0.015, 0.025, 0.010],
+    [0.005, 0.008, 0.010, 0.020]
+])
+
+risk_free = 0.02
+
+print("="*50)
+print("PORTFOLIO OPTIMIZATION")
+print("="*50)
+print(f"\nRendimenti attesi: {mu}")
+print(f"Volatilità: {np.sqrt(np.diag(cov))}")
+print(f"\nMatrice Correlazione:")
+vol = np.sqrt(np.diag(cov))
+corr = cov / np.outer(vol, vol)
+print(corr.round(2))
+
+# ============================================
+# FUNZIONI HELPER
+# ============================================
+
+def portfolio_return(w, mu):
+    return w @ mu
+
+def portfolio_variance(w, cov):
+    return w @ cov @ w
+
+def portfolio_vol(w, cov):
+    return np.sqrt(portfolio_variance(w, cov))
+
+def sharpe_ratio(w, mu, cov, rf):
+    ret = portfolio_return(w, mu)
+    vol = portfolio_vol(w, cov)
+    return (ret - rf) / vol
+
+def neg_sharpe(w, mu, cov, rf):
+    return -sharpe_ratio(w, mu, cov, rf)
+
+# ============================================
+# 1. EQUAL WEIGHT PORTFOLIO
+# ============================================
+
+w_equal = np.ones(n_assets) / n_assets
+
+print(f"\n{'='*40}")
+print("1. EQUAL WEIGHT PORTFOLIO")
+print(f"Pesi: {w_equal}")
+print(f"Rendimento: {portfolio_return(w_equal, mu):.2%}")
+print(f"Volatilità: {portfolio_vol(w_equal, cov):.2%}")
+print(f"Sharpe: {sharpe_ratio(w_equal, mu, cov, risk_free):.2f}")
+
+# ============================================
+# 2. MINIMUM VARIANCE PORTFOLIO
+# ============================================
+
+def min_variance_portfolio(cov):
+    n = len(cov)
+    ones = np.ones(n)
+    cov_inv = np.linalg.inv(cov)
+    w = cov_inv @ ones
+    w = w / np.sum(w)
+    return w
+
+w_minvar = min_variance_portfolio(cov)
+
+print(f"\n{'='*40}")
+print("2. MINIMUM VARIANCE PORTFOLIO")
+print(f"Pesi: {w_minvar.round(4)}")
+print(f"Rendimento: {portfolio_return(w_minvar, mu):.2%}")
+print(f"Volatilità: {portfolio_vol(w_minvar, cov):.2%}")
+print(f"Sharpe: {sharpe_ratio(w_minvar, mu, cov, risk_free):.2f}")
+
+# ============================================
+# 3. MAXIMUM SHARPE PORTFOLIO
+# ============================================
+
+n = len(mu)
+w0 = np.ones(n) / n
+
+constraints = [{'type': 'eq', 'fun': lambda w: np.sum(w) - 1}]
+bounds = [(0, 1) for _ in range(n)]  # Long only
+
+result = minimize(neg_sharpe, w0, args=(mu, cov, risk_free),
+                  method='SLSQP', bounds=bounds, constraints=constraints)
+
+w_sharpe = result.x
+
+print(f"\n{'='*40}")
+print("3. MAXIMUM SHARPE PORTFOLIO")
+print(f"Pesi: {w_sharpe.round(4)}")
+print(f"Rendimento: {portfolio_return(w_sharpe, mu):.2%}")
+print(f"Volatilità: {portfolio_vol(w_sharpe, cov):.2%}")
+print(f"Sharpe: {sharpe_ratio(w_sharpe, mu, cov, risk_free):.2f}")
+
+# ============================================
+# 4. RISK PARITY PORTFOLIO
+# ============================================
+
+def risk_contribution(w, cov):
+    """Calcola contributo al rischio di ogni asset"""
+    port_var = w @ cov @ w
+    marginal = cov @ w
+    rc = w * marginal / np.sqrt(port_var)
+    return rc
+
+def risk_parity_obj(w, cov):
+    """Minimizza differenza tra contributi al rischio"""
+    rc = risk_contribution(w, cov)
+    target = np.mean(rc)
+    return np.sum((rc - target)**2)
+
+bounds_rp = [(0.01, 1) for _ in range(n)]
+
+result_rp = minimize(risk_parity_obj, w0, args=(cov,),
+                     method='SLSQP', bounds=bounds_rp, constraints=constraints)
+
+w_rp = result_rp.x
+rc = risk_contribution(w_rp, cov)
+
+print(f"\n{'='*40}")
+print("4. RISK PARITY PORTFOLIO")
+print(f"Pesi: {w_rp.round(4)}")
+print(f"Risk contribution: {rc.round(4)}")
+print(f"RC %: {(rc/rc.sum()*100).round(1)}")
+print(f"Rendimento: {portfolio_return(w_rp, mu):.2%}")
+print(f"Volatilità: {portfolio_vol(w_rp, cov):.2%}")
+print(f"Sharpe: {sharpe_ratio(w_rp, mu, cov, risk_free):.2f}")
+
+# ============================================
+# 5. EFFICIENT FRONTIER
+# ============================================
+
+def efficient_portfolio(mu, cov, target_return):
+    """Trova portafoglio min variance per un rendimento target"""
+    n = len(mu)
+    
+    constraints = [
+        {'type': 'eq', 'fun': lambda w: np.sum(w) - 1},
+        {'type': 'eq', 'fun': lambda w: w @ mu - target_return}
+    ]
+    bounds = [(0, 1) for _ in range(n)]
+    
+    result = minimize(lambda w: w @ cov @ w, np.ones(n)/n,
+                     method='SLSQP', bounds=bounds, constraints=constraints)
+    return result.x if result.success else None
+
+print(f"\n{'='*40}")
+print("5. EFFICIENT FRONTIER")
+print(f"{'Target Ret':<12}{'Volatility':<12}{'Sharpe':<10}")
+print("-"*34)
+
+for target in np.linspace(0.06, 0.12, 7):
+    w = efficient_portfolio(mu, cov, target)
+    if w is not None:
+        vol = portfolio_vol(w, cov)
+        sr = (target - risk_free) / vol
+        print(f"{target:<12.2%}{vol:<12.2%}{sr:<10.2f}")
+
+# ============================================
+# 6. AUTOVALORI PER PCA
+# ============================================
+
+eigenvalues, eigenvectors = np.linalg.eig(cov)
+idx = eigenvalues.argsort()[::-1]
+eigenvalues = eigenvalues[idx]
+eigenvectors = eigenvectors[:, idx]
+
+print(f"\n{'='*40}")
+print("6. PCA DELLA COVARIANZA")
+print(f"\nAutovalori:")
+for i, ev in enumerate(eigenvalues):
+    var_pct = ev / eigenvalues.sum() * 100
+    cum_pct = eigenvalues[:i+1].sum() / eigenvalues.sum() * 100
+    print(f"  PC{i+1}: {ev:.6f} ({var_pct:.1f}% var, {cum_pct:.1f}% cum)")
+
+print(f"\nPrimo autovettore (factor loadings):")
+print(f"  {eigenvectors[:, 0].round(4)}")
+
+# ============================================
+# 7. BLACK-LITTERMAN (Semplificato)
+# ============================================
+
+def black_litterman_simple(cov, market_weights, views_P, views_Q, 
+                           risk_aversion=2.5, tau=0.05):
+    """
+    Black-Litterman semplificato
+    - views_P: matrice delle view (k x n)
+    - views_Q: rendimenti attesi delle view (k,)
+    """
+    # Rendimenti di equilibrio
+    pi = risk_aversion * cov @ market_weights
+    
+    # Incertezza delle view
+    omega = np.diag(np.diag(tau * views_P @ cov @ views_P.T))
+    
+    # Posterior
+    tau_cov_inv = np.linalg.inv(tau * cov)
+    omega_inv = np.linalg.inv(omega)
+    
+    M = np.linalg.inv(tau_cov_inv + views_P.T @ omega_inv @ views_P)
+    mu_bl = M @ (tau_cov_inv @ pi + views_P.T @ omega_inv @ views_Q)
+    
+    return pi, mu_bl
+
+# View: Asset 0 renderà il 15% (assoluta)
+P = np.array([[1, 0, 0, 0]])
+Q = np.array([0.15])
+
+pi_eq, mu_bl = black_litterman_simple(cov, w_equal, P, Q)
+
+print(f"\n{'='*40}")
+print("7. BLACK-LITTERMAN")
+print(f"\nRendimenti equilibrio: {pi_eq.round(4)}")
+print(f"Rendimenti BL (con view): {mu_bl.round(4)}")
+
+# Ottimizza con BL
+result_bl = minimize(neg_sharpe, w0, args=(mu_bl, cov, risk_free),
+                    method='SLSQP', bounds=bounds, constraints=constraints)
+w_bl = result_bl.x
+
+print(f"\nPesi BL: {w_bl.round(4)}")
+print(f"Rendimento: {portfolio_return(w_bl, mu_bl):.2%}")
+print(f"Sharpe: {sharpe_ratio(w_bl, mu_bl, cov, risk_free):.2f}")
+
+# ============================================
+# 8. CONFRONTO FINALE
+# ============================================
+
+print(f"\n{'='*50}")
+print("CONFRONTO STRATEGIE")
+print("="*50)
+print(f"\n{'Strategia':<20}{'Return':<10}{'Vol':<10}{'Sharpe':<10}")
+print("-"*50)
+
+strategies = {
+    'Equal Weight': w_equal,
+    'Min Variance': w_minvar,
+    'Max Sharpe': w_sharpe,
+    'Risk Parity': w_rp,
+    'Black-Litterman': w_bl
+}
+
+for name, w in strategies.items():
+    ret = portfolio_return(w, mu)
+    vol = portfolio_vol(w, cov)
+    sr = (ret - risk_free) / vol
+    print(f"{name:<20}{ret:<10.2%}{vol:<10.2%}{sr:<10.2f}")
+
+print("\n" + "="*50)
+```
+
+================================================================================
+                              FINE DOCUMENTO
+================================================================================

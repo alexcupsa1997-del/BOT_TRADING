@@ -1,0 +1,1685 @@
+================================================================================
+                    PATTERN GRAFICI - GUIDA COMPLETA
+                 Tutti i Pattern con Identificazione e Trading
+================================================================================
+
+INDICE
+------
+PARTE 1: FONDAMENTI DEI PATTERN
+PARTE 2: PATTERN DI INVERSIONE
+PARTE 3: PATTERN DI CONTINUAZIONE
+PARTE 4: PATTERN DI CANDELE SINGOLE
+PARTE 5: PATTERN DI CANDELE MULTIPLE
+PARTE 6: PATTERN ARMONICI
+PARTE 7: PATTERN DI VOLUME
+PARTE 8: PATTERN DI BREAKOUT
+PARTE 9: PATTERN AVANZATI
+PARTE 10: COME TRADARE I PATTERN
+
+================================================================================
+================================================================================
+                    PARTE 1: FONDAMENTI DEI PATTERN
+================================================================================
+================================================================================
+
+I pattern grafici sono formazioni ricorrenti nei grafici dei prezzi che
+suggeriscono probabili movimenti futuri basati su comportamenti storici.
+
+================================================================================
+1.1 PRINCIPI FONDAMENTALI
+================================================================================
+
+PSICOLOGIA DEI PATTERN:
+I pattern funzionano perche' riflettono la psicologia collettiva del mercato.
+- Paura e avidita' creano pattern ripetitivi
+- Self-fulfilling prophecy: trader agiscono sui pattern
+
+ELEMENTI CHIAVE:
+1. FORMA: la struttura visiva del pattern
+2. VOLUME: deve confermare il pattern
+3. BREAKOUT: uscita dal pattern con direzione
+4. TARGET: obiettivo di prezzo stimato
+5. STOP LOSS: invalidazione del pattern
+
+AFFIDABILITA':
+| Tipo Pattern      | Affidabilita' Media | Note                          |
+|-------------------|---------------------|-------------------------------|
+| Inversione        | 60-70%              | Richiede trend precedente     |
+| Continuazione     | 65-75%              | Segue direzione trend         |
+| Candlestick       | 50-65%              | Conferma necessaria           |
+| Armonici          | 70-80%              | Ratios precisi                |
+
+================================================================================
+1.2 TREND PRECEDENTE
+================================================================================
+
+REGOLA FONDAMENTALE:
+Un pattern di inversione richiede un trend da invertire.
+Un pattern di continuazione richiede un trend da continuare.
+
+DEFINIZIONE DI TREND:
+- Uptrend: Higher Highs (HH) + Higher Lows (HL)
+- Downtrend: Lower Highs (LH) + Lower Lows (LL)
+- Sideways: Nessuna direzione chiara
+
+MINIMO TREND RICHIESTO:
+| Timeframe | Minimo Trend |
+|-----------|--------------|
+| 1m-5m     | 20-50 candele|
+| 15m-1h    | 30-50 candele|
+| 4h-Daily  | 20-30 candele|
+
+================================================================================
+1.3 VOLUME NEI PATTERN
+================================================================================
+
+REGOLE GENERALI:
+| Fase                | Volume Atteso        | Significato                |
+|---------------------|----------------------|----------------------------|
+| Formazione          | Decrescente          | Consolidamento             |
+| Breakout            | Spike (1.5-2x media) | Conferma                   |
+| Follow-through      | Sostenuto            | Validita' movimento        |
+| Falso Breakout      | Basso                | Segnale warning            |
+
+VOLUME CLIMAX:
+Volume estremamente alto spesso indica esaurimento, non continuazione.
+
+
+================================================================================
+================================================================================
+                    PARTE 2: PATTERN DI INVERSIONE
+================================================================================
+================================================================================
+
+I pattern di inversione segnalano un potenziale cambio di direzione del trend.
+
+================================================================================
+2.1 HEAD AND SHOULDERS (Testa e Spalle)
+================================================================================
+
+STRUTTURA BEARISH (Top):
+        Head
+         /\
+        /  \
+  Left /    \ Right
+  Shoulder    Shoulder
+    /\        /\
+   /  \      /  \
+  /    \    /    \
+ /      \  /      \
+----------Neckline-----------
+
+COMPONENTI:
+1. Left Shoulder: primo picco dopo uptrend
+2. Head: picco piu' alto
+3. Right Shoulder: picco piu' basso del head
+4. Neckline: linea che connette i minimi tra le spalle
+
+FORMAZIONE:
+- Spalla sinistra con volume alto
+- Head con volume uguale o minore
+- Spalla destra con volume significativamente minore
+
+ENTRY:
+- Aggressivo: break sotto neckline
+- Conservativo: retest della neckline come resistenza
+
+TARGET:
+    Target = Neckline - (Head - Neckline)
+
+STOP LOSS:
+- Sopra la spalla destra
+- O sopra la neckline dopo breakout
+
+AFFIDABILITA': 70-85%
+
+VARIANTI:
+- Complex H&S: multiple spalle
+- Slanted neckline: neckline inclinata (valido)
+
+------------------------------------------------------------------------------
+2.1.2 INVERSE HEAD AND SHOULDERS (Bullish)
+------------------------------------------------------------------------------
+
+Specchio del H&S, si forma dopo downtrend.
+Segnala inversione bullish.
+
+TARGET:
+    Target = Neckline + (Neckline - Head)
+
+================================================================================
+2.2 DOUBLE TOP / DOUBLE BOTTOM
+================================================================================
+
+------------------------------------------------------------------------------
+2.2.1 DOUBLE TOP (M Pattern)
+------------------------------------------------------------------------------
+
+STRUTTURA:
+     Top 1      Top 2
+       /\        /\
+      /  \      /  \
+     /    \    /    \
+    /      \  /      \
+   /        \/        \
+            Valley
+
+COMPONENTI:
+1. Top 1: primo massimo
+2. Valley: ritracciamento (tipicamente 10-20%)
+3. Top 2: secondo massimo (entro 3-4% del primo)
+
+REGOLE:
+- I due top devono essere a livello simile (±3%)
+- Volume piu' basso al secondo top
+- Valley deve essere significativo
+
+ENTRY:
+- Break sotto il livello della valley
+
+TARGET:
+    Target = Valley - (Tops - Valley)
+
+STOP LOSS:
+- Sopra il livello dei top
+
+AFFIDABILITA': 65-75%
+
+------------------------------------------------------------------------------
+2.2.2 DOUBLE BOTTOM (W Pattern)
+------------------------------------------------------------------------------
+
+Specchio del Double Top, bullish.
+
+STRUTTURA:
+   Valley
+     \/  \/
+    /  \/  \
+   /        \
+  /          \
+
+TARGET:
+    Target = Peak + (Peak - Bottoms)
+
+================================================================================
+2.3 TRIPLE TOP / TRIPLE BOTTOM
+================================================================================
+
+Come Double ma con tre tocchi del livello.
+
+STRUTTURA TRIPLE TOP:
+    _/\_    _/\_    _/\_
+   /    \  /    \  /    \
+  /      \/      \/      \
+
+MAGGIORE AFFIDABILITA':
+Tre test dello stesso livello = resistenza/supporto piu' forte.
+
+AFFIDABILITA': 70-80%
+
+================================================================================
+2.4 ROUNDING TOP / ROUNDING BOTTOM
+================================================================================
+
+------------------------------------------------------------------------------
+2.4.1 ROUNDING BOTTOM (Saucer)
+------------------------------------------------------------------------------
+
+STRUTTURA:
+      \                    /
+       \                  /
+        \                /
+         \              /
+          \            /
+           \__________/
+
+CARATTERISTICHE:
+- Formazione graduale (settimane/mesi)
+- Transizione lenta da bearish a bullish
+- Volume a forma di "U" (alto-basso-alto)
+
+ENTRY:
+- Break sopra la resistenza (lip del saucer)
+
+TARGET:
+Profondita' del saucer proiettata sopra.
+
+TIMEFRAME:
+Tipicamente pattern di lungo termine (daily/weekly).
+
+------------------------------------------------------------------------------
+2.4.2 ROUNDING TOP
+------------------------------------------------------------------------------
+
+Specchio del Rounding Bottom, bearish.
+Piu' raro.
+
+================================================================================
+2.5 V-TOP / V-BOTTOM
+================================================================================
+
+Inversioni sharp e veloci.
+
+STRUTTURA V-BOTTOM:
+     \          /
+      \        /
+       \      /
+        \    /
+         \  /
+          \/
+
+CARATTERISTICHE:
+- Inversione rapida
+- Volume climax al punto V
+- Difficile da tradare in real-time
+
+NOTA:
+Spesso visti dopo eventi news o panic selling.
+
+================================================================================
+2.6 WEDGE PATTERNS
+================================================================================
+
+------------------------------------------------------------------------------
+2.6.1 RISING WEDGE (Bearish)
+------------------------------------------------------------------------------
+
+STRUTTURA:
+              /
+             /\
+            /  \
+           /    \
+          /\    /
+         /  \  /
+        /    \/
+       /
+
+Linee convergenti che puntano verso l'alto.
+Si forma sia in uptrend (inversione) che in downtrend (continuazione).
+
+CARATTERISTICHE:
+- Higher highs e higher lows MA convergenti
+- Volume decrescente
+- Breakout tipicamente verso il basso
+
+ENTRY:
+Break sotto la lower trendline.
+
+TARGET:
+Altezza del wedge dal punto di breakout.
+
+AFFIDABILITA': 65-70%
+
+------------------------------------------------------------------------------
+2.6.2 FALLING WEDGE (Bullish)
+------------------------------------------------------------------------------
+
+STRUTTURA:
+       \
+        \  /\
+         \/  \
+          \   \
+           \  /
+            \/
+
+Specchio del Rising Wedge, bullish.
+
+BREAKOUT:
+Tipicamente verso l'alto.
+
+================================================================================
+2.7 DIAMOND PATTERN
+================================================================================
+
+STRUTTURA:
+      /\
+     /  \
+    / /\ \
+   / /  \ \
+  / /    \ \
+  \ \    / /
+   \ \  / /
+    \ \/ /
+     \  /
+      \/
+
+Combinazione di broadening e symmetrical triangle.
+
+INTERPRETAZIONE:
+- In uptrend: inversione bearish
+- In downtrend: inversione bullish
+
+RARO ma affidabile quando si forma correttamente.
+
+
+================================================================================
+================================================================================
+                    PARTE 3: PATTERN DI CONTINUAZIONE
+================================================================================
+================================================================================
+
+I pattern di continuazione indicano una pausa nel trend prima della ripresa.
+
+================================================================================
+3.1 TRIANGOLI
+================================================================================
+
+------------------------------------------------------------------------------
+3.1.1 SYMMETRICAL TRIANGLE
+------------------------------------------------------------------------------
+
+STRUTTURA:
+          /\
+         /  \
+        / /\ \
+       / /  \ \
+      / /    \ \
+       \/    \/
+
+Lower highs e higher lows convergono.
+
+CARATTERISTICHE:
+- Neutro: puo' rompere in entrambe le direzioni
+- Volume decrescente durante formazione
+- Breakout tipicamente nella direzione del trend precedente
+
+TIMING:
+Breakout solitamente entro 2/3 della lunghezza del triangolo.
+
+TARGET:
+    Target = Breakout + Altezza base del triangolo
+
+AFFIDABILITA': 60-70%
+
+------------------------------------------------------------------------------
+3.1.2 ASCENDING TRIANGLE
+------------------------------------------------------------------------------
+
+STRUTTURA:
+    Resistance ___________
+              /\    /\  /
+             /  \  /  \/
+            /    \/
+           /
+
+Resistenza orizzontale + higher lows.
+
+BIAS: Bullish (buyers piu' aggressivi)
+
+BREAKOUT: Tipicamente verso l'alto (70%+)
+
+TARGET:
+    Target = Resistance + Altezza triangolo
+
+AFFIDABILITA': 70-75%
+
+------------------------------------------------------------------------------
+3.1.3 DESCENDING TRIANGLE
+------------------------------------------------------------------------------
+
+STRUTTURA:
+           \
+            \    /\
+             \  /  \
+              \/    \
+    Support ___________
+
+Supporto orizzontale + lower highs.
+
+BIAS: Bearish
+
+BREAKOUT: Tipicamente verso il basso
+
+TARGET:
+    Target = Support - Altezza triangolo
+
+================================================================================
+3.2 FLAGS E PENNANTS
+================================================================================
+
+------------------------------------------------------------------------------
+3.2.1 BULL FLAG
+------------------------------------------------------------------------------
+
+STRUTTURA:
+    |    |\
+    |    | \
+    |    |  \
+    |    | /
+    |    |/
+Pole   Flag
+
+COMPONENTI:
+1. Pole: forte movimento verticale up
+2. Flag: consolidamento in canale discendente
+
+CARATTERISTICHE:
+- Formazione rapida (5-20 candele)
+- Volume alto nel pole, basso nel flag
+- Ritracciamento 38-50% del pole
+
+ENTRY:
+Break sopra la upper trendline del flag.
+
+TARGET:
+    Target = Breakout + Lunghezza Pole
+
+AFFIDABILITA': 70-80%
+
+------------------------------------------------------------------------------
+3.2.2 BEAR FLAG
+------------------------------------------------------------------------------
+
+Specchio del Bull Flag.
+Pole down + flag ascendente = continuazione bearish.
+
+------------------------------------------------------------------------------
+3.2.3 PENNANT
+------------------------------------------------------------------------------
+
+Come flag ma con forma triangolare (convergente).
+
+BULL PENNANT:
+    |    /\
+    |   /  \
+    |  / /\ \
+    | / /  \ \
+    |  \/  \/
+   Pole
+
+Stesse regole di flag ma piu' simmetrico.
+
+================================================================================
+3.3 RECTANGLES (Trading Ranges)
+================================================================================
+
+STRUTTURA:
+    Resistance ___________
+              |    |    |
+              |    |    |
+    Support   |____|____|
+
+CARATTERISTICHE:
+- Supporto e resistenza orizzontali
+- Prezzo oscilla tra i due livelli
+- Volume diminuisce durante la formazione
+
+BREAKOUT:
+- Nella direzione del trend precedente (piu' probabile)
+- Opposta se volume contraddice
+
+TARGET:
+    Target = Breakout + Altezza rettangolo
+
+================================================================================
+3.4 CUP AND HANDLE
+================================================================================
+
+STRUTTURA:
+    \                    /___
+     \                  /    \__/
+      \                /
+       \              /
+        \            /
+         \__________/
+           Cup        Handle
+
+COMPONENTI:
+1. Cup: formazione a U (non V sharp)
+2. Handle: piccolo pullback/consolidamento
+3. Breakout: sopra il lip del cup
+
+CARATTERISTICHE:
+- Cup depth: 12-33% del precedente uptrend
+- Handle: ritraccia 10-15% del cup
+- Duration: settimane a mesi
+
+ENTRY:
+Break sopra la resistenza (lip).
+
+TARGET:
+    Target = Breakout + Profondita' Cup
+
+AFFIDABILITA': 65-75%
+
+================================================================================
+3.5 MEASURED MOVE
+================================================================================
+
+STRUTTURA:
+         /\         /\
+        /  \       /  \
+       /    \     /    \
+      /      \   /      \
+     /        \ /
+    /          V
+
+Due leg uguali separate da correzione.
+
+APPLICAZIONE:
+Leg 2 = Leg 1 in magnitudine.
+
+Utile per calcolare target.
+
+
+================================================================================
+================================================================================
+                    PARTE 4: PATTERN DI CANDELE SINGOLE
+================================================================================
+================================================================================
+
+Pattern formati da una singola candela che indicano sentiment.
+
+================================================================================
+4.1 DOJI
+================================================================================
+
+STRUTTURA BASE:
+       |
+       |
+      ---  <- Open = Close (o quasi)
+       |
+       |
+
+Open e Close allo stesso livello (o molto vicini).
+Indica indecisione.
+
+------------------------------------------------------------------------------
+4.1.1 STANDARD DOJI
+------------------------------------------------------------------------------
+       |
+      ---
+       |
+
+INTERPRETAZIONE:
+- Equilibrio tra compratori e venditori
+- Potenziale inversione se dopo trend forte
+- Richiede conferma
+
+------------------------------------------------------------------------------
+4.1.2 LONG-LEGGED DOJI
+------------------------------------------------------------------------------
+       |
+       |
+      ---
+       |
+       |
+
+Shadow molto lunghe.
+Alta volatilita' ma indecisione.
+Forte segnale di potenziale inversione.
+
+------------------------------------------------------------------------------
+4.1.3 DRAGONFLY DOJI
+------------------------------------------------------------------------------
+      ---
+       |
+       |
+       |
+
+Solo lower shadow.
+
+INTERPRETAZIONE:
+- Dopo downtrend: bullish (compratori respingono venditori)
+- Dopo uptrend: cautela
+
+------------------------------------------------------------------------------
+4.1.4 GRAVESTONE DOJI
+------------------------------------------------------------------------------
+       |
+       |
+       |
+      ---
+
+Solo upper shadow.
+
+INTERPRETAZIONE:
+- Dopo uptrend: bearish (venditori respingono compratori)
+- Dopo downtrend: cautela
+
+------------------------------------------------------------------------------
+4.1.5 FOUR-PRICE DOJI
+------------------------------------------------------------------------------
+      ---
+
+Open = Close = High = Low.
+Estrema indecisione, molto raro.
+
+================================================================================
+4.2 SPINNING TOP
+================================================================================
+
+STRUTTURA:
+       |
+      [ ]  <- Piccolo body
+       |
+
+Piccolo body con shadow su entrambi i lati.
+
+INTERPRETAZIONE:
+Come doji ma meno forte.
+Indecisione, possibile inversione.
+
+================================================================================
+4.3 MARUBOZU
+================================================================================
+
+------------------------------------------------------------------------------
+4.3.1 WHITE/GREEN MARUBOZU (Bullish)
+------------------------------------------------------------------------------
+      [   ]
+      [   ]
+      [   ]
+
+Nessuna shadow.
+Open = Low, Close = High.
+
+INTERPRETAZIONE:
+- Forte momentum bullish
+- Compratori in totale controllo
+- Continuazione probabile
+
+------------------------------------------------------------------------------
+4.3.2 BLACK/RED MARUBOZU (Bearish)
+------------------------------------------------------------------------------
+      [   ]
+      [   ]
+      [   ]
+      (filled)
+
+Open = High, Close = Low.
+Forte momentum bearish.
+
+================================================================================
+4.4 HAMMER E HANGING MAN
+================================================================================
+
+STRUTTURA:
+      [ ]  <- Piccolo body nella parte alta
+       |
+       |
+       |   <- Lower shadow lunga (2-3x body)
+
+------------------------------------------------------------------------------
+4.4.1 HAMMER
+------------------------------------------------------------------------------
+Appare DOPO DOWNTREND.
+
+INTERPRETAZIONE:
+- Venditori hanno spinto giu' ma compratori hanno recuperato
+- Segnale bullish di inversione
+- Conferma: candela successiva bullish
+
+COLORE:
+Hammer verde piu' forte di hammer rosso.
+
+------------------------------------------------------------------------------
+4.4.2 HANGING MAN
+------------------------------------------------------------------------------
+Appare DOPO UPTREND.
+Stessa forma di Hammer.
+
+INTERPRETAZIONE:
+- Segnale bearish di inversione
+- Venditori iniziano a fare pressione
+- Conferma: candela successiva bearish
+
+================================================================================
+4.5 INVERTED HAMMER E SHOOTING STAR
+================================================================================
+
+STRUTTURA:
+       |
+       |
+       |   <- Upper shadow lunga
+      [ ]  <- Piccolo body nella parte bassa
+
+------------------------------------------------------------------------------
+4.5.1 INVERTED HAMMER
+------------------------------------------------------------------------------
+Appare DOPO DOWNTREND.
+
+INTERPRETAZIONE:
+- Compratori provano a spingere su
+- Segnale bullish (meno forte di Hammer)
+- Richiede conferma
+
+------------------------------------------------------------------------------
+4.5.2 SHOOTING STAR
+------------------------------------------------------------------------------
+Appare DOPO UPTREND.
+
+INTERPRETAZIONE:
+- Compratori respinti
+- Forte segnale bearish
+- Una delle candele di inversione piu' affidabili
+
+================================================================================
+4.6 BELT HOLD
+================================================================================
+
+------------------------------------------------------------------------------
+4.6.1 BULLISH BELT HOLD (White Opening Marubozu)
+------------------------------------------------------------------------------
+      [   ]
+      [   ]
+       |
+
+Open = Low, upper shadow presente.
+Dopo downtrend = bullish.
+
+------------------------------------------------------------------------------
+4.6.2 BEARISH BELT HOLD (Black Opening Marubozu)
+------------------------------------------------------------------------------
+       |
+      [   ]
+      [   ]
+
+Open = High, lower shadow presente.
+Dopo uptrend = bearish.
+
+
+================================================================================
+================================================================================
+                    PARTE 5: PATTERN DI CANDELE MULTIPLE
+================================================================================
+================================================================================
+
+Pattern formati da due o piu' candele.
+
+================================================================================
+5.1 PATTERN ENGULFING
+================================================================================
+
+------------------------------------------------------------------------------
+5.1.1 BULLISH ENGULFING
+------------------------------------------------------------------------------
+STRUTTURA:
+      [ ]    |
+      [ ]   [   ]
+       |    [   ]
+            [   ]
+
+Prima candela: bearish piccola
+Seconda candela: bullish che "ingloba" la prima
+
+REGOLE:
+- Body della seconda copre interamente body della prima
+- Dopo downtrend
+- Piu' grande l'engulfing, piu' forte il segnale
+
+AFFIDABILITA': 70-75%
+
+------------------------------------------------------------------------------
+5.1.2 BEARISH ENGULFING
+------------------------------------------------------------------------------
+STRUTTURA:
+            [   ]
+      [ ]   [   ]
+      [ ]   [   ]
+       |        |
+
+Prima candela: bullish piccola
+Seconda candela: bearish che ingloba
+
+Dopo uptrend = bearish.
+
+================================================================================
+5.2 PIERCING LINE E DARK CLOUD COVER
+================================================================================
+
+------------------------------------------------------------------------------
+5.2.1 PIERCING LINE (Bullish)
+------------------------------------------------------------------------------
+STRUTTURA:
+      [   ]    |
+      [   ]   [ ]
+      [   ]   [ ]
+       |      [ ]
+
+Prima candela: bearish forte
+Seconda candela: apre sotto il low, chiude sopra il 50% della prima
+
+REGOLE:
+- Seconda deve chiudere almeno al 50% del body della prima
+- Dopo downtrend
+- Gap down all'apertura
+
+AFFIDABILITA': 60-65%
+
+------------------------------------------------------------------------------
+5.2.2 DARK CLOUD COVER (Bearish)
+------------------------------------------------------------------------------
+Specchio del Piercing.
+
+Prima: bullish forte
+Seconda: apre sopra high, chiude sotto 50% della prima
+
+================================================================================
+5.3 HARAMI
+================================================================================
+
+------------------------------------------------------------------------------
+5.3.1 BULLISH HARAMI
+------------------------------------------------------------------------------
+STRUTTURA:
+      [   ]
+      [   ]  [ ]
+      [   ]   |
+       |
+
+Prima: bearish grande
+Seconda: bullish piccola contenuta nel body della prima
+
+"Harami" = incinta in giapponese.
+
+INTERPRETAZIONE:
+- Perdita di momentum bearish
+- Segnale di inversione moderato
+- Richiede conferma
+
+------------------------------------------------------------------------------
+5.3.2 BEARISH HARAMI
+------------------------------------------------------------------------------
+Specchio: grande bullish seguita da piccola bearish contenuta.
+
+------------------------------------------------------------------------------
+5.3.3 HARAMI CROSS
+------------------------------------------------------------------------------
+Harami dove la seconda candela e' un Doji.
+Segnale piu' forte del normale Harami.
+
+================================================================================
+5.4 MORNING STAR E EVENING STAR
+================================================================================
+
+------------------------------------------------------------------------------
+5.4.1 MORNING STAR (Bullish)
+------------------------------------------------------------------------------
+STRUTTURA:
+      [   ]         [   ]
+      [   ]  [ ]    [   ]
+       |      |     [   ]
+                     |
+
+Tre candele:
+1. Grande bearish
+2. Piccola (gap down) - star
+3. Grande bullish (chiude sopra 50% della prima)
+
+INTERPRETAZIONE:
+- Forte segnale di inversione bullish
+- Star indica indecisione
+- Terza candela conferma inversione
+
+AFFIDABILITA': 75-80%
+
+------------------------------------------------------------------------------
+5.4.2 EVENING STAR (Bearish)
+------------------------------------------------------------------------------
+Specchio del Morning Star.
+
+1. Grande bullish
+2. Piccola (gap up) - star
+3. Grande bearish
+
+AFFIDABILITA': 70-75%
+
+------------------------------------------------------------------------------
+5.4.3 DOJI STAR
+------------------------------------------------------------------------------
+Morning/Evening Star con Doji come seconda candela.
+Segnale ancora piu' forte.
+
+================================================================================
+5.5 THREE WHITE SOLDIERS / THREE BLACK CROWS
+================================================================================
+
+------------------------------------------------------------------------------
+5.5.1 THREE WHITE SOLDIERS (Bullish)
+------------------------------------------------------------------------------
+STRUTTURA:
+                  [   ]
+            [   ] [   ]
+      [   ] [   ] [   ]
+      [   ] [   ]  |
+       |     |
+
+Tre candele bullish consecutive:
+- Ognuna apre dentro il body della precedente
+- Ognuna chiude piu' in alto
+- Shadow piccole o assenti
+
+INTERPRETAZIONE:
+- Forte momentum bullish
+- Inversione di downtrend
+- O continuazione forte di uptrend
+
+AFFIDABILITA': 75-80%
+
+------------------------------------------------------------------------------
+5.5.2 THREE BLACK CROWS (Bearish)
+------------------------------------------------------------------------------
+Specchio: tre candele bearish consecutive.
+
+================================================================================
+5.6 TWEEZER TOP / TWEEZER BOTTOM
+================================================================================
+
+------------------------------------------------------------------------------
+5.6.1 TWEEZER TOP
+------------------------------------------------------------------------------
+STRUTTURA:
+      [ ]  [ ]
+      [ ]  [ ]
+       |    |
+    (high uguali)
+
+Due candele con stesso high.
+
+INTERPRETAZIONE:
+- Resistenza testata due volte e respinta
+- Dopo uptrend = bearish
+
+------------------------------------------------------------------------------
+5.6.2 TWEEZER BOTTOM
+------------------------------------------------------------------------------
+Due candele con stesso low.
+Dopo downtrend = bullish.
+
+================================================================================
+5.7 ABANDONED BABY
+================================================================================
+
+------------------------------------------------------------------------------
+5.7.1 BULLISH ABANDONED BABY
+------------------------------------------------------------------------------
+STRUTTURA:
+      [   ]          [   ]
+      [   ]   ---    [   ]
+       |      |       |
+          (Doji con gap su entrambi i lati)
+
+Molto raro. Forte segnale di inversione bullish.
+
+------------------------------------------------------------------------------
+5.7.2 BEARISH ABANDONED BABY
+------------------------------------------------------------------------------
+Specchio: Doji con gap sopra in uptrend.
+
+================================================================================
+5.8 THREE INSIDE UP/DOWN
+================================================================================
+
+------------------------------------------------------------------------------
+5.8.1 THREE INSIDE UP
+------------------------------------------------------------------------------
+1. Grande bearish
+2. Piccola bullish dentro (Harami)
+3. Bullish che chiude sopra la prima
+
+Conferma del Bullish Harami.
+
+------------------------------------------------------------------------------
+5.8.2 THREE INSIDE DOWN
+------------------------------------------------------------------------------
+Specchio: conferma Bearish Harami.
+
+================================================================================
+5.9 THREE OUTSIDE UP/DOWN
+================================================================================
+
+------------------------------------------------------------------------------
+5.9.1 THREE OUTSIDE UP
+------------------------------------------------------------------------------
+1. Piccola bearish
+2. Grande bullish (Engulfing)
+3. Bullish che chiude sopra la seconda
+
+Conferma del Bullish Engulfing.
+
+================================================================================
+5.10 KICKER PATTERN
+================================================================================
+
+STRUTTURA:
+      [   ]      [   ]
+      [   ]      [   ]
+       |    GAP  [   ]
+                  |
+
+Due candele di colore opposto con gap tra di loro.
+
+BULLISH KICKER:
+Bearish seguita da bullish con gap up.
+
+BEARISH KICKER:
+Bullish seguita da bearish con gap down.
+
+Uno dei pattern piu' forti. Raro.
+
+
+================================================================================
+================================================================================
+                    PARTE 6: PATTERN ARMONICI
+================================================================================
+================================================================================
+
+I pattern armonici usano ratios di Fibonacci per identificare
+strutture precise che predicono inversioni.
+
+================================================================================
+6.1 FONDAMENTI FIBONACCI
+================================================================================
+
+RATIOS CHIAVE:
+- 0.236 (23.6%)
+- 0.382 (38.2%)
+- 0.500 (50.0%)
+- 0.618 (61.8%) - Golden Ratio
+- 0.786 (78.6%)
+- 0.886 (88.6%)
+- 1.000 (100%)
+- 1.272 (127.2%)
+- 1.414 (141.4%)
+- 1.618 (161.8%)
+- 2.000 (200%)
+- 2.618 (261.8%)
+
+PRZ (Potential Reversal Zone):
+Zona dove multiple ratios convergono = alta probabilita' inversione.
+
+================================================================================
+6.2 GARTLEY PATTERN
+================================================================================
+
+STRUTTURA:
+        B
+       /\
+      /  \
+   A /    \ C
+    /      \/
+   X        D
+
+RATIOS:
+| Leg | Ratio                        |
+|-----|------------------------------|
+| AB  | 0.618 di XA                  |
+| BC  | 0.382 - 0.886 di AB          |
+| CD  | 1.272 - 1.618 di BC          |
+| AD  | 0.786 di XA                  |
+
+ENTRY: Al punto D (PRZ)
+
+BULLISH GARTLEY:
+D sopra X, entry long.
+
+BEARISH GARTLEY:
+D sotto X, entry short.
+
+STOP: Sotto X (bullish) o sopra X (bearish)
+
+TARGET:
+- T1: 0.382 di AD
+- T2: 0.618 di AD
+- T3: Point A
+
+AFFIDABILITA': 70-75%
+
+================================================================================
+6.3 BAT PATTERN
+================================================================================
+
+RATIOS:
+| Leg | Ratio                        |
+|-----|------------------------------|
+| AB  | 0.382 - 0.50 di XA           |
+| BC  | 0.382 - 0.886 di AB          |
+| CD  | 1.618 - 2.618 di BC          |
+| AD  | 0.886 di XA                  |
+
+PRZ piu' profondo del Gartley (0.886 invece di 0.786).
+
+================================================================================
+6.4 BUTTERFLY PATTERN
+================================================================================
+
+RATIOS:
+| Leg | Ratio                        |
+|-----|------------------------------|
+| AB  | 0.786 di XA                  |
+| BC  | 0.382 - 0.886 di AB          |
+| CD  | 1.618 - 2.618 di BC          |
+| AD  | 1.272 o 1.618 di XA          |
+
+CARATTERISTICA:
+D estende OLTRE X.
+
+================================================================================
+6.5 CRAB PATTERN
+================================================================================
+
+RATIOS:
+| Leg | Ratio                        |
+|-----|------------------------------|
+| AB  | 0.382 - 0.618 di XA          |
+| BC  | 0.382 - 0.886 di AB          |
+| CD  | 2.618 - 3.618 di BC          |
+| AD  | 1.618 di XA                  |
+
+Estensione piu' profonda.
+
+================================================================================
+6.6 SHARK PATTERN
+================================================================================
+
+RATIOS:
+| Leg | Ratio                        |
+|-----|------------------------------|
+| AB  | 1.13 - 1.618 di XA           |
+| BC  | 1.618 - 2.24 di AB           |
+| CD  | 0.886 di XA                  |
+
+Usa punti 0, X, A, B, C.
+
+================================================================================
+6.7 CYPHER PATTERN
+================================================================================
+
+RATIOS:
+| Leg | Ratio                        |
+|-----|------------------------------|
+| AB  | 0.382 - 0.618 di XA          |
+| BC  | 1.272 - 1.414 di AB          |
+| CD  | 0.786 di XC                  |
+
+================================================================================
+6.8 AB=CD PATTERN
+================================================================================
+
+STRUTTURA SEMPLICE:
+    A           C
+     \         /\
+      \       /  \
+       \     /    \D
+        \   /
+         \ /
+          B
+
+REGOLA:
+AB = CD (in distanza e/o tempo)
+
+VARIANTI:
+| Tipo        | Ratio                    |
+|-------------|--------------------------|
+| Perfect     | CD = AB                  |
+| 1.27        | CD = 1.27 * AB           |
+| 1.618       | CD = 1.618 * AB          |
+
+================================================================================
+6.9 THREE DRIVES
+================================================================================
+
+STRUTTURA:
+    1    2    3
+    /\  /\  /\
+   /  \/  \/  \
+
+Tre push nella stessa direzione con ratio Fibonacci.
+
+RATIOS:
+- Drive 2 = 1.272 - 1.618 di Correction 1
+- Drive 3 = 1.272 - 1.618 di Correction 2
+
+================================================================================
+6.10 COME TRADARE I PATTERN ARMONICI
+================================================================================
+
+PROCESSO:
+1. Identifica la struttura XABCD
+2. Misura i ratios
+3. Identifica PRZ (confluenza di livelli)
+4. Attendi conferma (candlestick pattern, divergenza)
+5. Entry con stop stretto
+6. Target multipli
+
+PRZ IDEALE:
+- Multiple Fibonacci levels converge
+- Supporto/Resistenza
+- Trendline
+- Round number
+
+STOP LOSS:
+Oltre il punto X (conservativo) o leggermente oltre D.
+
+
+================================================================================
+================================================================================
+                    PARTE 7: PATTERN DI VOLUME
+================================================================================
+================================================================================
+
+Pattern identificabili analizzando il volume.
+
+================================================================================
+7.1 VOLUME CLIMAX
+================================================================================
+
+Volume estremamente alto (3x+ media) indica:
+- Potenziale esaurimento
+- Capitolazione
+- Turning point
+
+BUYING CLIMAX:
+Alto volume + candela bullish dopo uptrend = possibile top.
+
+SELLING CLIMAX:
+Alto volume + candela bearish dopo downtrend = possibile bottom.
+
+================================================================================
+7.2 VOLUME DRY-UP
+================================================================================
+
+Volume molto basso indica:
+- Consolidamento
+- Preparazione a movimento
+- Breakout imminente
+
+TRADING:
+Attendi il breakout con volume.
+
+================================================================================
+7.3 VOLUME DIVERGENCE
+================================================================================
+
+| Prezzo             | Volume            | Interpretazione       |
+|--------------------|-------------------|-----------------------|
+| Higher High        | Lower Volume      | Bearish divergence    |
+| Lower Low          | Lower Volume      | Bullish divergence    |
+| Uptrend            | Declining Volume  | Trend weakening       |
+| Downtrend          | Declining Volume  | Selloff ending        |
+
+================================================================================
+7.4 VOLUME BREAKOUT CONFIRMATION
+================================================================================
+
+VALID BREAKOUT:
+Volume 1.5-2x media al breakout.
+
+INVALID BREAKOUT (fakeout):
+Volume basso al breakout = high probability di fallimento.
+
+
+================================================================================
+================================================================================
+                    PARTE 8: PATTERN DI BREAKOUT
+================================================================================
+================================================================================
+
+================================================================================
+8.1 TIPI DI BREAKOUT
+================================================================================
+
+HORIZONTAL BREAKOUT:
+Break di supporto/resistenza orizzontale.
+
+TRENDLINE BREAKOUT:
+Break di trendline diagonale.
+
+CHANNEL BREAKOUT:
+Break di canale (Donchian, Keltner).
+
+PATTERN BREAKOUT:
+Break dalla struttura di un pattern.
+
+================================================================================
+8.2 ANATOMIA DI UN BREAKOUT
+================================================================================
+
+FASI:
+1. SETUP: prezzo si avvicina al livello
+2. TEST: primo tocco del livello
+3. ACCUMULATION/DISTRIBUTION: volume aumenta
+4. BREAKOUT: prezzo rompe con volume
+5. RETEST: prezzo torna a testare il livello (non sempre)
+6. FOLLOW-THROUGH: movimento continua
+
+================================================================================
+8.3 VALIDAZIONE BREAKOUT
+================================================================================
+
+CRITERI PER BREAKOUT VALIDO:
+
+PREZZO:
+| Criterio           | Valore                    |
+|--------------------|---------------------------|
+| Chiusura oltre     | Necessario (non solo wick)|
+| Distanza           | > 0.5-1% oltre il livello |
+| Time               | Almeno 2 candele oltre    |
+
+VOLUME:
+| Criterio           | Valore                    |
+|--------------------|---------------------------|
+| Al breakout        | > 1.5x media              |
+| Nelle candele dopo | Sostenuto sopra media     |
+
+================================================================================
+8.4 FAKEOUT (FALSO BREAKOUT)
+================================================================================
+
+CARATTERISTICHE:
+- Volume basso al breakout
+- Rapido ritorno dentro il range
+- Shadow lunghe (rejection)
+
+COME EVITARE:
+- Attendi chiusura della candela
+- Conferma con volume
+- Entry al retest invece che al breakout
+
+TRADING THE FAKEOUT:
+Fakeout puo' essere tradato in direzione opposta!
+
+
+================================================================================
+================================================================================
+                    PARTE 9: PATTERN AVANZATI
+================================================================================
+================================================================================
+
+================================================================================
+9.1 WYCKOFF PATTERNS
+================================================================================
+
+------------------------------------------------------------------------------
+9.1.1 ACCUMULATION SCHEMATIC
+------------------------------------------------------------------------------
+
+FASI:
+A - Selling Climax (SC)
+B - Automatic Rally (AR)
+C - Secondary Test (ST)
+D - Spring/Test
+E - Sign of Strength (SOS)
+F - Backup/Last Point of Support (LPS)
+G - Markup
+
+STRUTTURA:
+     AR
+     /\    ST  LPS
+    /  \  /\  /\  /
+   /    \/  \/  \/----> Markup
+  SC      Spring
+
+------------------------------------------------------------------------------
+9.1.2 DISTRIBUTION SCHEMATIC
+------------------------------------------------------------------------------
+
+Specchio dell'accumulation.
+
+FASI:
+A - Buying Climax (BC)
+B - Automatic Reaction (AR)
+C - Secondary Test (ST)
+D - Upthrust (UT)
+E - Sign of Weakness (SOW)
+F - Last Point of Supply (LPSY)
+G - Markdown
+
+================================================================================
+9.2 ELLIOTT WAVE PATTERNS
+================================================================================
+
+STRUTTURA BASE:
+5 onde impulsive + 3 onde correttive = ciclo completo
+
+ONDE IMPULSIVE (1-2-3-4-5):
+      5
+     /\
+    /  \
+   3    \
+  /\     \
+ /  \     \
+1    2     \
+            \
+         4   \
+              \
+
+REGOLE:
+- Onda 2 non ritraccia oltre inizio onda 1
+- Onda 3 non e' mai la piu' corta
+- Onda 4 non entra nel territorio di onda 1
+
+ONDE CORRETTIVE (A-B-C):
+    B
+   /\
+  /  \
+ /    \
+A      C
+
+RATIOS FIBONACCI:
+- Onda 2: 50-61.8% di onda 1
+- Onda 3: 161.8% di onda 1
+- Onda 4: 38.2% di onda 3
+- Onda 5: 100% di onda 1
+- Onda A: 50-61.8% di onda 5
+- Onda C: 100-161.8% di onda A
+
+================================================================================
+9.3 MARKET STRUCTURE
+================================================================================
+
+------------------------------------------------------------------------------
+9.3.1 BREAK OF STRUCTURE (BOS)
+------------------------------------------------------------------------------
+
+UPTREND BOS:
+Prezzo rompe un previous higher high.
+Conferma continuazione uptrend.
+
+DOWNTREND BOS:
+Prezzo rompe un previous lower low.
+Conferma continuazione downtrend.
+
+------------------------------------------------------------------------------
+9.3.2 CHANGE OF CHARACTER (ChoCH)
+------------------------------------------------------------------------------
+
+BULLISH ChoCH:
+In downtrend, prezzo fa un higher high.
+Prima indicazione di possibile inversione.
+
+BEARISH ChoCH:
+In uptrend, prezzo fa un lower low.
+
+------------------------------------------------------------------------------
+9.3.3 ORDER BLOCKS
+------------------------------------------------------------------------------
+
+ORDER BLOCK:
+Zona dove large orders sono stati eseguiti.
+Tipicamente l'ultima candela opposta prima di un forte movimento.
+
+BULLISH ORDER BLOCK:
+Ultima candela bearish prima di un forte movimento up.
+Diventa zona di domanda (supporto).
+
+BEARISH ORDER BLOCK:
+Ultima candela bullish prima di un forte movimento down.
+Diventa zona di offerta (resistenza).
+
+------------------------------------------------------------------------------
+9.3.4 FAIR VALUE GAPS (FVG) / IMBALANCE
+------------------------------------------------------------------------------
+
+Gap tra candele dove prezzo non ha tradato.
+
+IDENTIFICAZIONE:
+- 3 candele consecutive
+- Il low della candela 1 non tocca il high della candela 3 (bullish)
+- Oppure high candela 1 non tocca low candela 3 (bearish)
+
+TRADING:
+Prezzo tende a tornare a "riempire" il gap.
+
+================================================================================
+9.4 LIQUIDITY CONCEPTS
+================================================================================
+
+LIQUIDITY POOLS:
+Zone dove stop loss si accumulano.
+- Sotto swing lows (stop dei long)
+- Sopra swing highs (stop degli short)
+
+STOP HUNT / LIQUIDITY GRAB:
+Prezzo brevemente rompe un livello per prendere stop, poi inverte.
+
+TRADING:
+- Aspetta la liquidity grab prima di entrare
+- Entry dopo che il fake move e' completato
+
+
+================================================================================
+================================================================================
+                    PARTE 10: COME TRADARE I PATTERN
+================================================================================
+================================================================================
+
+================================================================================
+10.1 PROCESSO DI IDENTIFICAZIONE
+================================================================================
+
+STEP 1: IDENTIFICA IL TREND
+- Timeframe alto: trend generale
+- Timeframe medio: trend intermedio
+- Pattern di inversione richiedono trend
+
+STEP 2: CERCA IL PATTERN
+- Non forzare: se non e' chiaro, non e' un pattern
+- Volume deve confermare
+- Proporzioni devono essere ragionevoli
+
+STEP 3: VALIDA IL PATTERN
+- Tutti i componenti presenti?
+- Volume appropriato?
+- Contesto di mercato supporta?
+
+STEP 4: PIANIFICA IL TRADE
+- Entry point
+- Stop loss
+- Target (multipli)
+- Risk/Reward
+
+================================================================================
+10.2 ENTRY STRATEGIES
+================================================================================
+
+ENTRY AGGRESSIVA:
+- Entra prima del breakout completo
+- Piu' rischio, migliore R:R
+- Per trader esperti
+
+ENTRY STANDARD:
+- Entra al breakout confermato
+- Bilanciata
+
+ENTRY CONSERVATIVA:
+- Attendi retest del livello di breakout
+- Meno trade, maggiore affidabilita'
+
+================================================================================
+10.3 STOP LOSS PLACEMENT
+================================================================================
+
+REGOLE GENERALI:
+| Pattern           | Stop Loss Position                    |
+|-------------------|---------------------------------------|
+| H&S               | Sopra spalla destra                   |
+| Double Top        | Sopra i top                           |
+| Triangle          | Dall'altro lato del breakout          |
+| Flag              | Sotto il flag (bullish)               |
+| Candlestick       | Oltre l'estremo del pattern           |
+| Harmonic          | Oltre punto X o leggermente oltre D   |
+
+BUFFER:
+Aggiungi 0.5-1 ATR oltre il livello teorico.
+
+================================================================================
+10.4 TARGET CALCULATION
+================================================================================
+
+METODO MEASURED MOVE:
+Target = Breakout + Altezza Pattern
+
+MULTIPLE TARGETS:
+- T1: 50% dell'altezza (take partial)
+- T2: 100% dell'altezza
+- T3: 150% o Fibonacci extension
+
+FIBONACCI EXTENSIONS:
+- 1.272
+- 1.618
+- 2.000
+- 2.618
+
+================================================================================
+10.5 CONFLUENZA
+================================================================================
+
+Un pattern e' piu' affidabile quando:
+
+CONFLUENZA CON:
+1. Supporto/Resistenza key level
+2. Fibonacci retracement
+3. Trendline
+4. Moving Average importante
+5. Round number (psicologico)
+6. Volume profile POC/VAH/VAL
+7. Timeframe multipli (pattern in entrambi)
+
+SCORING:
+| Confluenza | Affidabilita' |
+|------------|---------------|
+| 1-2        | Bassa         |
+| 3-4        | Media         |
+| 5+         | Alta          |
+
+================================================================================
+10.6 PATTERN FAILURE
+================================================================================
+
+QUANDO UN PATTERN FALLISCE:
+- Prezzo inverte prima del target
+- Prezzo rompe nella direzione opposta
+
+COME GESTIRE:
+1. Stop loss DEVE essere rispettato
+2. Pattern failure spesso e' tradabile in direzione opposta
+3. Non revenge trade
+
+SEGNALI DI WARNING:
+- Volume debole al breakout
+- Divergenze sugli indicatori
+- News/eventi contrari
+
+================================================================================
+10.7 CHECKLIST PRE-TRADE
+================================================================================
+
+BEFORE EVERY PATTERN TRADE:
+
+[ ] Pattern chiaramente identificabile
+[ ] Trend precedente appropriato
+[ ] Volume conferma formazione
+[ ] Entry, Stop, Target definiti
+[ ] Risk/Reward >= 1.5:1
+[ ] Confluenza con altri fattori
+[ ] No major news imminenti
+[ ] Position size calcolato
+[ ] Emozioni sotto controllo
+
+================================================================================
+                              FINE DOCUMENTO
+================================================================================
+
+Prossimo: 11_Entry_Optimization.txt

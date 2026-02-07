@@ -1,0 +1,1016 @@
+================================================================================
+                      PROBABILITÀ E DISTRIBUZIONI
+                    Fondamenti per il Trading Quantitativo
+================================================================================
+
+INDICE
+------
+1. Teoria della Probabilità
+2. Probabilità Condizionata e Teorema di Bayes
+3. Variabili Aleatorie
+4. Distribuzioni Discrete
+5. Distribuzioni Continue
+6. Distribuzioni nei Mercati Finanziari
+7. Fat Tails e Eventi Estremi
+8. Applicazioni nel Trading
+9. Codice Python
+
+================================================================================
+1. TEORIA DELLA PROBABILITÀ
+================================================================================
+
+------------------------------------------------------------------------------
+1.1 DEFINIZIONI FONDAMENTALI
+------------------------------------------------------------------------------
+
+ESPERIMENTO ALEATORIO:
+Un processo il cui risultato non può essere previsto con certezza.
+Nel trading: l'esito di un trade, il movimento del prezzo domani.
+
+SPAZIO CAMPIONARIO (Ω):
+L'insieme di tutti i possibili risultati di un esperimento.
+Esempio: Ω = {prezzo sale, prezzo scende, prezzo invariato}
+
+EVENTO:
+Un sottoinsieme dello spazio campionario.
+Esempio: A = "il prezzo sale di più del 2%"
+
+------------------------------------------------------------------------------
+1.2 ASSIOMI DELLA PROBABILITÀ (Kolmogorov)
+------------------------------------------------------------------------------
+
+1. P(A) ≥ 0 per ogni evento A (non negatività)
+2. P(Ω) = 1 (normalizzazione)
+3. Se A e B sono mutuamente esclusivi: P(A ∪ B) = P(A) + P(B) (additività)
+
+PROPRIETÀ DERIVATE:
+- P(∅) = 0
+- P(A') = 1 - P(A), dove A' è il complemento di A
+- P(A ∪ B) = P(A) + P(B) - P(A ∩ B)
+- Se A ⊆ B, allora P(A) ≤ P(B)
+
+------------------------------------------------------------------------------
+1.3 INTERPRETAZIONI DELLA PROBABILITÀ
+------------------------------------------------------------------------------
+
+FREQUENTISTA:
+La probabilità è il limite della frequenza relativa quando il numero
+di prove tende all'infinito.
+
+    P(A) = lim(n→∞) [numero di volte che A accade / n]
+
+Applicazione Trading:
+"Su 1000 trade con questa strategia, 600 sono stati profittevoli,
+quindi P(trade profittevole) ≈ 0.60"
+
+SOGGETTIVISTA (Bayesiana):
+La probabilità rappresenta il grado di credenza/fiducia in un evento.
+Può essere aggiornata con nuove informazioni.
+
+Applicazione Trading:
+"Basandomi sulla mia analisi, credo che ci sia il 70% di probabilità
+che BTC superi $100,000 entro fine anno"
+
+================================================================================
+2. PROBABILITÀ CONDIZIONATA E TEOREMA DI BAYES
+================================================================================
+
+------------------------------------------------------------------------------
+2.1 PROBABILITÀ CONDIZIONATA
+------------------------------------------------------------------------------
+
+Definizione:
+La probabilità di A dato che B è già accaduto.
+
+Formula:
+    P(A|B) = P(A ∩ B) / P(B), se P(B) > 0
+
+Esempio Trading:
+A = "prezzo sale domani"
+B = "RSI sotto 30 oggi"
+
+P(A|B) = "Probabilità che il prezzo salga domani, dato che oggi RSI < 30"
+
+Se storicamente:
+- 1000 giorni totali osservati
+- 100 giorni con RSI < 30
+- Di questi 100, in 65 il prezzo è salito il giorno dopo
+
+P(A|B) = 65/100 = 0.65 = 65%
+
+------------------------------------------------------------------------------
+2.2 REGOLA DELLA MOLTIPLICAZIONE
+------------------------------------------------------------------------------
+
+P(A ∩ B) = P(A|B) × P(B) = P(B|A) × P(A)
+
+Applicazione:
+Probabilità che due eventi consecutivi accadano.
+
+Esempio:
+P(2 trade consecutivi vincenti) = P(1° vince) × P(2° vince | 1° vince)
+
+Se i trade sono indipendenti:
+P(2 vincenti) = P(vince)² = 0.6² = 0.36 = 36%
+
+------------------------------------------------------------------------------
+2.3 TEOREMA DELLA PROBABILITÀ TOTALE
+------------------------------------------------------------------------------
+
+Se B1, B2, ..., Bn sono una partizione di Ω:
+
+    P(A) = Σ P(A|Bi) × P(Bi)
+
+Esempio Trading:
+Tre regimi di mercato: Trend Up (40%), Range (35%), Trend Down (25%)
+Win rate per regime: 70%, 50%, 30%
+
+P(trade vincente) = 0.70×0.40 + 0.50×0.35 + 0.30×0.25
+                  = 0.28 + 0.175 + 0.075
+                  = 0.53 = 53%
+
+------------------------------------------------------------------------------
+2.4 TEOREMA DI BAYES
+------------------------------------------------------------------------------
+
+Formula:
+    P(A|B) = [P(B|A) × P(A)] / P(B)
+
+O in forma estesa:
+    P(A|B) = [P(B|A) × P(A)] / [P(B|A)×P(A) + P(B|A')×P(A')]
+
+Componenti:
+- P(A): probabilità a priori (prior)
+- P(A|B): probabilità a posteriori (posterior)
+- P(B|A): verosimiglianza (likelihood)
+- P(B): evidenza (normalizzazione)
+
+ESEMPIO TRADING - PATTERN RECOGNITION:
+
+Problema:
+Un pattern grafico (es. Head & Shoulders) viene identificato.
+Storicamente:
+- Il pattern appare nel 10% dei casi analizzati
+- Quando il pattern è presente, il prezzo scende nel 75% dei casi
+- Quando il pattern NON è presente, il prezzo scende nel 40% dei casi
+
+Se osserviamo un calo di prezzo, qual è la probabilità che
+il pattern fosse effettivamente presente?
+
+Dati:
+P(Pattern) = 0.10
+P(Calo|Pattern) = 0.75
+P(Calo|No Pattern) = 0.40
+
+Calcolo P(Calo):
+P(Calo) = P(Calo|Pattern)×P(Pattern) + P(Calo|No Pattern)×P(No Pattern)
+P(Calo) = 0.75×0.10 + 0.40×0.90 = 0.075 + 0.36 = 0.435
+
+Applicazione Bayes:
+P(Pattern|Calo) = [P(Calo|Pattern) × P(Pattern)] / P(Calo)
+P(Pattern|Calo) = (0.75 × 0.10) / 0.435 = 0.075 / 0.435 = 0.172 = 17.2%
+
+Interpretazione:
+Anche se il prezzo è sceso, c'è solo il 17.2% di probabilità
+che il pattern fosse effettivamente presente.
+Questo mostra l'importanza di non fare inferenze inverse ingenue!
+
+------------------------------------------------------------------------------
+2.5 AGGIORNAMENTO BAYESIANO SEQUENZIALE
+------------------------------------------------------------------------------
+
+Nel trading, possiamo aggiornare le nostre credenze con nuove informazioni:
+
+Prior → Nuova evidenza → Posterior → (diventa nuovo Prior) → Nuova evidenza → ...
+
+Questo è alla base di:
+- Filtri Bayesiani
+- Modelli di regime switching
+- Machine learning bayesiano
+
+================================================================================
+3. VARIABILI ALEATORIE
+================================================================================
+
+------------------------------------------------------------------------------
+3.1 DEFINIZIONE
+------------------------------------------------------------------------------
+
+Una variabile aleatoria (VA) è una funzione che assegna un valore numerico
+a ogni risultato di un esperimento aleatorio.
+
+X: Ω → ℝ
+
+Tipi:
+- DISCRETA: assume valori contabili (0, 1, 2, ...)
+- CONTINUA: assume qualsiasi valore in un intervallo
+
+------------------------------------------------------------------------------
+3.2 FUNZIONE DI MASSA DI PROBABILITÀ (PMF) - Variabili Discrete
+------------------------------------------------------------------------------
+
+P(X = x) = f(x)
+
+Proprietà:
+- f(x) ≥ 0 per ogni x
+- Σ f(x) = 1
+
+Esempio:
+X = numero di trade vincenti su 3 trade (con P(vince) = 0.6)
+
+P(X=0) = 0.4³ = 0.064
+P(X=1) = 3 × 0.6 × 0.4² = 0.288
+P(X=2) = 3 × 0.6² × 0.4 = 0.432
+P(X=3) = 0.6³ = 0.216
+
+------------------------------------------------------------------------------
+3.3 FUNZIONE DI DENSITÀ DI PROBABILITÀ (PDF) - Variabili Continue
+------------------------------------------------------------------------------
+
+f(x) tale che P(a ≤ X ≤ b) = ∫[a,b] f(x)dx
+
+Proprietà:
+- f(x) ≥ 0 per ogni x
+- ∫[-∞,+∞] f(x)dx = 1
+- P(X = x) = 0 per variabili continue (probabilità puntuale è zero)
+
+------------------------------------------------------------------------------
+3.4 FUNZIONE DI RIPARTIZIONE (CDF)
+------------------------------------------------------------------------------
+
+F(x) = P(X ≤ x)
+
+Proprietà:
+- 0 ≤ F(x) ≤ 1
+- F(x) è non decrescente
+- lim(x→-∞) F(x) = 0
+- lim(x→+∞) F(x) = 1
+
+Applicazione Trading:
+CDF dei rendimenti → probabilità di avere rendimento ≤ x
+Utile per calcolare VaR: trova x tale che F(x) = 0.05 per VaR 95%
+
+------------------------------------------------------------------------------
+3.5 VALORE ATTESO E VARIANZA
+------------------------------------------------------------------------------
+
+VALORE ATTESO (Media):
+
+Discreta:   E[X] = Σ x × P(X=x)
+Continua:   E[X] = ∫ x × f(x)dx
+
+VARIANZA:
+
+Var(X) = E[(X - E[X])²] = E[X²] - (E[X])²
+
+PROPRIETÀ:
+- E[aX + b] = a×E[X] + b
+- Var(aX + b) = a²×Var(X)
+- E[X + Y] = E[X] + E[Y] (sempre)
+- Var(X + Y) = Var(X) + Var(Y) + 2×Cov(X,Y)
+- Se X,Y indipendenti: Var(X + Y) = Var(X) + Var(Y)
+
+================================================================================
+4. DISTRIBUZIONI DISCRETE
+================================================================================
+
+------------------------------------------------------------------------------
+4.1 DISTRIBUZIONE BERNOULLI
+------------------------------------------------------------------------------
+
+Un singolo esperimento con due esiti: successo (1) o fallimento (0).
+
+X ~ Bernoulli(p)
+
+PMF:
+P(X=1) = p (probabilità di successo)
+P(X=0) = 1-p = q
+
+E[X] = p
+Var(X) = p(1-p) = pq
+
+Applicazione Trading:
+Un singolo trade: vince (1) o perde (0)
+
+------------------------------------------------------------------------------
+4.2 DISTRIBUZIONE BINOMIALE
+------------------------------------------------------------------------------
+
+Numero di successi in n prove Bernoulli indipendenti.
+
+X ~ Binomiale(n, p)
+
+PMF:
+P(X=k) = C(n,k) × p^k × (1-p)^(n-k)
+
+Dove C(n,k) = n! / (k! × (n-k)!)
+
+E[X] = np
+Var(X) = np(1-p)
+
+Applicazione Trading:
+"Qual è la probabilità di avere esattamente 7 trade vincenti su 10,
+se la probabilità di vincita per trade è 60%?"
+
+P(X=7) = C(10,7) × 0.6^7 × 0.4^3
+       = 120 × 0.0279 × 0.064
+       = 0.215 = 21.5%
+
+------------------------------------------------------------------------------
+4.3 DISTRIBUZIONE DI POISSON
+------------------------------------------------------------------------------
+
+Modella eventi rari in un intervallo di tempo/spazio.
+
+X ~ Poisson(λ)
+
+PMF:
+P(X=k) = (e^(-λ) × λ^k) / k!
+
+E[X] = λ
+Var(X) = λ
+
+Applicazione Trading:
+- Numero di flash crash in un anno
+- Numero di trade eseguiti in un'ora
+- Arrivo di ordini nel book
+
+Esempio:
+In media ci sono 2 flash crash all'anno (λ=2).
+Qual è la probabilità di averne 0 in un anno?
+
+P(X=0) = e^(-2) × 2^0 / 0! = e^(-2) = 0.135 = 13.5%
+
+------------------------------------------------------------------------------
+4.4 DISTRIBUZIONE GEOMETRICA
+------------------------------------------------------------------------------
+
+Numero di prove fino al primo successo.
+
+X ~ Geometrica(p)
+
+PMF:
+P(X=k) = (1-p)^(k-1) × p
+
+E[X] = 1/p
+Var(X) = (1-p)/p²
+
+Applicazione Trading:
+"In media, quanti trade devo fare prima di avere il primo vincente?"
+Se win rate = 60%, E[X] = 1/0.6 = 1.67 trade
+
+================================================================================
+5. DISTRIBUZIONI CONTINUE
+================================================================================
+
+------------------------------------------------------------------------------
+5.1 DISTRIBUZIONE UNIFORME
+------------------------------------------------------------------------------
+
+Tutti i valori in un intervallo hanno la stessa probabilità.
+
+X ~ Uniforme(a, b)
+
+PDF:
+f(x) = 1/(b-a) per a ≤ x ≤ b
+f(x) = 0 altrimenti
+
+E[X] = (a+b)/2
+Var(X) = (b-a)²/12
+
+Applicazione Trading:
+- Generazione numeri casuali per simulazioni Monte Carlo
+- Assumere che il prezzo di esecuzione sia uniforme nel bid-ask spread
+
+------------------------------------------------------------------------------
+5.2 DISTRIBUZIONE NORMALE (Gaussiana)
+------------------------------------------------------------------------------
+
+La distribuzione più importante in statistica.
+
+X ~ N(μ, σ²)
+
+PDF:
+f(x) = (1 / (σ√(2π))) × e^(-(x-μ)²/(2σ²))
+
+E[X] = μ
+Var(X) = σ²
+
+DISTRIBUZIONE NORMALE STANDARD: Z ~ N(0, 1)
+
+Standardizzazione:
+Z = (X - μ) / σ
+
+PROPRIETÀ IMPORTANTI:
+- Simmetrica intorno a μ
+- 68.27% dei dati entro μ ± 1σ
+- 95.45% dei dati entro μ ± 2σ
+- 99.73% dei dati entro μ ± 3σ
+
+VALORI Z CRITICI:
+- z = 1.645 → 90% confidenza (5% per coda)
+- z = 1.96 → 95% confidenza (2.5% per coda)
+- z = 2.326 → 98% confidenza
+- z = 2.576 → 99% confidenza
+
+Applicazione Trading:
+- Bollinger Bands: prezzo ± 2σ
+- VaR parametrico
+- Test statistici
+- Modello base per rendimenti (con limitazioni!)
+
+------------------------------------------------------------------------------
+5.3 DISTRIBUZIONE LOG-NORMALE
+------------------------------------------------------------------------------
+
+Se Y = ln(X) è normale, allora X è log-normale.
+
+X ~ LogNormale(μ, σ²)
+
+Dove μ e σ sono media e dev.std di ln(X).
+
+PDF:
+f(x) = (1 / (xσ√(2π))) × e^(-(ln(x)-μ)²/(2σ²)) per x > 0
+
+E[X] = e^(μ + σ²/2)
+Var(X) = (e^(σ²) - 1) × e^(2μ + σ²)
+
+PERCHÉ È IMPORTANTE NEL TRADING:
+
+I PREZZI (non i rendimenti) seguono approssimativamente una log-normale perché:
+1. I prezzi non possono essere negativi
+2. I rendimenti sono moltiplicativi, non additivi
+3. Se r_t ~ N(μ, σ²), allora P_t = P_0 × e^(Σr_t) è log-normale
+
+Questo è alla base del modello di Black-Scholes!
+
+------------------------------------------------------------------------------
+5.4 DISTRIBUZIONE T DI STUDENT
+------------------------------------------------------------------------------
+
+Usata quando la varianza della popolazione è sconosciuta e stimata dal campione.
+
+X ~ t(ν), dove ν = gradi di libertà
+
+Caratteristiche:
+- Simile alla normale ma con code più pesanti
+- Al crescere di ν, tende alla normale
+- Per ν > 30, praticamente uguale alla normale
+
+Applicazione Trading:
+- Test statistici su campioni piccoli
+- Modellare rendimenti con code più pesanti
+- Intervalli di confidenza per rendimenti
+
+------------------------------------------------------------------------------
+5.5 DISTRIBUZIONE ESPONENZIALE
+------------------------------------------------------------------------------
+
+Modella il tempo tra eventi in un processo di Poisson.
+
+X ~ Esponenziale(λ)
+
+PDF:
+f(x) = λ × e^(-λx) per x ≥ 0
+
+E[X] = 1/λ
+Var(X) = 1/λ²
+
+Proprietà di assenza di memoria:
+P(X > s+t | X > s) = P(X > t)
+
+Applicazione Trading:
+- Tempo tra trade consecutivi
+- Tempo fino al prossimo flash crash
+- Modelli di durata (duration models)
+
+================================================================================
+6. DISTRIBUZIONI NEI MERCATI FINANZIARI
+================================================================================
+
+------------------------------------------------------------------------------
+6.1 IL MITO DELLA NORMALITÀ
+------------------------------------------------------------------------------
+
+ASSUNZIONE CLASSICA:
+I rendimenti seguono una distribuzione normale.
+
+REALTÀ:
+I rendimenti finanziari NON sono normalmente distribuiti!
+
+EVIDENZE EMPIRICHE:
+1. CODE PESANTI (Fat Tails / Leptokurtosis)
+   - Eventi estremi più frequenti del previsto
+   - Kurtosis > 3 (excess kurtosis > 0)
+
+2. ASIMMETRIA (Skewness)
+   - Spesso negativa per equity (grandi perdite)
+   - Può essere positiva per crypto in bull market
+
+3. VOLATILITY CLUSTERING
+   - Periodi di alta volatilità seguiti da alta volatilità
+   - Violazione dell'indipendenza
+
+4. AUTOCORRELAZIONE
+   - I rendimenti mostrano dipendenza temporale
+
+------------------------------------------------------------------------------
+6.2 DISTRIBUZIONI ALTERNATIVE PER I RENDIMENTI
+------------------------------------------------------------------------------
+
+DISTRIBUZIONE T DI STUDENT:
+- Code più pesanti della normale
+- Parametro ν controlla la pesantezza delle code
+- ν basso = code molto pesanti
+- Comunemente ν tra 3 e 6 per dati finanziari
+
+DISTRIBUZIONE DI LAPLACE (Double Exponential):
+- Code più pesanti della normale
+- Picco più pronunciato al centro
+- PDF: f(x) = (1/2b) × e^(-|x-μ|/b)
+
+DISTRIBUZIONE STABILE DI LÉVY:
+- Generalizzazione della normale
+- Include normale come caso speciale
+- Può avere varianza infinita
+- Usata da Mandelbrot per modellare mercati
+
+MIXTURE DI NORMALI:
+- Combinazione di più distribuzioni normali
+- Cattura regimi diversi (alta/bassa volatilità)
+- Esempio: 70% N(0, 0.01) + 30% N(0, 0.04)
+
+------------------------------------------------------------------------------
+6.3 MODELLI GARCH PER VOLATILITÀ
+------------------------------------------------------------------------------
+
+I modelli GARCH catturano il volatility clustering.
+
+GARCH(1,1):
+σ²_t = ω + α×ε²_{t-1} + β×σ²_{t-1}
+
+Dove:
+- σ²_t = varianza condizionata al tempo t
+- ε_{t-1} = shock del periodo precedente
+- ω, α, β = parametri (α + β < 1 per stazionarietà)
+
+Questo permette di modellare volatilità che cambia nel tempo,
+risolvendo il problema dell'assunzione di volatilità costante.
+
+================================================================================
+7. FAT TAILS E EVENTI ESTREMI
+================================================================================
+
+------------------------------------------------------------------------------
+7.1 PERCHÉ LE CODE PESANTI SONO IMPORTANTI
+------------------------------------------------------------------------------
+
+SOTTOSTIMA DEL RISCHIO:
+Se assumiamo normalità, sottostimiamo drammaticamente
+la probabilità di eventi estremi.
+
+Esempio - Evento a 5 deviazioni standard:
+- Distribuzione Normale: P(|Z| > 5) ≈ 0.00006% (1 su 1.7 milioni)
+- Realtà Mercati: molto più frequente!
+
+Il crollo del 19 ottobre 1987 (Black Monday) fu un evento
+a circa 22 deviazioni standard secondo la normale.
+Probabilità teorica: virtualmente impossibile (10^(-99}).
+Eppure è successo.
+
+------------------------------------------------------------------------------
+7.2 BLACK SWAN EVENTS
+------------------------------------------------------------------------------
+
+Concetto di Nassim Taleb:
+Eventi rari, imprevedibili, con impatto enorme.
+
+Caratteristiche:
+1. Estrema rarità (outlier)
+2. Impatto estremo
+3. Retrospettivamente spiegabile (ma non prevedibile)
+
+Esempi:
+- Black Monday (1987)
+- LTCM (1998)
+- Dot-com crash (2000-2002)
+- Crisi finanziaria (2008)
+- Flash Crash (2010)
+- COVID crash (Marzo 2020)
+- Crypto crash (Maggio 2021, Novembre 2022)
+
+------------------------------------------------------------------------------
+7.3 TEORIA DEI VALORI ESTREMI (EVT)
+------------------------------------------------------------------------------
+
+EVT studia specificamente la coda della distribuzione.
+
+TEOREMA DI FISHER-TIPPETT:
+Il massimo di n variabili i.i.d., opportunamente normalizzato,
+converge a una delle tre distribuzioni:
+1. Gumbel (code esponenziali)
+2. Fréchet (code polinomiali - fat tails)
+3. Weibull (code limitate)
+
+O alla forma unificata: DISTRIBUZIONE GENERALIZZATA DEI VALORI ESTREMI (GEV)
+
+Applicazione:
+- Modellare le perdite estreme
+- Calcolare VaR e Expected Shortfall più accurati
+- Stress testing
+
+------------------------------------------------------------------------------
+7.4 EXPECTED SHORTFALL (CVaR)
+------------------------------------------------------------------------------
+
+VaR ti dice: "Con X% probabilità, non perderai più di Y"
+Ma NON ti dice quanto potresti perdere nel peggiore X%.
+
+Expected Shortfall (ES) o Conditional VaR:
+ES = E[Perdita | Perdita > VaR]
+
+È la media delle perdite quando si supera il VaR.
+
+Vantaggi rispetto a VaR:
+- Considera la gravità degli eventi estremi
+- È una misura di rischio coerente (soddisfa proprietà matematiche desiderabili)
+- Penalizza maggiormente i fat tails
+
+================================================================================
+8. APPLICAZIONI NEL TRADING
+================================================================================
+
+------------------------------------------------------------------------------
+8.1 CALCOLO WIN RATE E EXPECTANCY
+------------------------------------------------------------------------------
+
+Win Rate:
+P(trade vincente) = trades vincenti / totale trades
+
+Expectancy (Valore Atteso per Trade):
+E[Trade] = (Win Rate × Avg Win) - (Loss Rate × Avg Loss)
+         = P(W) × W̄ - P(L) × L̄
+
+Esempio:
+Win Rate = 55%
+Average Win = $200
+Average Loss = $150
+
+E[Trade] = 0.55 × $200 - 0.45 × $150
+         = $110 - $67.50
+         = $42.50 per trade
+
+------------------------------------------------------------------------------
+8.2 PROBABILITÀ DI ROVINA (Risk of Ruin)
+------------------------------------------------------------------------------
+
+Formula approssimata:
+RoR = ((1-Edge)/(1+Edge))^(Capital/Risk per trade)
+
+Dove Edge = (Win Rate × Win/Loss Ratio) - Loss Rate
+
+Esempio:
+Win Rate = 55%, Win/Loss = 1.5, Risk per trade = 2% del capitale
+
+Edge = (0.55 × 1.5) - 0.45 = 0.825 - 0.45 = 0.375
+RoR = ((1-0.375)/(1+0.375))^(100/2) = (0.625/1.375)^50 = 0.455^50 ≈ 0
+
+Con questi parametri, rischio di rovina praticamente zero.
+
+Ma se Win Rate = 50%, Win/Loss = 1:
+Edge = 0.50 × 1 - 0.50 = 0
+RoR = 1^50 = 1 = 100%
+
+Senza edge, la rovina è certa nel lungo termine.
+
+------------------------------------------------------------------------------
+8.3 KELLY CRITERION
+------------------------------------------------------------------------------
+
+Determina la frazione ottimale del capitale da rischiare.
+
+Formula:
+f* = (p × b - q) / b
+
+Dove:
+- f* = frazione del capitale da rischiare
+- p = probabilità di vincita
+- q = 1 - p = probabilità di perdita
+- b = rapporto win/loss (quanto vinci per unità rischiata)
+
+Esempio:
+Win Rate = 60%, Win/Loss ratio = 1.5
+
+f* = (0.60 × 1.5 - 0.40) / 1.5
+   = (0.90 - 0.40) / 1.5
+   = 0.50 / 1.5
+   = 0.333 = 33.3%
+
+ATTENZIONE: Kelly pieno è aggressivo!
+In pratica si usa:
+- Half Kelly: f*/2 = 16.7%
+- Quarter Kelly: f*/4 = 8.3%
+
+------------------------------------------------------------------------------
+8.4 SIMULAZIONE MONTE CARLO
+------------------------------------------------------------------------------
+
+Tecnica per simulare migliaia di possibili scenari futuri.
+
+Processo:
+1. Definire distribuzione dei rendimenti
+2. Generare N percorsi casuali
+3. Analizzare distribuzione dei risultati
+
+Applicazioni:
+- Stima probabilità di raggiungere un target
+- Calcolo VaR e ES
+- Test robustezza strategia
+- Ottimizzazione portafoglio
+
+Pseudocodice:
+```
+per ogni simulazione (1 a 10000):
+    portfolio = capitale_iniziale
+    per ogni giorno (1 a 252):
+        rendimento = genera_random(distribuzione_rendimenti)
+        portfolio = portfolio × (1 + rendimento)
+    risultati[simulazione] = portfolio
+
+analizza(risultati)
+```
+
+------------------------------------------------------------------------------
+8.5 PROBABILITÀ E INDICATORI TECNICI
+------------------------------------------------------------------------------
+
+INTERPRETAZIONE PROBABILISTICA DI RSI:
+
+RSI < 30 (oversold):
+- NON significa "compra certamente"
+- Significa: storicamente, quando RSI < 30, c'è una probabilità
+  più alta della media che il prezzo salga
+
+Possiamo calcolare:
+P(prezzo sale | RSI < 30) usando dati storici
+
+Se P(sale | RSI<30) = 62% vs P(sale) = 50%
+L'RSI oversold fornisce un edge di 12 punti percentuali.
+
+CONFLUENCE = MOLTIPLICAZIONE PROBABILITÀ:
+
+Se eventi sono indipendenti (approssimazione):
+P(segnale corretto | RSI oversold AND MACD bullish AND supporto)
+≈ combinazione delle singole probabilità condizionate
+
+Nella pratica, gli indicatori sono correlati, quindi
+si usa un sistema di scoring ponderato invece della
+moltiplicazione diretta.
+
+================================================================================
+9. CODICE PYTHON
+================================================================================
+
+```python
+import numpy as np
+import pandas as pd
+from scipy import stats
+import matplotlib.pyplot as plt
+
+# ============================================
+# DISTRIBUZIONI BASE
+# ============================================
+
+# Distribuzione Normale
+mu, sigma = 0.001, 0.02  # Media 0.1% giornaliero, volatilità 2%
+normal_samples = np.random.normal(mu, sigma, 10000)
+
+print("=== Distribuzione Normale ===")
+print(f"Media campionaria: {np.mean(normal_samples):.6f}")
+print(f"Dev. Std campionaria: {np.std(normal_samples):.6f}")
+print(f"Skewness: {stats.skew(normal_samples):.4f}")
+print(f"Kurtosis (excess): {stats.kurtosis(normal_samples):.4f}")
+
+# Distribuzione T di Student (code più pesanti)
+df = 5  # gradi di libertà
+t_samples = stats.t.rvs(df, loc=mu, scale=sigma, size=10000)
+
+print("\n=== Distribuzione T (df=5) ===")
+print(f"Media campionaria: {np.mean(t_samples):.6f}")
+print(f"Dev. Std campionaria: {np.std(t_samples):.6f}")
+print(f"Skewness: {stats.skew(t_samples):.4f}")
+print(f"Kurtosis (excess): {stats.kurtosis(t_samples):.4f}")
+
+# ============================================
+# CONFRONTO CODE
+# ============================================
+
+# Probabilità di evento a 3 sigma
+prob_normal_3sigma = 2 * (1 - stats.norm.cdf(3))
+prob_t5_3sigma = 2 * (1 - stats.t.cdf(3, df=5))
+
+print("\n=== Probabilità Code ===")
+print(f"P(|X| > 3σ) Normale: {prob_normal_3sigma:.6f} ({prob_normal_3sigma*100:.4f}%)")
+print(f"P(|X| > 3σ) T(df=5): {prob_t5_3sigma:.6f} ({prob_t5_3sigma*100:.4f}%)")
+print(f"Rapporto: {prob_t5_3sigma/prob_normal_3sigma:.2f}x più probabile con T")
+
+# ============================================
+# TEOREMA DI BAYES - ESEMPIO PRATICO
+# ============================================
+
+def bayes_pattern_recognition():
+    """
+    Esempio: dato un calo di prezzo, qual è la probabilità
+    che un pattern H&S fosse presente?
+    """
+    # Prior: probabilità che il pattern sia presente
+    p_pattern = 0.10
+    
+    # Likelihood: P(calo | pattern)
+    p_drop_given_pattern = 0.75
+    p_drop_given_no_pattern = 0.40
+    
+    # Probabilità totale di un calo
+    p_drop = (p_drop_given_pattern * p_pattern + 
+              p_drop_given_no_pattern * (1 - p_pattern))
+    
+    # Posterior: P(pattern | calo)
+    p_pattern_given_drop = (p_drop_given_pattern * p_pattern) / p_drop
+    
+    print("\n=== Teorema di Bayes ===")
+    print(f"P(Pattern): {p_pattern:.2%}")
+    print(f"P(Calo|Pattern): {p_drop_given_pattern:.2%}")
+    print(f"P(Calo|No Pattern): {p_drop_given_no_pattern:.2%}")
+    print(f"P(Calo): {p_drop:.2%}")
+    print(f"P(Pattern|Calo): {p_pattern_given_drop:.2%}")
+    
+bayes_pattern_recognition()
+
+# ============================================
+# KELLY CRITERION
+# ============================================
+
+def kelly_criterion(win_rate, win_loss_ratio):
+    """
+    Calcola la frazione Kelly ottimale
+    """
+    p = win_rate
+    q = 1 - p
+    b = win_loss_ratio
+    
+    kelly = (p * b - q) / b
+    
+    return {
+        'full_kelly': kelly,
+        'half_kelly': kelly / 2,
+        'quarter_kelly': kelly / 4
+    }
+
+print("\n=== Kelly Criterion ===")
+result = kelly_criterion(win_rate=0.55, win_loss_ratio=1.5)
+print(f"Win Rate: 55%, Win/Loss Ratio: 1.5")
+print(f"Full Kelly: {result['full_kelly']:.2%}")
+print(f"Half Kelly: {result['half_kelly']:.2%}")
+print(f"Quarter Kelly: {result['quarter_kelly']:.2%}")
+
+# ============================================
+# EXPECTANCY
+# ============================================
+
+def calculate_expectancy(win_rate, avg_win, avg_loss):
+    """
+    Calcola l'expectancy per trade
+    """
+    return (win_rate * avg_win) - ((1 - win_rate) * avg_loss)
+
+exp = calculate_expectancy(0.55, 200, 150)
+print(f"\n=== Expectancy ===")
+print(f"Win Rate: 55%, Avg Win: $200, Avg Loss: $150")
+print(f"Expectancy per trade: ${exp:.2f}")
+
+# ============================================
+# MONTE CARLO SIMULATION
+# ============================================
+
+def monte_carlo_trading(initial_capital, daily_return_mean, daily_return_std,
+                        days=252, simulations=10000):
+    """
+    Simula percorsi di equity curve
+    """
+    results = np.zeros((simulations, days))
+    
+    for sim in range(simulations):
+        returns = np.random.normal(daily_return_mean, daily_return_std, days)
+        equity = initial_capital * np.cumprod(1 + returns)
+        results[sim] = equity
+    
+    final_values = results[:, -1]
+    
+    return {
+        'median_final': np.median(final_values),
+        'mean_final': np.mean(final_values),
+        'percentile_5': np.percentile(final_values, 5),
+        'percentile_95': np.percentile(final_values, 95),
+        'prob_profit': np.mean(final_values > initial_capital),
+        'prob_double': np.mean(final_values > 2 * initial_capital),
+        'prob_lose_50pct': np.mean(final_values < 0.5 * initial_capital),
+        'max_drawdown_median': None,  # Calcolo separato
+        'paths': results
+    }
+
+print("\n=== Monte Carlo Simulation ===")
+mc_results = monte_carlo_trading(
+    initial_capital=10000,
+    daily_return_mean=0.0005,  # 0.05% giornaliero
+    daily_return_std=0.02,     # 2% volatilità giornaliera
+    days=252,
+    simulations=10000
+)
+
+print(f"Capitale iniziale: $10,000")
+print(f"Mediana finale: ${mc_results['median_final']:,.2f}")
+print(f"Media finale: ${mc_results['mean_final']:,.2f}")
+print(f"5° percentile: ${mc_results['percentile_5']:,.2f}")
+print(f"95° percentile: ${mc_results['percentile_95']:,.2f}")
+print(f"P(profitto): {mc_results['prob_profit']:.2%}")
+print(f"P(raddoppio): {mc_results['prob_double']:.2%}")
+print(f"P(perdere 50%): {mc_results['prob_lose_50pct']:.2%}")
+
+# ============================================
+# VALUE AT RISK
+# ============================================
+
+def calculate_var(returns, confidence_levels=[0.95, 0.99]):
+    """
+    Calcola VaR parametrico e storico
+    """
+    mu = np.mean(returns)
+    sigma = np.std(returns)
+    
+    results = {}
+    for conf in confidence_levels:
+        # VaR Parametrico (assume normalità)
+        z = stats.norm.ppf(1 - conf)
+        var_parametric = -(mu + z * sigma)
+        
+        # VaR Storico (percentile empirico)
+        var_historic = -np.percentile(returns, (1 - conf) * 100)
+        
+        # Expected Shortfall (media delle perdite oltre VaR)
+        losses = -returns[returns < -var_historic]
+        es = np.mean(losses) if len(losses) > 0 else var_historic
+        
+        results[conf] = {
+            'VaR_parametric': var_parametric,
+            'VaR_historic': var_historic,
+            'Expected_Shortfall': es
+        }
+    
+    return results
+
+# Genera rendimenti simulati con fat tails
+returns_sample = stats.t.rvs(df=5, loc=0.0005, scale=0.02, size=1000)
+
+print("\n=== Value at Risk ===")
+var_results = calculate_var(returns_sample)
+for conf, metrics in var_results.items():
+    print(f"\nConfidenza {conf:.0%}:")
+    print(f"  VaR Parametrico: {metrics['VaR_parametric']:.2%}")
+    print(f"  VaR Storico: {metrics['VaR_historic']:.2%}")
+    print(f"  Expected Shortfall: {metrics['Expected_Shortfall']:.2%}")
+
+# ============================================
+# DISTRIBUZIONE BINOMIALE PER TRADE
+# ============================================
+
+def binomial_analysis(n_trades, win_rate):
+    """
+    Analizza la distribuzione dei trade vincenti
+    """
+    from scipy.stats import binom
+    
+    mean = n_trades * win_rate
+    std = np.sqrt(n_trades * win_rate * (1 - win_rate))
+    
+    # Probabilità di scenari specifici
+    probs = {
+        'exactly_half': binom.pmf(n_trades // 2, n_trades, win_rate),
+        'at_least_60pct': 1 - binom.cdf(int(n_trades * 0.6) - 1, n_trades, win_rate),
+        'less_than_40pct': binom.cdf(int(n_trades * 0.4), n_trades, win_rate)
+    }
+    
+    return mean, std, probs
+
+print("\n=== Distribuzione Binomiale (100 trade, 55% win rate) ===")
+mean, std, probs = binomial_analysis(100, 0.55)
+print(f"Trade vincenti attesi: {mean:.1f} ± {std:.1f}")
+print(f"P(esattamente 50 vincenti): {probs['exactly_half']:.2%}")
+print(f"P(almeno 60 vincenti): {probs['at_least_60pct']:.2%}")
+print(f"P(meno di 40 vincenti): {probs['less_than_40pct']:.2%}")
+```
+
+================================================================================
+                              FINE DOCUMENTO
+================================================================================
+
+Prossimo: 03_Serie_Temporali.txt

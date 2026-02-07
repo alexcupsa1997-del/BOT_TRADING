@@ -1,0 +1,1443 @@
+================================================================================
+                           RISK MANAGEMENT
+                    Gestione del Rischio nel Trading Quantitativo
+================================================================================
+
+INDICE
+------
+1. Fondamenti del Risk Management
+2. Metriche di Rischio
+3. Position Sizing
+4. Stop Loss e Take Profit
+5. Portfolio Risk Management
+6. Drawdown Management
+7. Risk Limits e Controls
+8. Stress Testing
+9. Risk-Adjusted Performance
+10. Codice Python Completo
+
+================================================================================
+1. FONDAMENTI DEL RISK MANAGEMENT
+================================================================================
+
+------------------------------------------------------------------------------
+1.1 PERCHE' IL RISK MANAGEMENT E' CRUCIALE
+------------------------------------------------------------------------------
+
+"Rule #1: Never lose money. Rule #2: Never forget Rule #1." - Warren Buffett
+
+FATTI:
+- Una perdita del 50% richiede un guadagno del 100% per recuperare
+- Perdita 20% -> serve +25% per recuperare
+- Perdita 50% -> serve +100% per recuperare
+- Perdita 90% -> serve +900% per recuperare
+
+IL TRADING E' UN GIOCO DI SOPRAVVIVENZA:
+- Prima sopravvivi, poi guadagni
+- Un singolo trade disastroso puo' cancellare anni di profitti
+- La consistenza batte i grandi guadagni occasionali
+
+------------------------------------------------------------------------------
+1.2 TIPI DI RISCHIO
+------------------------------------------------------------------------------
+
+MARKET RISK:
+Rischio che il mercato si muova contro la posizione.
+- Price risk
+- Volatility risk
+- Correlation risk
+
+LIQUIDITY RISK:
+Rischio di non poter chiudere una posizione al prezzo desiderato.
+- Bid-ask spread
+- Market impact
+- Impossibilita' di uscire
+
+OPERATIONAL RISK:
+Rischi legati a operazioni e infrastruttura.
+- Bug nel codice
+- Exchange downtime
+- Errori di esecuzione
+
+COUNTERPARTY RISK:
+Rischio che la controparte non onori gli obblighi.
+- Exchange hack/insolvency
+- Broker default
+- Smart contract risk (DeFi)
+
+MODEL RISK:
+Rischio che il modello sia sbagliato.
+- Overfitting
+- Regime change
+- Assunzioni non valide
+
+------------------------------------------------------------------------------
+1.3 FRAMEWORK DI RISK MANAGEMENT
+------------------------------------------------------------------------------
+
+1. IDENTIFICAZIONE
+   - Quali rischi affrontiamo?
+   - Quali sono le fonti?
+
+2. MISURAZIONE
+   - Quantificare il rischio
+   - VaR, volatilita', drawdown
+
+3. GESTIONE
+   - Position sizing
+   - Stop loss
+   - Diversificazione
+   - Hedging
+
+4. MONITORAGGIO
+   - Tracking continuo
+   - Alert systems
+   - Reporting
+
+5. REVIEW
+   - Analisi post-mortem
+   - Aggiustamenti
+
+================================================================================
+2. METRICHE DI RISCHIO
+================================================================================
+
+------------------------------------------------------------------------------
+2.1 VOLATILITA'
+------------------------------------------------------------------------------
+
+VOLATILITA' STORICA:
+sigma = std(returns) * sqrt(252)
+
+Per diversi timeframe:
+- Daily -> Annual: * sqrt(252)
+- Hourly -> Daily: * sqrt(24)
+- 5min -> Daily: * sqrt(288)
+
+VOLATILITA' EWMA (Exponentially Weighted):
+sigma^2_t = lambda * sigma^2_{t-1} + (1-lambda) * r^2_{t-1}
+
+Lambda tipico: 0.94 (RiskMetrics)
+
+Piu' reattiva ai cambiamenti recenti.
+
+RANGE-BASED VOLATILITY:
+Usa OHLC invece dei soli close.
+
+Parkinson: sigma = sqrt(1/(4*ln(2)) * (ln(H/L))^2)
+Garman-Klass: combina O, H, L, C
+
+------------------------------------------------------------------------------
+2.2 VALUE AT RISK (VaR)
+------------------------------------------------------------------------------
+
+"Con X% di confidenza, non perderemo piu' di Y in Z tempo"
+
+VaR PARAMETRICO (assume normalita'):
+VaR_alpha = mu - z_alpha * sigma
+
+Dove:
+- z_0.95 = 1.645 (95% confidenza)
+- z_0.99 = 2.326 (99% confidenza)
+
+VaR STORICO:
+Percentile empirico dei rendimenti.
+VaR_95% = 5° percentile dei rendimenti
+
+VaR MONTE CARLO:
+1. Simula N scenari
+2. Calcola P&L per ogni scenario
+3. Prendi il percentile
+
+ESEMPIO:
+Portfolio $100,000
+Volatilita' giornaliera: 2%
+VaR 95% = 0 - 1.645 * 2% = -3.29%
+VaR in dollari = $100,000 * 3.29% = $3,290
+
+"Con 95% di confidenza, non perderemo piu' di $3,290 domani"
+
+LIMITI DEL VaR:
+- Non dice cosa succede oltre il VaR
+- Assume distribuzione (spesso normale)
+- Non e' sub-additivo (rischio portfolio > somma rischi)
+
+------------------------------------------------------------------------------
+2.3 EXPECTED SHORTFALL (CVaR)
+------------------------------------------------------------------------------
+
+Media delle perdite che superano il VaR.
+
+ES_alpha = E[Loss | Loss > VaR_alpha]
+
+VANTAGGI:
+- Considera la severita' delle perdite estreme
+- E' una misura coerente di rischio
+- Piu' appropriata per fat tails
+
+CALCOLO STORICO:
+ES = media delle perdite peggiori del (1-alpha)%
+
+ESEMPIO:
+Se VaR 95% = 3%, ma le perdite peggiori 5% sono:
+-3.5%, -4%, -5%, -6%, -8%
+ES = (3.5 + 4 + 5 + 6 + 8) / 5 = 5.3%
+
+------------------------------------------------------------------------------
+2.4 MAXIMUM DRAWDOWN
+------------------------------------------------------------------------------
+
+Massima perdita da un picco precedente.
+
+DD_t = (Peak_t - Value_t) / Peak_t
+MaxDD = max(DD_t)
+
+Peak_t = max(Value_1, ..., Value_t)
+
+INTERPRETAZIONE:
+- Quanto avresti perso se fossi entrato al momento peggiore
+- Misura la "sofferenza" dell'investitore
+- Importante per valutare se strategia e' tollerabile
+
+RECOVERY TIME:
+Tempo per tornare al picco precedente.
+
+------------------------------------------------------------------------------
+2.5 ALTRE METRICHE
+------------------------------------------------------------------------------
+
+BETA:
+Sensibilita' al mercato.
+beta = Cov(r_asset, r_market) / Var(r_market)
+
+- Beta > 1: piu' volatile del mercato
+- Beta < 1: meno volatile
+- Beta < 0: correlazione negativa
+
+DOWNSIDE DEVIATION:
+Deviazione standard solo dei rendimenti negativi.
+Piu' focalizzato sul rischio effettivo.
+
+ULCER INDEX:
+sqrt(mean(DD^2))
+Penalizza drawdown prolungati.
+
+================================================================================
+3. POSITION SIZING
+================================================================================
+
+------------------------------------------------------------------------------
+3.1 PRINCIPI FONDAMENTALI
+------------------------------------------------------------------------------
+
+OBIETTIVO:
+Determinare quanto capitale allocare a ogni trade.
+
+TRADE-OFF:
+- Size troppo grande: rischio rovina
+- Size troppo piccola: rendimenti insufficienti
+
+FATTORI DA CONSIDERARE:
+- Probabilita' di vincita
+- Rapporto win/loss
+- Correlazione con altre posizioni
+- Volatilita' dell'asset
+- Capitale totale disponibile
+
+------------------------------------------------------------------------------
+3.2 FIXED FRACTIONAL
+------------------------------------------------------------------------------
+
+Rischia una percentuale fissa del capitale per trade.
+
+Size = (Capital * Risk%) / (Entry - Stop Loss)
+
+ESEMPIO:
+- Capitale: $10,000
+- Rischio per trade: 2% = $200
+- Entry: $100
+- Stop Loss: $95 (rischio $5 per share)
+- Size = $200 / $5 = 40 shares
+
+VARIANTI:
+- Fixed dollar: rischia sempre $X
+- Fixed percentage: rischia sempre X% del capitale
+- Fixed ratio: aumenta size dopo ogni X dollari di profitto
+
+------------------------------------------------------------------------------
+3.3 KELLY CRITERION
+------------------------------------------------------------------------------
+
+Frazione ottimale che massimizza crescita geometrica.
+
+f* = (p * b - q) / b
+
+Dove:
+- f* = frazione da rischiare
+- p = probabilita' di vincita
+- q = 1 - p = probabilita' di perdita
+- b = rapporto win/loss
+
+ESEMPIO:
+Win rate: 55%, Win/Loss: 2:1
+f* = (0.55 * 2 - 0.45) / 2 = (1.1 - 0.45) / 2 = 0.325 = 32.5%
+
+PROBLEMI CON KELLY PIENO:
+- Molto aggressivo
+- Sensibile a errori di stima
+- Drawdown enormi possibili
+
+VARIANTI CONSERVATIVE:
+- Half Kelly: f*/2
+- Quarter Kelly: f*/4
+- Fractional Kelly: f* * k, con k < 1
+
+------------------------------------------------------------------------------
+3.4 VOLATILITY-BASED SIZING
+------------------------------------------------------------------------------
+
+Aggiusta size in base alla volatilita' dell'asset.
+
+Size = Target_Risk / (ATR * Multiplier)
+
+O equivalentemente:
+Size = (Capital * Risk%) / (ATR * Multiplier)
+
+ESEMPIO:
+- Capital: $10,000
+- Target Risk: 1% = $100
+- ATR(14): $2.50
+- Multiplier: 2 (stop a 2*ATR)
+- Size = $100 / ($2.50 * 2) = 20 shares
+
+VOLATILITY TARGETING:
+Mantieni volatilita' del portfolio costante.
+
+Weight = Target_Vol / Asset_Vol
+
+Se target e' 10% e asset ha vol 20%, peso = 50%.
+
+------------------------------------------------------------------------------
+3.5 RISK PARITY SIZING
+------------------------------------------------------------------------------
+
+Ogni posizione contribuisce ugualmente al rischio totale.
+
+PER ASSET NON CORRELATI:
+w_i = (1/sigma_i) / sum(1/sigma_j)
+
+ESEMPIO:
+Asset A: volatilita' 20%
+Asset B: volatilita' 10%
+
+w_A = (1/0.20) / (1/0.20 + 1/0.10) = 5 / (5 + 10) = 33%
+w_B = (1/0.10) / (1/0.20 + 1/0.10) = 10 / 15 = 67%
+
+Asset piu' volatile -> peso minore.
+
+------------------------------------------------------------------------------
+3.6 OPTIMAL F
+------------------------------------------------------------------------------
+
+Variante di Kelly per trading reale (Ralph Vince).
+
+Optimal f = Largest Loss / (-f * Largest Loss)
+
+Processo iterativo per trovare f che massimizza TWR (Terminal Wealth Relative).
+
+Considera la distribuzione effettiva dei trade, non solo media.
+
+================================================================================
+4. STOP LOSS E TAKE PROFIT
+================================================================================
+
+------------------------------------------------------------------------------
+4.1 TIPI DI STOP LOSS
+------------------------------------------------------------------------------
+
+FIXED STOP:
+Stop a distanza fissa dal prezzo di entry.
+- Semplice
+- Non si adatta alla volatilita'
+
+PERCENTAGE STOP:
+Stop a X% dal prezzo di entry.
+
+ATR STOP:
+Stop a N * ATR dal prezzo.
+- Si adatta alla volatilita'
+- Piu' ampio in mercati volatili
+- N tipico: 1.5 - 3
+
+SUPPORT/RESISTANCE STOP:
+Stop sotto supporto (long) o sopra resistenza (short).
+- Basato su struttura di mercato
+- Puo' essere lontano
+
+TIME STOP:
+Esci dopo N periodi se trade non funziona.
+- Evita di bloccare capitale
+- Utile per strategie momentum
+
+------------------------------------------------------------------------------
+4.2 TRAILING STOP
+------------------------------------------------------------------------------
+
+Stop che si muove nella direzione del trade.
+
+FIXED TRAILING:
+Mantiene distanza fissa dal massimo (long) o minimo (short).
+
+PERCENTAGE TRAILING:
+Mantiene distanza percentuale.
+
+ATR TRAILING:
+Stop a N * ATR dal punto piu' favorevole.
+
+PARABOLIC SAR:
+Trailing stop che accelera col tempo.
+
+CHANDELIER EXIT:
+Stop a N * ATR dal massimo degli ultimi X periodi.
+Chandelier = Highest High(N) - ATR(N) * Multiplier
+
+------------------------------------------------------------------------------
+4.3 TAKE PROFIT
+------------------------------------------------------------------------------
+
+FIXED TARGET:
+Chiudi a prezzo target predefinito.
+
+RISK/REWARD TARGET:
+Target basato su multiplo del rischio.
+- R:R = 2:1 -> target a 2x lo stop loss
+
+TRAILING TAKE PROFIT:
+Lascia correre i profitti con trailing.
+
+PARTIAL PROFIT:
+Chiudi parte della posizione a target intermedi.
+- 50% a 1R
+- 25% a 2R
+- 25% con trailing
+
+------------------------------------------------------------------------------
+4.4 RISK/REWARD RATIO
+------------------------------------------------------------------------------
+
+R:R = Potential Profit / Potential Loss
+
+RELAZIONE CON WIN RATE:
+Per essere profittevole:
+Win Rate > 1 / (1 + R:R)
+
+Esempi:
+- R:R = 1:1 -> serve win rate > 50%
+- R:R = 2:1 -> serve win rate > 33%
+- R:R = 3:1 -> serve win rate > 25%
+
+BILANCIAMENTO:
+- Alto R:R = basso win rate necessario ma trade meno frequenti
+- Basso R:R = alto win rate necessario ma piu' trade
+
+------------------------------------------------------------------------------
+4.5 STOP LOSS DINAMICO
+------------------------------------------------------------------------------
+
+VOLATILITY-ADJUSTED:
+Stop piu' ampio quando volatilita' e' alta.
+Stop = Entry - N * ATR
+
+REGIME-BASED:
+Stop diverso per regime di mercato.
+- Trending: trailing stop
+- Ranging: fixed stop
+
+TIME-BASED:
+Stop si stringe col passare del tempo.
+Utile per trade che devono funzionare subito.
+
+================================================================================
+5. PORTFOLIO RISK MANAGEMENT
+================================================================================
+
+------------------------------------------------------------------------------
+5.1 DIVERSIFICAZIONE
+------------------------------------------------------------------------------
+
+"Don't put all eggs in one basket"
+
+TIPI:
+- Asset diversification: diversi asset
+- Strategy diversification: diverse strategie
+- Timeframe diversification: diversi orizzonti
+- Geography diversification: diversi mercati
+
+ATTENZIONE:
+La correlazione aumenta in crisi!
+"Diversification fails when you need it most"
+
+CORRELAZIONE CRYPTO:
+- BTC-ETH: ~0.85-0.95 (alta)
+- Altcoins tendono a muoversi insieme
+- Vera diversificazione richiede asset class diverse
+
+------------------------------------------------------------------------------
+5.2 PORTFOLIO VAR
+------------------------------------------------------------------------------
+
+Per portfolio con N asset:
+
+VaR_portfolio = sqrt(w' * Sigma * w) * z_alpha
+
+Dove:
+- w = vettore pesi
+- Sigma = matrice covarianza
+- z_alpha = quantile normale
+
+Il VaR del portfolio e' generalmente minore della somma dei VaR individuali (effetto diversificazione).
+
+COMPONENT VaR:
+Contributo di ogni asset al VaR totale.
+
+MARGINAL VaR:
+Quanto cambia il VaR portfolio aggiungendo un'unita' di asset.
+
+------------------------------------------------------------------------------
+5.3 CORRELATION RISK
+------------------------------------------------------------------------------
+
+PROBLEMA:
+Le correlazioni non sono stabili.
+Tendono ad aumentare in periodi di stress.
+
+SOLUZIONI:
+- Usa correlazioni stress (periodo crisi)
+- Stressed VaR: VaR calcolato su periodo di crisi
+- Copula models per dipendenze non lineari
+- Diversifica tra asset class veramente diverse
+
+------------------------------------------------------------------------------
+5.4 CONCENTRATION LIMITS
+------------------------------------------------------------------------------
+
+LIMITI TIPICI:
+- Max 5-10% in singolo asset
+- Max 20-30% in singolo settore
+- Max 50% in singola asset class
+
+HERFINDAHL INDEX:
+H = sum(w_i^2)
+
+Misura concentrazione:
+- H = 1: tutto in un asset (massima concentrazione)
+- H = 1/N: equal weight (minima concentrazione)
+
+------------------------------------------------------------------------------
+5.5 HEDGING
+------------------------------------------------------------------------------
+
+TIPI DI HEDGE:
+
+BETA HEDGE:
+Neutralizza esposizione al mercato.
+Hedge ratio = -beta * portfolio_value / index_value
+
+DELTA HEDGE:
+Per opzioni, neutralizza sensibilita' al prezzo.
+
+CORRELATION HEDGE:
+Usa asset negativamente correlato.
+Es: Long BTC, Long puts su BTC.
+
+COSTI:
+L'hedging ha un costo! Trade-off tra protezione e rendimento.
+
+================================================================================
+6. DRAWDOWN MANAGEMENT
+================================================================================
+
+------------------------------------------------------------------------------
+6.1 ANALISI DEL DRAWDOWN
+------------------------------------------------------------------------------
+
+METRICHE:
+- Maximum Drawdown: massima perdita da picco
+- Average Drawdown: media dei drawdown
+- Drawdown Duration: tempo in drawdown
+- Recovery Time: tempo per tornare al picco
+
+FORMULA:
+DD_t = (Peak_t - Value_t) / Peak_t
+MaxDD = max(DD_t)
+
+------------------------------------------------------------------------------
+6.2 DRAWDOWN LIMITS
+------------------------------------------------------------------------------
+
+HARD LIMITS:
+Se drawdown supera X%, azione automatica:
+- Ridurre esposizione del 50%
+- Chiudere tutte le posizioni
+- Stop trading per Y giorni
+
+ESEMPIO REGOLE:
+- DD > 5%: riduci size del 25%
+- DD > 10%: riduci size del 50%
+- DD > 15%: stop trading, review strategia
+- DD > 20%: chiudi tutto, analisi completa
+
+------------------------------------------------------------------------------
+6.3 DRAWDOWN-BASED POSITION SIZING
+------------------------------------------------------------------------------
+
+Riduci size durante drawdown, aumenta durante periodi positivi.
+
+Formula semplice:
+Size_adjusted = Base_Size * (1 - DD_current / Max_Tolerable_DD)
+
+Se DD corrente e' 5% e max tollerabile e' 20%:
+Size = Base * (1 - 0.05/0.20) = Base * 0.75
+
+ANTI-MARTINGALE:
+Aumenta size quando vinci, riduci quando perdi.
+Opposto del Martingale (che e' rovinoso).
+
+------------------------------------------------------------------------------
+6.4 PSYCHOLOGICAL ASPECTS
+------------------------------------------------------------------------------
+
+IL DRAWDOWN E' EMOTIVAMENTE DIFFICILE:
+
+Effetti:
+- Ansia e stress
+- Decisioni irrazionali
+- Abbandono prematura di strategia valida
+- Revenge trading
+
+SOLUZIONI:
+- Definisci limiti PRIMA di iniziare
+- Automatizza le regole
+- Abbi aspettative realistiche
+- Sappi che drawdown sono normali
+
+ASPETTATIVE:
+Anche ottime strategie hanno drawdown del 20-30%.
+Se non puoi tollerarlo, riduci la size.
+
+================================================================================
+7. RISK LIMITS E CONTROLS
+================================================================================
+
+------------------------------------------------------------------------------
+7.1 TIPI DI LIMITI
+------------------------------------------------------------------------------
+
+LIMITI DI POSIZIONE:
+- Max size per asset
+- Max numero di posizioni
+- Max esposizione lorda/netta
+
+LIMITI DI PERDITA:
+- Max perdita giornaliera
+- Max perdita settimanale
+- Max drawdown
+
+LIMITI DI ESECUZIONE:
+- Max slippage tollerato
+- Max ordini al giorno
+- Max turnover
+
+LIMITI DI CONCENTRAZIONE:
+- Max % in singolo asset
+- Max % in singolo settore
+
+------------------------------------------------------------------------------
+7.2 DAILY LOSS LIMITS
+------------------------------------------------------------------------------
+
+Se perdi X% in un giorno, stop trading.
+
+RAZIONALE:
+- Evita giorni disastrosi
+- Preserva capitale
+- Forza riflessione
+
+IMPLEMENTAZIONE:
+if daily_pnl < -daily_limit:
+    close_all_positions()
+    stop_trading_until_tomorrow()
+
+LIMITI TIPICI:
+- Aggressivo: -3% giornaliero
+- Moderato: -2% giornaliero
+- Conservativo: -1% giornaliero
+
+------------------------------------------------------------------------------
+7.3 KILL SWITCHES
+------------------------------------------------------------------------------
+
+Meccanismi automatici di protezione.
+
+ESEMPI:
+- Perdita > X% -> chiudi tutto
+- Volatilita' > Y -> riduci size
+- Errore di sistema -> stop trading
+- Exchange issues -> pause
+
+IMPLEMENTAZIONE:
+Devono essere:
+- Automatici
+- Testati regolarmente
+- Impossibili da bypassare in panico
+
+------------------------------------------------------------------------------
+7.4 PRE-TRADE RISK CHECKS
+------------------------------------------------------------------------------
+
+CONTROLLI PRIMA DI OGNI ORDINE:
+
+1. Size check: ordine non supera limiti
+2. Price check: prezzo ragionevole (no fat finger)
+3. Portfolio check: non viola limiti concentrazione
+4. Capital check: margine sufficiente
+5. Rate check: non troppi ordini al minuto
+
+if not all_checks_passed():
+    reject_order()
+    alert_trader()
+
+------------------------------------------------------------------------------
+7.5 POST-TRADE MONITORING
+------------------------------------------------------------------------------
+
+DOPO OGNI TRADE:
+- Verifica esecuzione corretta
+- Aggiorna posizioni
+- Ricalcola rischio portfolio
+- Check limiti
+
+REAL-TIME:
+- P&L monitoring
+- Position monitoring
+- Risk metrics update
+- Alert se anomalie
+
+================================================================================
+8. STRESS TESTING
+================================================================================
+
+------------------------------------------------------------------------------
+8.1 SCENARIO ANALYSIS
+------------------------------------------------------------------------------
+
+Simula scenari estremi specifici.
+
+SCENARI STORICI:
+- Black Monday (1987): -22% in un giorno
+- LTCM Crisis (1998)
+- Dot-com crash (2000-2002)
+- Financial Crisis (2008): -50%
+- COVID crash (March 2020): -34%
+- Crypto crashes: -80%+
+
+COSA SIMULARE:
+- Price move: -X%
+- Volatility spike: 2-3x normale
+- Correlation spike: correlazioni -> 1
+- Liquidity dry-up: spread 10x
+
+------------------------------------------------------------------------------
+8.2 SENSITIVITY ANALYSIS
+------------------------------------------------------------------------------
+
+Come cambia il rischio al variare di parametri?
+
+ANALIZZA:
+- Delta P&L per +/- 1%, 5%, 10% price move
+- Vega: sensibilita' a volatilita'
+- Gamma: sensibilita' secondo ordine
+
+ESEMPIO:
+Price change   P&L Change
+-10%           -$15,000
+-5%            -$7,000
+-1%            -$1,500
++1%            +$1,400
++5%            +$6,500
++10%           +$12,000
+
+------------------------------------------------------------------------------
+8.3 MONTE CARLO STRESS TEST
+------------------------------------------------------------------------------
+
+Genera migliaia di scenari random.
+
+PROCEDURA:
+1. Definisci distribuzioni (fat tails!)
+2. Genera N scenari (10,000+)
+3. Calcola P&L per ogni scenario
+4. Analizza distribuzione risultati
+
+METRICHE DA ESTRARRE:
+- Percentile 1%, 5%
+- Expected Shortfall
+- Probability of loss > X
+- Worst case scenario
+
+------------------------------------------------------------------------------
+8.4 REVERSE STRESS TEST
+------------------------------------------------------------------------------
+
+Invece di "cosa succede se X", chiedi:
+"Cosa deve succedere per perdere Y?"
+
+ESEMPIO:
+"Quale movimento di prezzo causerebbe una perdita del 50%?"
+
+Utile per identificare vulnerabilita' nascoste.
+
+------------------------------------------------------------------------------
+8.5 STRESS TEST PERIODICI
+------------------------------------------------------------------------------
+
+FREQUENZA:
+- Daily: check rapidi
+- Weekly: scenari standard
+- Monthly: analisi approfondita
+- Quarterly: review completa
+
+DOCUMENTAZIONE:
+- Scenari testati
+- Risultati
+- Azioni intraprese
+- Lessons learned
+
+================================================================================
+9. RISK-ADJUSTED PERFORMANCE
+================================================================================
+
+------------------------------------------------------------------------------
+9.1 SHARPE RATIO
+------------------------------------------------------------------------------
+
+Rendimento in eccesso per unita' di rischio totale.
+
+Sharpe = (R_p - R_f) / sigma_p
+
+Dove:
+- R_p = rendimento portfolio
+- R_f = risk-free rate
+- sigma_p = volatilita' portfolio
+
+INTERPRETAZIONE:
+- Sharpe < 0: peggio del risk-free
+- Sharpe 0-1: sotto la media
+- Sharpe 1-2: buono
+- Sharpe 2-3: molto buono
+- Sharpe > 3: eccellente (o sospetto)
+
+ANNUALIZZAZIONE:
+Sharpe_annual = Sharpe_daily * sqrt(252)
+
+------------------------------------------------------------------------------
+9.2 SORTINO RATIO
+------------------------------------------------------------------------------
+
+Come Sharpe ma usa solo downside deviation.
+
+Sortino = (R_p - R_f) / sigma_downside
+
+sigma_downside = sqrt(mean(min(r - target, 0)^2))
+
+VANTAGGI:
+- Penalizza solo la volatilita' negativa
+- Piu' rilevante per investitori avversi alle perdite
+- Volatilita' positiva e' desiderabile!
+
+------------------------------------------------------------------------------
+9.3 CALMAR RATIO
+------------------------------------------------------------------------------
+
+Rendimento rispetto al drawdown.
+
+Calmar = Annual_Return / Max_Drawdown
+
+INTERPRETAZIONE:
+- Calmar > 1: guadagno annuo > max drawdown
+- Calmar > 2: molto buono
+- Calmar > 3: eccellente
+
+Utile per strategie dove il drawdown e' la preoccupazione principale.
+
+------------------------------------------------------------------------------
+9.4 INFORMATION RATIO
+------------------------------------------------------------------------------
+
+Performance rispetto a un benchmark.
+
+IR = (R_p - R_b) / Tracking_Error
+
+Tracking_Error = std(R_p - R_b)
+
+INTERPRETAZIONE:
+Quanto valore aggiunge il gestore rispetto al benchmark per unita' di rischio attivo.
+
+------------------------------------------------------------------------------
+9.5 OMEGA RATIO
+------------------------------------------------------------------------------
+
+Rapporto tra area sopra e sotto il threshold.
+
+Omega = Integral(1 - F(r)) / Integral(F(r)) per r < threshold
+
+Dove F(r) e' la CDF dei rendimenti.
+
+VANTAGGI:
+- Considera tutta la distribuzione
+- Non assume normalita'
+- Cattura skewness e kurtosis
+
+------------------------------------------------------------------------------
+9.6 CONFRONTO METRICHE
+------------------------------------------------------------------------------
+
+| Metrica     | Pro                      | Contro                    |
+|-------------|--------------------------|---------------------------|
+| Sharpe      | Semplice, standard       | Penalizza upside vol      |
+| Sortino     | Focus su downside        | Meno noto                 |
+| Calmar      | Usa drawdown reale       | Sensibile a singolo evento|
+| Information | Relativo a benchmark     | Richiede benchmark        |
+| Omega       | Completo                 | Complesso da calcolare    |
+
+================================================================================
+10. CODICE PYTHON COMPLETO
+================================================================================
+
+```python
+import numpy as np
+import pandas as pd
+from scipy import stats
+import warnings
+warnings.filterwarnings('ignore')
+
+# ============================================
+# SETUP DATI
+# ============================================
+
+np.random.seed(42)
+n_days = 500
+
+# Simula rendimenti con fat tails
+returns = np.random.standard_t(df=5, size=n_days) * 0.02
+
+# Simula prezzi
+prices = 100 * np.cumprod(1 + returns)
+
+df = pd.DataFrame({
+    'price': prices,
+    'returns': returns
+})
+
+print("="*60)
+print("RISK MANAGEMENT - IMPLEMENTAZIONI COMPLETE")
+print("="*60)
+
+# ============================================
+# 1. METRICHE DI RISCHIO
+# ============================================
+
+print("\n1. METRICHE DI RISCHIO")
+print("-"*40)
+
+def calculate_risk_metrics(returns, confidence=0.95):
+    """Calcola principali metriche di rischio"""
+
+    metrics = {}
+
+    # Volatilita'
+    metrics['volatility_daily'] = returns.std()
+    metrics['volatility_annual'] = returns.std() * np.sqrt(252)
+
+    # VaR Parametrico
+    z = stats.norm.ppf(1 - confidence)
+    metrics['var_parametric'] = -(returns.mean() + z * returns.std())
+
+    # VaR Storico
+    metrics['var_historical'] = -np.percentile(returns, (1 - confidence) * 100)
+
+    # Expected Shortfall
+    var_threshold = np.percentile(returns, (1 - confidence) * 100)
+    tail_returns = returns[returns < var_threshold]
+    metrics['expected_shortfall'] = -tail_returns.mean() if len(tail_returns) > 0 else metrics['var_historical']
+
+    # Skewness e Kurtosis
+    metrics['skewness'] = stats.skew(returns)
+    metrics['kurtosis'] = stats.kurtosis(returns)  # Excess kurtosis
+
+    return metrics
+
+risk_metrics = calculate_risk_metrics(df['returns'])
+
+print(f"Volatilita' Giornaliera: {risk_metrics['volatility_daily']:.4f}")
+print(f"Volatilita' Annuale: {risk_metrics['volatility_annual']:.2%}")
+print(f"VaR 95% (Parametrico): {risk_metrics['var_parametric']:.2%}")
+print(f"VaR 95% (Storico): {risk_metrics['var_historical']:.2%}")
+print(f"Expected Shortfall 95%: {risk_metrics['expected_shortfall']:.2%}")
+print(f"Skewness: {risk_metrics['skewness']:.4f}")
+print(f"Excess Kurtosis: {risk_metrics['kurtosis']:.4f}")
+
+# ============================================
+# 2. DRAWDOWN ANALYSIS
+# ============================================
+
+print("\n2. DRAWDOWN ANALYSIS")
+print("-"*40)
+
+def calculate_drawdown(prices):
+    """Calcola serie di drawdown e metriche"""
+
+    peak = prices.cummax()
+    drawdown = (prices - peak) / peak
+
+    metrics = {
+        'max_drawdown': drawdown.min(),
+        'avg_drawdown': drawdown[drawdown < 0].mean() if (drawdown < 0).any() else 0,
+        'drawdown_series': drawdown
+    }
+
+    # Drawdown duration
+    is_dd = drawdown < 0
+    dd_periods = []
+    current_dd = 0
+
+    for dd in is_dd:
+        if dd:
+            current_dd += 1
+        else:
+            if current_dd > 0:
+                dd_periods.append(current_dd)
+            current_dd = 0
+
+    metrics['max_dd_duration'] = max(dd_periods) if dd_periods else 0
+    metrics['avg_dd_duration'] = np.mean(dd_periods) if dd_periods else 0
+
+    return metrics
+
+dd_metrics = calculate_drawdown(df['price'])
+
+print(f"Maximum Drawdown: {dd_metrics['max_drawdown']:.2%}")
+print(f"Average Drawdown: {dd_metrics['avg_drawdown']:.2%}")
+print(f"Max Drawdown Duration: {dd_metrics['max_dd_duration']} days")
+print(f"Avg Drawdown Duration: {dd_metrics['avg_dd_duration']:.1f} days")
+
+# ============================================
+# 3. POSITION SIZING
+# ============================================
+
+print("\n3. POSITION SIZING")
+print("-"*40)
+
+def fixed_fractional_size(capital, risk_pct, entry, stop_loss):
+    """Calcola size con fixed fractional"""
+    risk_per_share = abs(entry - stop_loss)
+    risk_amount = capital * risk_pct
+    shares = risk_amount / risk_per_share
+    return shares
+
+def kelly_criterion(win_rate, win_loss_ratio):
+    """Calcola Kelly fraction"""
+    p = win_rate
+    q = 1 - p
+    b = win_loss_ratio
+    kelly = (p * b - q) / b
+    return max(0, kelly)  # Non negativo
+
+def volatility_based_size(capital, target_risk, volatility, multiplier=2):
+    """Size basato su volatilita'"""
+    risk_amount = capital * target_risk
+    stop_distance = volatility * multiplier
+    size = risk_amount / stop_distance
+    return size
+
+# Esempio
+capital = 100000
+entry_price = 100
+stop_loss_price = 95
+atr = 3.5
+
+print(f"Capitale: ${capital:,}")
+print(f"Entry: ${entry_price}, Stop: ${stop_loss_price}")
+
+# Fixed Fractional
+ff_size = fixed_fractional_size(capital, 0.02, entry_price, stop_loss_price)
+print(f"\nFixed Fractional (2% risk):")
+print(f"  Size: {ff_size:.0f} shares")
+print(f"  Position Value: ${ff_size * entry_price:,.0f}")
+
+# Kelly
+kelly = kelly_criterion(win_rate=0.55, win_loss_ratio=1.5)
+print(f"\nKelly Criterion:")
+print(f"  Full Kelly: {kelly:.2%}")
+print(f"  Half Kelly: {kelly/2:.2%}")
+print(f"  Quarter Kelly: {kelly/4:.2%}")
+
+# Volatility Based
+vol_size = volatility_based_size(capital, 0.01, atr)
+print(f"\nVolatility Based (1% risk, ATR={atr}):")
+print(f"  Size: {vol_size:.0f} shares")
+
+# ============================================
+# 4. STOP LOSS STRATEGIES
+# ============================================
+
+print("\n4. STOP LOSS STRATEGIES")
+print("-"*40)
+
+def atr_stop(prices, atr_period=14, multiplier=2):
+    """ATR-based stop loss"""
+    high = prices * (1 + np.abs(np.random.normal(0, 0.01, len(prices))))
+    low = prices * (1 - np.abs(np.random.normal(0, 0.01, len(prices))))
+
+    tr = np.maximum(high - low,
+                    np.maximum(np.abs(high - np.roll(prices, 1)),
+                              np.abs(low - np.roll(prices, 1))))
+    atr = pd.Series(tr).rolling(atr_period).mean()
+
+    stop_long = prices - multiplier * atr
+    stop_short = prices + multiplier * atr
+
+    return stop_long, stop_short, atr
+
+def trailing_stop(prices, distance_pct=0.05):
+    """Trailing stop percentuale"""
+    peak = pd.Series(prices).cummax()
+    trailing_stop = peak * (1 - distance_pct)
+    return trailing_stop
+
+stop_long, stop_short, atr = atr_stop(df['price'].values)
+trail_stop = trailing_stop(df['price'].values)
+
+print(f"Current Price: ${df['price'].iloc[-1]:.2f}")
+print(f"ATR(14): ${atr.iloc[-1]:.2f}")
+print(f"ATR Stop (2x): ${stop_long[-1]:.2f}")
+print(f"Trailing Stop (5%): ${trail_stop.iloc[-1]:.2f}")
+
+# ============================================
+# 5. PORTFOLIO RISK
+# ============================================
+
+print("\n5. PORTFOLIO RISK")
+print("-"*40)
+
+def portfolio_var(weights, cov_matrix, confidence=0.95):
+    """Calcola VaR del portfolio"""
+    port_vol = np.sqrt(weights @ cov_matrix @ weights)
+    z = stats.norm.ppf(1 - confidence)
+    var = -z * port_vol
+    return var, port_vol
+
+# Simula 4 asset
+n_assets = 4
+np.random.seed(42)
+asset_returns = np.random.multivariate_normal(
+    mean=[0.0005, 0.0003, 0.0002, 0.0001],
+    cov=[[0.0004, 0.0002, 0.0001, 0.00005],
+         [0.0002, 0.0003, 0.00015, 0.00008],
+         [0.0001, 0.00015, 0.00025, 0.0001],
+         [0.00005, 0.00008, 0.0001, 0.0002]],
+    size=n_days
+)
+
+cov_matrix = np.cov(asset_returns.T) * 252  # Annualizzata
+weights = np.array([0.4, 0.3, 0.2, 0.1])
+
+port_var, port_vol = portfolio_var(weights, cov_matrix)
+
+print(f"Pesi: {weights}")
+print(f"Volatilita' Portfolio (annuale): {port_vol:.2%}")
+print(f"VaR 95% (1-day): {port_var/np.sqrt(252):.2%}")
+
+# Diversification benefit
+individual_vols = np.sqrt(np.diag(cov_matrix))
+undiversified_vol = weights @ individual_vols
+diversification_benefit = 1 - port_vol / undiversified_vol
+
+print(f"Beneficio Diversificazione: {diversification_benefit:.2%}")
+
+# ============================================
+# 6. RISK-ADJUSTED PERFORMANCE
+# ============================================
+
+print("\n6. RISK-ADJUSTED PERFORMANCE")
+print("-"*40)
+
+def calculate_performance_metrics(returns, risk_free_rate=0.02):
+    """Calcola metriche di performance risk-adjusted"""
+
+    # Annualizza
+    annual_return = (1 + returns.mean()) ** 252 - 1
+    annual_vol = returns.std() * np.sqrt(252)
+
+    metrics = {}
+
+    # Sharpe Ratio
+    metrics['sharpe'] = (annual_return - risk_free_rate) / annual_vol
+
+    # Sortino Ratio
+    downside_returns = returns[returns < 0]
+    downside_vol = downside_returns.std() * np.sqrt(252) if len(downside_returns) > 0 else annual_vol
+    metrics['sortino'] = (annual_return - risk_free_rate) / downside_vol
+
+    # Calmar Ratio
+    cumulative = (1 + returns).cumprod()
+    peak = cumulative.cummax()
+    drawdown = (cumulative - peak) / peak
+    max_dd = abs(drawdown.min())
+    metrics['calmar'] = annual_return / max_dd if max_dd > 0 else np.inf
+
+    # Additional
+    metrics['annual_return'] = annual_return
+    metrics['annual_volatility'] = annual_vol
+    metrics['max_drawdown'] = max_dd
+
+    # Win rate
+    metrics['win_rate'] = (returns > 0).mean()
+
+    # Profit factor
+    gross_profit = returns[returns > 0].sum()
+    gross_loss = abs(returns[returns < 0].sum())
+    metrics['profit_factor'] = gross_profit / gross_loss if gross_loss > 0 else np.inf
+
+    return metrics
+
+perf_metrics = calculate_performance_metrics(pd.Series(df['returns']))
+
+print(f"Rendimento Annuale: {perf_metrics['annual_return']:.2%}")
+print(f"Volatilita' Annuale: {perf_metrics['annual_volatility']:.2%}")
+print(f"Max Drawdown: {perf_metrics['max_drawdown']:.2%}")
+print(f"Sharpe Ratio: {perf_metrics['sharpe']:.2f}")
+print(f"Sortino Ratio: {perf_metrics['sortino']:.2f}")
+print(f"Calmar Ratio: {perf_metrics['calmar']:.2f}")
+print(f"Win Rate: {perf_metrics['win_rate']:.2%}")
+print(f"Profit Factor: {perf_metrics['profit_factor']:.2f}")
+
+# ============================================
+# 7. STRESS TESTING
+# ============================================
+
+print("\n7. STRESS TESTING")
+print("-"*40)
+
+def stress_test(portfolio_value, weights, scenarios):
+    """Esegue stress test su scenari"""
+    results = {}
+
+    for name, shocks in scenarios.items():
+        portfolio_return = weights @ shocks
+        loss = portfolio_value * (-portfolio_return)
+        results[name] = {
+            'return': portfolio_return,
+            'loss': loss,
+            'pct_loss': -portfolio_return
+        }
+
+    return results
+
+# Scenari di stress
+scenarios = {
+    '2008 Financial Crisis': np.array([-0.40, -0.35, -0.30, -0.20]),
+    'COVID Crash (Mar 2020)': np.array([-0.34, -0.30, -0.25, -0.15]),
+    'Crypto Winter 2022': np.array([-0.70, -0.80, -0.75, -0.60]),
+    'Flash Crash': np.array([-0.10, -0.12, -0.08, -0.05]),
+    'Rate Shock': np.array([-0.15, -0.20, -0.10, -0.05])
+}
+
+portfolio_value = 100000
+stress_results = stress_test(portfolio_value, weights, scenarios)
+
+print(f"Portfolio Value: ${portfolio_value:,}")
+print(f"Weights: {weights}\n")
+print(f"{'Scenario':<25}{'Return':<12}{'Loss':<15}")
+print("-"*50)
+
+for name, result in stress_results.items():
+    print(f"{name:<25}{result['return']:<12.2%}${result['loss']:>12,.0f}")
+
+# ============================================
+# 8. MONTE CARLO VaR
+# ============================================
+
+print("\n8. MONTE CARLO VAR")
+print("-"*40)
+
+def monte_carlo_var(returns, n_simulations=10000, horizon=1, confidence=0.95):
+    """Calcola VaR con Monte Carlo"""
+
+    mu = returns.mean()
+    sigma = returns.std()
+
+    # Simula rendimenti
+    simulated_returns = np.random.normal(mu * horizon,
+                                          sigma * np.sqrt(horizon),
+                                          n_simulations)
+
+    # VaR e ES
+    var = -np.percentile(simulated_returns, (1 - confidence) * 100)
+    es = -simulated_returns[simulated_returns < -var].mean()
+
+    return var, es, simulated_returns
+
+var_mc, es_mc, sim_returns = monte_carlo_var(df['returns'], n_simulations=10000)
+
+print(f"Simulazioni: 10,000")
+print(f"VaR 95% (Monte Carlo): {var_mc:.2%}")
+print(f"Expected Shortfall 95%: {es_mc:.2%}")
+print(f"Worst Simulation: {sim_returns.min():.2%}")
+print(f"Best Simulation: {sim_returns.max():.2%}")
+
+# Distribuzione percentili
+percentiles = [1, 5, 10, 25, 50, 75, 90, 95, 99]
+print(f"\nDistribuzione Simulata:")
+for p in percentiles:
+    print(f"  {p}th percentile: {np.percentile(sim_returns, p):.2%}")
+
+# ============================================
+# 9. DRAWDOWN-BASED SIZING
+# ============================================
+
+print("\n9. DRAWDOWN-BASED SIZING")
+print("-"*40)
+
+def drawdown_adjusted_size(base_size, current_dd, max_tolerable_dd=0.20):
+    """Riduce size in base al drawdown corrente"""
+    if current_dd >= max_tolerable_dd:
+        return 0  # Stop trading
+
+    adjustment = 1 - (current_dd / max_tolerable_dd)
+    return base_size * adjustment
+
+# Simula drawdown progression
+dd_levels = [0, 0.05, 0.10, 0.15, 0.20, 0.25]
+base = 100000
+
+print(f"Base Size: ${base:,}")
+print(f"Max Tolerable DD: 20%\n")
+print(f"{'Drawdown':<15}{'Adjusted Size':<20}{'Reduction':<15}")
+print("-"*50)
+
+for dd in dd_levels:
+    adj_size = drawdown_adjusted_size(base, dd)
+    reduction = 1 - adj_size / base
+    print(f"{dd:<15.0%}${adj_size:>15,.0f}{reduction:>15.0%}")
+
+# ============================================
+# 10. RISK LIMITS CHECKER
+# ============================================
+
+print("\n10. RISK LIMITS CHECKER")
+print("-"*40)
+
+class RiskLimitsChecker:
+    """Sistema di controllo limiti di rischio"""
+
+    def __init__(self, config):
+        self.config = config
+        self.daily_pnl = 0
+        self.positions = {}
+
+    def check_order(self, symbol, size, price, side):
+        """Verifica se un ordine rispetta i limiti"""
+        checks = []
+
+        # Check 1: Position limit
+        current_pos = self.positions.get(symbol, 0)
+        new_pos = current_pos + (size if side == 'buy' else -size)
+        position_value = abs(new_pos * price)
+
+        if position_value > self.config['max_position_value']:
+            checks.append(('FAIL', f'Position limit exceeded: ${position_value:,.0f} > ${self.config["max_position_value"]:,.0f}'))
+        else:
+            checks.append(('PASS', f'Position value OK: ${position_value:,.0f}'))
+
+        # Check 2: Daily loss limit
+        if self.daily_pnl < -self.config['max_daily_loss']:
+            checks.append(('FAIL', f'Daily loss limit reached: ${self.daily_pnl:,.0f}'))
+        else:
+            checks.append(('PASS', f'Daily PnL OK: ${self.daily_pnl:,.0f}'))
+
+        # Check 3: Order size
+        order_value = size * price
+        if order_value > self.config['max_order_value']:
+            checks.append(('FAIL', f'Order too large: ${order_value:,.0f}'))
+        else:
+            checks.append(('PASS', f'Order size OK: ${order_value:,.0f}'))
+
+        # Overall result
+        all_passed = all(c[0] == 'PASS' for c in checks)
+
+        return all_passed, checks
+
+# Config
+risk_config = {
+    'max_position_value': 50000,
+    'max_daily_loss': 2000,
+    'max_order_value': 10000,
+    'max_drawdown': 0.15
+}
+
+checker = RiskLimitsChecker(risk_config)
+checker.daily_pnl = -500
+checker.positions = {'BTC': 0.5}
+
+# Test ordine
+passed, checks = checker.check_order('BTC', 0.2, 50000, 'buy')
+
+print("Risk Limits Configuration:")
+for key, value in risk_config.items():
+    print(f"  {key}: {value}")
+
+print(f"\nOrder Check: BUY 0.2 BTC @ $50,000")
+print("-"*40)
+for status, message in checks:
+    print(f"  [{status}] {message}")
+
+print(f"\nOrder {'APPROVED' if passed else 'REJECTED'}")
+
+# ============================================
+# SUMMARY
+# ============================================
+
+print("\n" + "="*60)
+print("RISK MANAGEMENT SUMMARY")
+print("="*60)
+
+print("""
+KEY PRINCIPLES:
+1. Never risk more than you can afford to lose
+2. Position size based on risk, not conviction
+3. Always use stop losses
+4. Diversify across uncorrelated assets
+5. Monitor and adjust continuously
+6. Have kill switches for emergencies
+7. Stress test for extreme scenarios
+8. Track risk-adjusted performance, not just returns
+
+RECOMMENDED LIMITS:
+- Max risk per trade: 1-2% of capital
+- Max portfolio drawdown: 15-20%
+- Max daily loss: 2-3% of capital
+- Max position concentration: 10-20%
+- Min Sharpe target: 1.0+
+""")
+
+print("="*60)
+print("FINE RISK MANAGEMENT")
+print("="*60)
+```
+
+================================================================================
+                              FINE DOCUMENTO
+================================================================================
+
+Prossimo: 08_Backtesting_Simulazione.txt

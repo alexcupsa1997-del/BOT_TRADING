@@ -1,0 +1,607 @@
+================================================================================
+                         STATISTICA DESCRITTIVA
+                    Fondamenti per il Trading Quantitativo
+================================================================================
+
+INDICE
+------
+1. Introduzione
+2. Misure di Tendenza Centrale
+3. Misure di Dispersione
+4. Misure di Forma della Distribuzione
+5. Percentili e Quartili
+6. Correlazione e Covarianza
+7. Applicazioni nel Trading
+8. Formule Essenziali
+9. Esempi Pratici con Python
+
+================================================================================
+1. INTRODUZIONE
+================================================================================
+
+La statistica descrittiva è il fondamento dell'analisi quantitativa dei mercati
+finanziari. Permette di riassumere, descrivere e comprendere grandi quantità di
+dati di prezzo, volume e rendimenti.
+
+Nel trading, la statistica descrittiva viene utilizzata per:
+- Analizzare la distribuzione dei rendimenti
+- Misurare la volatilità degli asset
+- Identificare anomalie nei dati
+- Confrontare performance tra diversi strumenti
+- Costruire modelli predittivi
+
+================================================================================
+2. MISURE DI TENDENZA CENTRALE
+================================================================================
+
+Le misure di tendenza centrale indicano il "centro" di una distribuzione di dati.
+
+------------------------------------------------------------------------------
+2.1 MEDIA ARITMETICA (Mean)
+------------------------------------------------------------------------------
+
+Definizione: Somma di tutti i valori divisa per il numero di osservazioni.
+
+Formula:
+    μ = (Σ xi) / n
+
+Dove:
+    μ = media
+    xi = singola osservazione
+    n = numero di osservazioni
+
+Applicazione nel Trading:
+- Media dei rendimenti giornalieri
+- Prezzo medio di un asset in un periodo
+- Volume medio giornaliero
+
+Vantaggi:
+- Utilizza tutti i dati
+- Facilmente calcolabile
+- Base per molti altri calcoli statistici
+
+Svantaggi:
+- Sensibile agli outlier (valori estremi)
+- Può essere fuorviante con distribuzioni asimmetriche
+
+Esempio Trading:
+Se i rendimenti giornalieri di un asset negli ultimi 5 giorni sono:
++2%, -1%, +0.5%, +3%, -0.5%
+
+Media = (2 + (-1) + 0.5 + 3 + (-0.5)) / 5 = 4/5 = 0.8%
+
+Il rendimento medio giornaliero è dello 0.8%.
+
+------------------------------------------------------------------------------
+2.2 MEDIA PONDERATA (Weighted Mean)
+------------------------------------------------------------------------------
+
+Definizione: Media dove ogni valore ha un peso diverso.
+
+Formula:
+    μw = (Σ wi*xi) / (Σ wi)
+
+Dove:
+    wi = peso dell'osservazione i
+    xi = valore dell'osservazione i
+
+Applicazione nel Trading:
+- VWAP (Volume Weighted Average Price)
+- Medie mobili esponenziali (EMA)
+- Indici ponderati per capitalizzazione
+
+VWAP Formula:
+    VWAP = Σ(Prezzo × Volume) / Σ(Volume)
+
+------------------------------------------------------------------------------
+2.3 MEDIANA (Median)
+------------------------------------------------------------------------------
+
+Definizione: Valore centrale quando i dati sono ordinati.
+
+Calcolo:
+- Se n è dispari: valore in posizione (n+1)/2
+- Se n è pari: media dei valori in posizione n/2 e (n/2)+1
+
+Applicazione nel Trading:
+- Più robusta della media per analizzare rendimenti
+- Utile quando ci sono outlier (flash crash, gap)
+- Prezzo mediano in un range
+
+Vantaggi:
+- Non influenzata dagli outlier
+- Rappresenta meglio il "tipico" valore
+
+Svantaggi:
+- Non utilizza tutte le informazioni dei dati
+- Meno utile per calcoli successivi
+
+Esempio:
+Rendimenti: -5%, -1%, 0%, +1%, +2%, +3%, +15%
+Media = 2.14% (distorta dal +15%)
+Mediana = +1% (più rappresentativa)
+
+------------------------------------------------------------------------------
+2.4 MODA (Mode)
+------------------------------------------------------------------------------
+
+Definizione: Valore che appare più frequentemente.
+
+Applicazione nel Trading:
+- Livelli di prezzo più frequenti (supporto/resistenza)
+- Volume Profile - Point of Control (POC)
+- Identificazione di cluster di prezzo
+
+Nel trading, la moda è particolarmente utile nel Volume Profile:
+il POC (Point of Control) è il livello di prezzo dove è stato
+scambiato il maggior volume - essenzialmente la "moda" dei prezzi
+ponderata per volume.
+
+================================================================================
+3. MISURE DI DISPERSIONE
+================================================================================
+
+Le misure di dispersione indicano quanto i dati sono "sparsi" intorno al centro.
+
+------------------------------------------------------------------------------
+3.1 RANGE (Escursione)
+------------------------------------------------------------------------------
+
+Definizione: Differenza tra valore massimo e minimo.
+
+Formula:
+    Range = Max - Min
+
+Applicazione nel Trading:
+- True Range e Average True Range (ATR)
+- High-Low range giornaliero
+- Identificazione volatilità
+
+True Range = Max(High-Low, |High-PrevClose|, |Low-PrevClose|)
+
+Limiti:
+- Considera solo 2 valori
+- Molto sensibile agli outlier
+
+------------------------------------------------------------------------------
+3.2 VARIANZA (Variance)
+------------------------------------------------------------------------------
+
+Definizione: Media dei quadrati delle deviazioni dalla media.
+
+Formula (popolazione):
+    σ² = Σ(xi - μ)² / n
+
+Formula (campione):
+    s² = Σ(xi - x̄)² / (n-1)
+
+Nota: Per campioni si usa (n-1) al denominatore (correzione di Bessel)
+per ottenere una stima non distorta.
+
+Applicazione nel Trading:
+- Misura della volatilità
+- Base per calcolo rischio
+- Ottimizzazione portafoglio (Markowitz)
+
+------------------------------------------------------------------------------
+3.3 DEVIAZIONE STANDARD (Standard Deviation)
+------------------------------------------------------------------------------
+
+Definizione: Radice quadrata della varianza.
+
+Formula:
+    σ = √(Σ(xi - μ)² / n)
+
+Interpretazione:
+- Nella distribuzione normale:
+  - 68.27% dei dati entro ±1σ dalla media
+  - 95.45% dei dati entro ±2σ dalla media
+  - 99.73% dei dati entro ±3σ dalla media
+
+Applicazione nel Trading:
+- Bollinger Bands: Media ± 2 deviazioni standard
+- Value at Risk (VaR)
+- Sharpe Ratio
+- Volatilità annualizzata
+
+Volatilità Annualizzata:
+    σ_annuale = σ_giornaliera × √252
+
+Dove 252 = giorni di trading in un anno.
+
+Per crypto (trading 365 giorni):
+    σ_annuale = σ_giornaliera × √365
+
+------------------------------------------------------------------------------
+3.4 COEFFICIENTE DI VARIAZIONE (CV)
+------------------------------------------------------------------------------
+
+Definizione: Deviazione standard divisa per la media, espressa in percentuale.
+
+Formula:
+    CV = (σ / μ) × 100%
+
+Applicazione nel Trading:
+- Confrontare volatilità tra asset con prezzi diversi
+- Misura di dispersione relativa
+- Utile per confrontare BTC ($50,000) con altcoin ($0.50)
+
+================================================================================
+4. MISURE DI FORMA DELLA DISTRIBUZIONE
+================================================================================
+
+------------------------------------------------------------------------------
+4.1 SKEWNESS (Asimmetria)
+------------------------------------------------------------------------------
+
+Definizione: Misura l'asimmetria della distribuzione rispetto alla media.
+
+Formula:
+    Skewness = [n/((n-1)(n-2))] × Σ[(xi - x̄)/s]³
+
+Interpretazione:
+- Skewness = 0: distribuzione simmetrica
+- Skewness > 0: coda destra più lunga (positive skew)
+- Skewness < 0: coda sinistra più lunga (negative skew)
+
+Applicazione nel Trading:
+- I rendimenti azionari hanno tipicamente skewness negativa
+  (grandi perdite più frequenti di grandi guadagni)
+- Le opzioni possono avere skewness positiva (guadagni illimitati)
+- Crypto spesso ha skewness positiva in bull market
+
+Implicazioni:
+- Skewness negativa: rischio di perdite estreme maggiore
+- Skewness positiva: possibilità di guadagni estremi maggiore
+
+------------------------------------------------------------------------------
+4.2 KURTOSIS (Curtosi)
+------------------------------------------------------------------------------
+
+Definizione: Misura quanto i dati sono concentrati nelle code vs centro.
+
+Formula:
+    Kurtosis = [n(n+1)/((n-1)(n-2)(n-3))] × Σ[(xi - x̄)/s]⁴ - 3(n-1)²/((n-2)(n-3))
+
+Interpretazione (Excess Kurtosis):
+- Kurtosis = 0: distribuzione normale (mesocurtica)
+- Kurtosis > 0: code pesanti, picco alto (leptocurtica)
+- Kurtosis < 0: code leggere, picco basso (platicurtica)
+
+Applicazione nel Trading:
+- I mercati finanziari hanno tipicamente kurtosis > 0 ("fat tails")
+- Eventi estremi (crash, rally) più frequenti del previsto
+- Importante per risk management e VaR
+
+"FAT TAILS" nel Trading:
+I rendimenti finanziari NON seguono una distribuzione normale perfetta.
+Hanno "code pesanti" (fat tails), significa che eventi estremi
+(come -10% in un giorno) accadono più spesso di quanto previsto
+dalla distribuzione normale.
+
+Questo è critico per il risk management!
+
+================================================================================
+5. PERCENTILI E QUARTILI
+================================================================================
+
+------------------------------------------------------------------------------
+5.1 PERCENTILI
+------------------------------------------------------------------------------
+
+Definizione: Valore sotto il quale cade una certa percentuale di dati.
+
+Percentile P-esimo: il valore sotto cui sta il P% dei dati.
+
+Applicazione nel Trading:
+- Value at Risk (VaR): tipicamente 1° o 5° percentile
+- Identificazione outlier
+- Distribuzione rendimenti
+
+VaR al 95%:
+"Con 95% di confidenza, la perdita non supererà X"
+X = 5° percentile dei rendimenti
+
+------------------------------------------------------------------------------
+5.2 QUARTILI
+------------------------------------------------------------------------------
+
+Q1 (25° percentile): Primo quartile
+Q2 (50° percentile): Mediana
+Q3 (75° percentile): Terzo quartile
+
+IQR (Interquartile Range) = Q3 - Q1
+
+Identificazione Outlier:
+- Outlier basso: < Q1 - 1.5 × IQR
+- Outlier alto: > Q3 + 1.5 × IQR
+
+Applicazione nel Trading:
+- Box plot per visualizzare distribuzione rendimenti
+- Identificare giorni di trading anomali
+- Filtrare dati per backtesting
+
+================================================================================
+6. CORRELAZIONE E COVARIANZA
+================================================================================
+
+------------------------------------------------------------------------------
+6.1 COVARIANZA
+------------------------------------------------------------------------------
+
+Definizione: Misura come due variabili variano insieme.
+
+Formula:
+    Cov(X,Y) = Σ[(xi - x̄)(yi - ȳ)] / (n-1)
+
+Interpretazione:
+- Cov > 0: le variabili si muovono nella stessa direzione
+- Cov < 0: le variabili si muovono in direzioni opposte
+- Cov = 0: nessuna relazione lineare
+
+Limitazione:
+La covarianza dipende dalle unità di misura, difficile da interpretare.
+
+------------------------------------------------------------------------------
+6.2 CORRELAZIONE DI PEARSON
+------------------------------------------------------------------------------
+
+Definizione: Covarianza normalizzata, misura la forza della relazione lineare.
+
+Formula:
+    ρ = Cov(X,Y) / (σx × σy)
+
+Range: -1 ≤ ρ ≤ +1
+
+Interpretazione:
+- ρ = +1: correlazione positiva perfetta
+- ρ = -1: correlazione negativa perfetta
+- ρ = 0: nessuna correlazione lineare
+- |ρ| > 0.7: correlazione forte
+- 0.3 < |ρ| < 0.7: correlazione moderata
+- |ρ| < 0.3: correlazione debole
+
+Applicazione nel Trading:
+- Diversificazione portafoglio (asset poco correlati)
+- Pairs trading (asset molto correlati)
+- Hedge (correlazione negativa)
+- Correlazione BTC-Altcoins
+- Correlazione crypto-equity markets
+
+Esempio Correlazioni Tipiche:
+- BTC-ETH: ~0.85-0.95 (molto correlati)
+- BTC-Gold: ~0.3-0.5 (correlazione variabile)
+- BTC-S&P500: ~0.4-0.6 (aumentata negli ultimi anni)
+
+------------------------------------------------------------------------------
+6.3 CORRELAZIONE DI SPEARMAN
+------------------------------------------------------------------------------
+
+Definizione: Correlazione basata sui ranghi, non sui valori.
+
+Formula:
+    ρs = 1 - (6 × Σdi²) / (n × (n² - 1))
+
+Dove di = differenza tra i ranghi di xi e yi
+
+Vantaggi:
+- Non assume relazione lineare
+- Robusta agli outlier
+- Cattura relazioni monotone non lineari
+
+Applicazione nel Trading:
+- Utile quando la relazione non è lineare
+- Analisi di ranking (performance relative)
+
+------------------------------------------------------------------------------
+6.4 MATRICE DI CORRELAZIONE
+------------------------------------------------------------------------------
+
+Per analizzare multiple asset contemporaneamente.
+
+Esempio (5 crypto):
+           BTC    ETH    BNB    SOL    ADA
+    BTC   1.00   0.89   0.82   0.78   0.75
+    ETH   0.89   1.00   0.85   0.82   0.80
+    BNB   0.82   0.85   1.00   0.79   0.76
+    SOL   0.78   0.82   0.79   1.00   0.83
+    ADA   0.75   0.80   0.76   0.83   1.00
+
+Uso nel Trading:
+- Identificare opportunità di diversificazione
+- Trovare coppie per pairs trading
+- Capire rischio sistemico del portafoglio
+
+================================================================================
+7. APPLICAZIONI NEL TRADING
+================================================================================
+
+------------------------------------------------------------------------------
+7.1 ANALISI DEI RENDIMENTI
+------------------------------------------------------------------------------
+
+Calcolo Rendimenti:
+
+Rendimento Semplice:
+    R = (Pt - Pt-1) / Pt-1
+
+Rendimento Logaritmico:
+    r = ln(Pt / Pt-1)
+
+Vantaggi Rendimento Logaritmico:
+- Additivo nel tempo: r_totale = r1 + r2 + r3...
+- Più vicino a distribuzione normale
+- Preferito per analisi statistiche
+
+------------------------------------------------------------------------------
+7.2 VOLATILITÀ
+------------------------------------------------------------------------------
+
+Volatilità Storica (Historical Volatility):
+    σ = StdDev(rendimenti) × √(periodi_annuali)
+
+Per diversi timeframe:
+- Giornaliera → Annuale: × √252 (equity) o √365 (crypto)
+- Oraria → Annuale: × √(24 × 365) per crypto
+- 5 minuti → Giornaliera: × √(288) per crypto
+
+Volatilità Realizzata (Realized Volatility):
+Calcolata su rendimenti ad alta frequenza (intraday).
+
+------------------------------------------------------------------------------
+7.3 SHARPE RATIO
+------------------------------------------------------------------------------
+
+Formula:
+    Sharpe = (Rp - Rf) / σp
+
+Dove:
+    Rp = rendimento portafoglio
+    Rf = risk-free rate
+    σp = volatilità portafoglio
+
+Interpretazione:
+- Sharpe < 1: sotto-performance risk-adjusted
+- 1 < Sharpe < 2: buono
+- 2 < Sharpe < 3: molto buono
+- Sharpe > 3: eccellente (o sospetto)
+
+------------------------------------------------------------------------------
+7.4 VALUE AT RISK (VaR)
+------------------------------------------------------------------------------
+
+VaR Parametrico (assunzione normalità):
+    VaR_α = μ - z_α × σ
+
+Dove z_α è il quantile della normale standard.
+
+Per VaR 95% (α = 0.05): z = 1.645
+Per VaR 99% (α = 0.01): z = 2.326
+
+Esempio:
+Portfolio $100,000
+Rendimento medio giornaliero: 0.1%
+Volatilità giornaliera: 2%
+
+VaR 95% = 0.1% - 1.645 × 2% = -3.19%
+VaR 95% in dollari = $100,000 × 3.19% = $3,190
+
+"Con 95% di confidenza, non perderemo più di $3,190 in un giorno"
+
+================================================================================
+8. FORMULE ESSENZIALI - RIASSUNTO
+================================================================================
+
+TENDENZA CENTRALE:
+-----------------
+Media:           μ = Σxi / n
+Media Ponderata: μw = Σ(wi×xi) / Σwi
+Mediana:         Valore centrale ordinato
+Moda:            Valore più frequente
+
+DISPERSIONE:
+------------
+Range:           Max - Min
+Varianza:        σ² = Σ(xi-μ)² / n
+Dev. Standard:   σ = √σ²
+CV:              CV = σ/μ × 100%
+
+FORMA:
+------
+Skewness:        γ1 = E[(X-μ)³] / σ³
+Kurtosis:        γ2 = E[(X-μ)⁴] / σ⁴ - 3
+
+RELAZIONE:
+----------
+Covarianza:      Cov(X,Y) = E[(X-μx)(Y-μy)]
+Correlazione:    ρ = Cov(X,Y) / (σx × σy)
+
+TRADING:
+--------
+Rendimento Log:  r = ln(Pt/Pt-1)
+Volatilità Ann:  σ_ann = σ_daily × √252
+Sharpe Ratio:    SR = (Rp - Rf) / σp
+VaR:             VaR = μ - z × σ
+
+================================================================================
+9. ESEMPI PRATICI CON PYTHON
+================================================================================
+
+```python
+import numpy as np
+import pandas as pd
+from scipy import stats
+
+# Dati di esempio: rendimenti giornalieri
+returns = np.array([0.02, -0.01, 0.015, -0.005, 0.03, -0.02, 0.01, 0.005, -0.015, 0.025])
+
+# TENDENZA CENTRALE
+mean = np.mean(returns)
+median = np.median(returns)
+# Per la moda con dati continui, si usa istogramma o KDE
+
+print(f"Media: {mean:.4f} ({mean*100:.2f}%)")
+print(f"Mediana: {median:.4f} ({median*100:.2f}%)")
+
+# DISPERSIONE
+variance = np.var(returns, ddof=1)  # ddof=1 per campione
+std_dev = np.std(returns, ddof=1)
+range_val = np.max(returns) - np.min(returns)
+
+print(f"Varianza: {variance:.6f}")
+print(f"Dev. Standard: {std_dev:.4f} ({std_dev*100:.2f}%)")
+print(f"Range: {range_val:.4f}")
+
+# Volatilità annualizzata (crypto 365 giorni)
+annual_vol = std_dev * np.sqrt(365)
+print(f"Volatilità Annualizzata: {annual_vol:.2%}")
+
+# FORMA DISTRIBUZIONE
+skewness = stats.skew(returns)
+kurtosis = stats.kurtosis(returns)  # Excess kurtosis
+
+print(f"Skewness: {skewness:.4f}")
+print(f"Kurtosis (excess): {kurtosis:.4f}")
+
+# PERCENTILI
+var_95 = np.percentile(returns, 5)  # 5° percentile = VaR 95%
+var_99 = np.percentile(returns, 1)  # 1° percentile = VaR 99%
+
+print(f"VaR 95%: {var_95:.2%}")
+print(f"VaR 99%: {var_99:.2%}")
+
+# CORRELAZIONE (esempio con 2 asset)
+btc_returns = np.array([0.02, -0.01, 0.015, -0.005, 0.03])
+eth_returns = np.array([0.025, -0.008, 0.02, -0.003, 0.035])
+
+correlation = np.corrcoef(btc_returns, eth_returns)[0, 1]
+covariance = np.cov(btc_returns, eth_returns)[0, 1]
+
+print(f"Correlazione BTC-ETH: {correlation:.4f}")
+print(f"Covarianza BTC-ETH: {covariance:.6f}")
+
+# SHARPE RATIO
+risk_free_rate = 0.05 / 365  # 5% annuo, giornaliero
+excess_returns = returns - risk_free_rate
+sharpe_daily = np.mean(excess_returns) / np.std(excess_returns, ddof=1)
+sharpe_annual = sharpe_daily * np.sqrt(365)
+
+print(f"Sharpe Ratio (annualizzato): {sharpe_annual:.2f}")
+
+# ROLLING STATISTICS (con pandas)
+prices = pd.Series([100, 102, 101, 103, 105, 103, 106, 108, 107, 110])
+returns_series = prices.pct_change().dropna()
+
+rolling_mean = returns_series.rolling(window=5).mean()
+rolling_std = returns_series.rolling(window=5).std()
+
+print("\nRolling Statistics (window=5):")
+print(f"Rolling Mean: {rolling_mean.iloc[-1]:.4f}")
+print(f"Rolling Std: {rolling_std.iloc[-1]:.4f}")
+```
+
+================================================================================
+                              FINE DOCUMENTO
+================================================================================
+
+Prossimo: 02_Probabilita_Distribuzioni.txt

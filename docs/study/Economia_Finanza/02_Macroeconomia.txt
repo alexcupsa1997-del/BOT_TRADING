@@ -1,0 +1,885 @@
+================================================================================
+                         MACROECONOMIA PER IL TRADING
+                    Indicatori, Cicli e Impatto sui Mercati
+================================================================================
+
+INDICE
+------
+1. Indicatori Economici Fondamentali
+2. Politica Monetaria
+3. Politica Fiscale
+4. Cicli Economici
+5. Inflazione e Tassi di Interesse
+6. Correlazioni Macro-Mercati
+7. Risk-On / Risk-Off
+8. Calendar Trading
+9. Applicazioni Pratiche
+
+================================================================================
+1. INDICATORI ECONOMICI FONDAMENTALI
+================================================================================
+
+------------------------------------------------------------------------------
+1.1 PIL (PRODOTTO INTERNO LORDO)
+------------------------------------------------------------------------------
+
+DEFINIZIONE:
+Valore totale di beni e servizi prodotti in un paese in un periodo.
+
+CALCOLO (metodo della spesa):
+    PIL = C + I + G + (X - M)
+
+Dove:
+- C = Consumi privati
+- I = Investimenti
+- G = Spesa pubblica
+- X = Esportazioni
+- M = Importazioni
+
+TIPI:
+- PIL Nominale: a prezzi correnti
+- PIL Reale: aggiustato per inflazione
+- PIL pro capite: PIL / popolazione
+
+LETTURA:
+- Crescita PIL > 2-3%: economia in salute
+- Crescita PIL 0-2%: crescita lenta
+- PIL negativo per 2 trimestri: recessione tecnica
+
+IMPATTO SUI MERCATI:
+- PIL sopra attese → bullish azionario, bearish bond
+- PIL sotto attese → bearish azionario, bullish bond
+- Recessione → risk-off, flight to quality
+
+RELEASE:
+- USA: Bureau of Economic Analysis, trimestrale
+- Prima stima (advance), seconda (preliminary), finale (final)
+
+------------------------------------------------------------------------------
+1.2 EMPLOYMENT DATA
+------------------------------------------------------------------------------
+
+NONFARM PAYROLLS (USA):
+- Numero di posti di lavoro creati (escluso agricoltura)
+- Rilasciato primo venerdì del mese
+- Uno degli indicatori più market-moving
+
+UNEMPLOYMENT RATE:
+- Percentuale forza lavoro disoccupata
+- USA target: "full employment" ~4%
+
+INITIAL JOBLESS CLAIMS:
+- Nuove richieste sussidi disoccupazione
+- Settimanale, leading indicator
+
+IMPATTO:
+- Jobs sopra attese → bullish USD, mixed equity (dipende da Fed)
+- Jobs sotto attese → bearish USD, mixed equity
+- "Good news is bad news" quando Fed è hawkish
+
+------------------------------------------------------------------------------
+1.3 INFLATION DATA
+------------------------------------------------------------------------------
+
+CPI (Consumer Price Index):
+- Misura variazione prezzi paniere di consumo
+- Headline CPI: include tutto
+- Core CPI: esclude food ed energy (più volatile)
+
+PPI (Producer Price Index):
+- Prezzi alla produzione
+- Leading indicator per CPI
+
+PCE (Personal Consumption Expenditures):
+- Preferito dalla Federal Reserve
+- Core PCE = target Fed 2%
+
+IMPATTO:
+- Inflazione sopra attese → bearish bond, mixed equity
+- Se Fed reagisce con rialzi → bearish equity
+- Inflazione bassa → bullish bond
+
+------------------------------------------------------------------------------
+1.4 ALTRI INDICATORI CHIAVE
+------------------------------------------------------------------------------
+
+RETAIL SALES:
+- Spesa dei consumatori
+- ~70% del PIL USA sono consumi
+
+INDUSTRIAL PRODUCTION:
+- Output settore manifatturiero e utilities
+- Indicatore di attività economica
+
+PMI (Purchasing Managers' Index):
+- Survey ai manager acquisti
+- PMI > 50: espansione
+- PMI < 50: contrazione
+- PMI 50: stagnazione
+
+ISM Manufacturing/Services:
+- Simile a PMI, specifico USA
+
+HOUSING DATA:
+- Housing Starts: nuove costruzioni iniziate
+- Building Permits: permessi edilizi
+- Existing Home Sales: vendite case esistenti
+- Case-Shiller Index: prezzi immobiliari
+
+CONSUMER CONFIDENCE:
+- Survey sul sentiment dei consumatori
+- Leading indicator per consumi
+
+------------------------------------------------------------------------------
+1.5 LEADING VS LAGGING INDICATORS
+------------------------------------------------------------------------------
+
+LEADING (anticipano il ciclo):
+- Stock market
+- Building permits
+- Initial claims (invertito)
+- Yield curve slope
+- PMI/ISM
+- Consumer expectations
+
+COINCIDENT (si muovono col ciclo):
+- PIL
+- Industrial production
+- Employment
+- Personal income
+
+LAGGING (seguono il ciclo):
+- Unemployment rate
+- CPI
+- Bank lending
+- Unit labor costs
+
+================================================================================
+2. POLITICA MONETARIA
+================================================================================
+
+------------------------------------------------------------------------------
+2.1 RUOLO DELLE BANCHE CENTRALI
+------------------------------------------------------------------------------
+
+OBIETTIVI TIPICI:
+- Stabilità dei prezzi (target inflazione ~2%)
+- Massima occupazione (dual mandate Fed)
+- Stabilità finanziaria
+
+PRINCIPALI BANCHE CENTRALI:
+- Federal Reserve (Fed) - USA
+- European Central Bank (ECB) - Eurozona
+- Bank of Japan (BoJ) - Giappone
+- Bank of England (BoE) - UK
+- People's Bank of China (PBoC) - Cina
+
+------------------------------------------------------------------------------
+2.2 STRUMENTI DI POLITICA MONETARIA
+------------------------------------------------------------------------------
+
+TASSI DI INTERESSE:
+- Federal Funds Rate (Fed)
+- Main Refinancing Rate (ECB)
+- Overnight Rate (vari)
+
+OPERAZIONI DI MERCATO APERTO:
+- Acquisto/vendita titoli di stato
+- Immette/ritira liquidità
+
+RISERVA OBBLIGATORIA:
+- Percentuale depositi che banche devono tenere
+- Modifiche rare
+
+QUANTITATIVE EASING (QE):
+- Acquisto massiccio di asset (bond, MBS)
+- Aumenta base monetaria
+- Abbassa tassi lungo termine
+- "Stampare moneta"
+
+QUANTITATIVE TIGHTENING (QT):
+- Riduzione bilancio banca centrale
+- Opposto di QE
+- Riduce liquidità
+
+------------------------------------------------------------------------------
+2.3 TRASMISSIONE DELLA POLITICA MONETARIA
+------------------------------------------------------------------------------
+
+MECCANISMO:
+1. BC cambia tasso di riferimento
+2. Tassi interbancari si aggiustano
+3. Tassi prestiti/mutui cambiano
+4. Investimenti e consumi reagiscono
+5. Domanda aggregata cambia
+6. Inflazione reagisce (con ritardo 12-18 mesi)
+
+CANALI:
+- Tasso di interesse: costo del denaro
+- Credito: disponibilità prestiti
+- Cambio: valore della valuta
+- Aspettative: influenza comportamenti futuri
+- Wealth effect: valore asset
+
+------------------------------------------------------------------------------
+2.4 HAWKISH VS DOVISH
+------------------------------------------------------------------------------
+
+HAWKISH (falco):
+- Priorità: controllare inflazione
+- Favorevole a tassi più alti
+- Preoccupato per surriscaldamento economia
+
+DOVISH (colomba):
+- Priorità: crescita e occupazione
+- Favorevole a tassi più bassi
+- Preoccupato per rallentamento
+
+IMPATTO SUI MERCATI:
+- Surprise hawkish → bearish equity, bullish USD
+- Surprise dovish → bullish equity, bearish USD
+
+------------------------------------------------------------------------------
+2.5 FOMC E FED COMMUNICATION
+------------------------------------------------------------------------------
+
+FOMC (Federal Open Market Committee):
+- 8 meeting all'anno
+- Decide sui tassi
+- Rilascia statement e proiezioni
+
+STRUMENTI DI COMUNICAZIONE:
+- FOMC Statement: decisione e outlook
+- Dot Plot: proiezioni tassi dei membri
+- Economic Projections (SEP)
+- Press Conference del Chair
+- Minutes: dettagli discussione (3 settimane dopo)
+- Speeches dei governatori
+
+FED FUNDS FUTURES:
+- Mercato prezza probabilità di rialzi/tagli
+- CME FedWatch Tool
+
+================================================================================
+3. POLITICA FISCALE
+================================================================================
+
+------------------------------------------------------------------------------
+3.1 STRUMENTI
+------------------------------------------------------------------------------
+
+SPESA PUBBLICA:
+- Infrastrutture
+- Trasferimenti (welfare, pensioni)
+- Difesa
+- Servizi pubblici
+
+TASSAZIONE:
+- Imposte sul reddito
+- Imposte sulle imprese
+- IVA/imposte sui consumi
+- Capital gains tax
+
+DEFICIT E DEBITO:
+- Deficit = Spesa - Entrate (flusso annuale)
+- Debito = Accumulo deficit passati (stock)
+- Debt/GDP ratio
+
+------------------------------------------------------------------------------
+3.2 EFFETTI MACROECONOMICI
+------------------------------------------------------------------------------
+
+POLITICA ESPANSIVA:
+- Aumento spesa o taglio tasse
+- Stimola domanda aggregata
+- Può causare inflazione
+- Aumenta deficit
+
+POLITICA RESTRITTIVA:
+- Taglio spesa o aumento tasse
+- Riduce domanda aggregata
+- Può causare rallentamento
+- Riduce deficit
+
+MOLTIPLICATORE FISCALE:
+    ΔY = k × ΔG
+
+Dove k > 1 tipicamente.
+In recessione il moltiplicatore è più alto.
+
+------------------------------------------------------------------------------
+3.3 IMPATTO SUI MERCATI
+------------------------------------------------------------------------------
+
+STIMOLO FISCALE:
+- Bullish equity (più domanda = più profitti)
+- Bearish bond (più emissioni, inflazione)
+- Può essere bullish o bearish valuta
+
+AUSTERITY:
+- Bearish equity nel breve
+- Può essere bullish bond
+- Dipende dalla fiducia del mercato
+
+DEBT CEILING (USA):
+- Limite legale al debito federale
+- Deve essere alzato dal Congresso
+- Crisi periodiche → volatilità
+
+================================================================================
+4. CICLI ECONOMICI
+================================================================================
+
+------------------------------------------------------------------------------
+4.1 FASI DEL CICLO
+------------------------------------------------------------------------------
+
+1. ESPANSIONE:
+- PIL cresce
+- Occupazione aumenta
+- Profitti aziendali in crescita
+- Fiducia alta
+
+2. PICCO:
+- Crescita rallenta
+- Inflazione può salire
+- Tassi possono essere alti
+- Segnali di eccesso (bolle?)
+
+3. CONTRAZIONE/RECESSIONE:
+- PIL scende
+- Disoccupazione sale
+- Profitti calano
+- Fiducia crolla
+
+4. TROUGH (minimo):
+- Punto più basso
+- Condizioni per ripresa
+- Tassi bassi
+- Politiche espansive
+
+------------------------------------------------------------------------------
+4.2 DURATA DEI CICLI
+------------------------------------------------------------------------------
+
+CICLI USA (storici):
+- Espansione media: ~5 anni
+- Recessione media: ~11 mesi
+- L'espansione 2009-2020 è durata 11 anni
+
+INDICATORI DI TURNING POINTS:
+- Yield curve inversione (predice recessione)
+- Leading indicators index
+- Credit spreads
+- Volatilità
+
+------------------------------------------------------------------------------
+4.3 YIELD CURVE
+------------------------------------------------------------------------------
+
+La YIELD CURVE mostra i tassi di interesse a diverse scadenze.
+
+FORME:
+- Normal (upward sloping): tassi a lungo > tassi a breve
+- Flat: tassi simili a tutte le scadenze
+- Inverted: tassi a breve > tassi a lungo
+
+YIELD CURVE INVERSION:
+- 10Y - 2Y Treasury < 0
+- Storicamente predice recessione con 12-18 mesi anticipo
+- Negli ultimi 60 anni, 7 inversioni → 7 recessioni
+
+MECCANISMO:
+- Inversione riflette aspettative di tagli futuri
+- Danneggia profittabilità banche (prestano a lungo, si finanziano a breve)
+- Self-fulfilling? Le banche riducono prestiti
+
+------------------------------------------------------------------------------
+4.4 ASSET ALLOCATION PER FASE DEL CICLO
+------------------------------------------------------------------------------
+
+EARLY EXPANSION:
+- Bullish: cyclicals, small caps, high yield
+- Bearish: defensive, cash
+- Settori: consumer discretionary, industrials, materials
+
+MID EXPANSION:
+- Bullish: broad equity
+- Tech può outperformare
+- Settori: technology, financials
+
+LATE EXPANSION:
+- Bullish: energy, materials (inflation plays)
+- Cautela su growth stocks
+- Aumentare qualità
+
+RECESSION:
+- Bullish: defensive, bonds, gold
+- Cash importante
+- Settori: utilities, healthcare, consumer staples
+
+================================================================================
+5. INFLAZIONE E TASSI DI INTERESSE
+================================================================================
+
+------------------------------------------------------------------------------
+5.1 TIPI DI INFLAZIONE
+------------------------------------------------------------------------------
+
+DEMAND-PULL:
+- Troppa domanda, poca offerta
+- "Too much money chasing too few goods"
+- Economia surriscaldata
+
+COST-PUSH:
+- Aumento costi di produzione (energia, lavoro)
+- Shock offerta
+- Es: crisi petrolifera
+
+BUILT-IN / WAGE-PRICE SPIRAL:
+- Lavoratori chiedono aumenti per coprire inflazione
+- Aziende alzano prezzi per coprire costi
+- Circolo vizioso
+
+INFLAZIONE IMPORTATA:
+- Deprezzamento valuta
+- Beni importati più costosi
+
+------------------------------------------------------------------------------
+5.2 DEFLAZIONE E DISINFLAZIONE
+------------------------------------------------------------------------------
+
+DISINFLAZIONE:
+- Inflazione che scende ma resta positiva
+- Es: da 5% a 2%
+- Generalmente positivo
+
+DEFLAZIONE:
+- Inflazione negativa
+- Prezzi che scendono
+- Pericolosa: rimando acquisti, peso del debito aumenta
+- Es: Giappone anni '90-2000
+
+------------------------------------------------------------------------------
+5.3 REAL VS NOMINAL RATES
+------------------------------------------------------------------------------
+
+FISHER EQUATION:
+    r ≈ i - π
+
+Dove:
+- r = tasso reale
+- i = tasso nominale
+- π = inflazione attesa
+
+TASSI REALI NEGATIVI:
+- Quando inflazione > tasso nominale
+- "Financial repression"
+- Incentiva spesa/investimento vs risparmio
+- Bullish per asset reali (gold, real estate, crypto?)
+
+------------------------------------------------------------------------------
+5.4 INFLATION-LINKED BONDS
+------------------------------------------------------------------------------
+
+TIPS (Treasury Inflation-Protected Securities):
+- Principale aggiustato per inflazione
+- Proteggono potere d'acquisto
+
+BREAKEVEN INFLATION:
+    BE = Nominal Yield - TIPS Yield
+
+Indica l'inflazione attesa dal mercato.
+
+================================================================================
+6. CORRELAZIONI MACRO-MERCATI
+================================================================================
+
+------------------------------------------------------------------------------
+6.1 EQUITY
+------------------------------------------------------------------------------
+
+BULL EQUITY:
+- Crescita PIL positiva
+- Politica monetaria accomodante
+- Earnings in crescita
+- Fiducia alta
+
+BEAR EQUITY:
+- Recessione
+- Fed hawkish
+- Earnings in calo
+- Risk-off sentiment
+
+SECTOR ROTATION:
+Il denaro ruota tra settori a seconda del ciclo e delle condizioni.
+
+------------------------------------------------------------------------------
+6.2 FIXED INCOME (BONDS)
+------------------------------------------------------------------------------
+
+PREZZI E TASSI:
+    P ↑ quando yield ↓ (relazione inversa)
+
+BULL BOND:
+- Economia debole
+- Aspettative tassi in calo
+- Flight to safety
+
+BEAR BOND:
+- Economia forte
+- Inflazione in aumento
+- Fed hawkish
+
+CREDIT SPREADS:
+- Differenza tra corporate e treasury yields
+- Spread che si allarga = risk-off, stress
+- Spread che si stringe = risk-on, fiducia
+
+------------------------------------------------------------------------------
+6.3 FOREX
+------------------------------------------------------------------------------
+
+FATTORI CHE INFLUENZANO LE VALUTE:
+
+TASSI DI INTERESSE:
+- Tassi più alti → valuta più forte (carry trade)
+- Differenziale tassi guida flows
+
+CRESCITA ECONOMICA:
+- Economia forte → valuta forte
+- Attira investimenti
+
+BALANCE OF PAYMENTS:
+- Surplus commerciale → valuta forte
+- Deficit → valuta debole
+
+RISK SENTIMENT:
+- Risk-on → emerging currencies, AUD, NZD
+- Risk-off → USD, JPY, CHF
+
+------------------------------------------------------------------------------
+6.4 COMMODITIES
+------------------------------------------------------------------------------
+
+GOLD:
+- Store of value
+- Hedge contro inflazione
+- Safe haven in crisi
+- Negatively correlated con real rates
+
+OIL:
+- Domanda legata a crescita globale
+- Offerta: OPEC, geopolitica
+- Input per inflazione
+
+INDUSTRIAL METALS (Copper):
+- "Dr. Copper" indicatore di salute economia
+- Domanda = attività industriale
+
+================================================================================
+7. RISK-ON / RISK-OFF
+================================================================================
+
+------------------------------------------------------------------------------
+7.1 DEFINIZIONE
+------------------------------------------------------------------------------
+
+RISK-ON:
+Investitori disposti a prendere rischi per rendimenti più alti.
+
+Caratteristiche:
+- Economia stabile/in crescita
+- Volatilità bassa
+- Sentiment positivo
+
+Asset favoriti:
+- Equity (specialmente growth, small cap)
+- High yield bonds
+- Emerging markets
+- Carry trade currencies (AUD, NZD, EM)
+- Commodities cicliche
+- Crypto (spesso si comporta risk-on)
+
+RISK-OFF:
+Investitori cercano sicurezza.
+
+Caratteristiche:
+- Incertezza economica
+- Volatilità alta
+- Eventi geopolitici
+- Crisi finanziarie
+
+Asset favoriti:
+- Treasury bonds
+- Gold
+- USD, JPY, CHF
+- Settori difensivi
+
+------------------------------------------------------------------------------
+7.2 INDICATORI DI RISK SENTIMENT
+------------------------------------------------------------------------------
+
+VIX:
+- "Fear gauge"
+- Volatilità implicita S&P 500
+- VIX < 15: bassa paura, risk-on
+- VIX > 25: alta paura, risk-off
+- VIX > 40: panico
+
+CREDIT SPREADS:
+- HY OAS (High Yield Option-Adjusted Spread)
+- Spread che sale = risk-off
+
+TED SPREAD:
+- LIBOR - Treasury
+- Misura stress interbancario
+
+MOVE INDEX:
+- VIX per i bond
+- Volatilità mercato obbligazionario
+
+SKEW INDEX:
+- Domanda di put options
+- Alto = paura di crash
+
+------------------------------------------------------------------------------
+7.3 CORRELAZIONI IN REGIME
+------------------------------------------------------------------------------
+
+In RISK-ON:
+- Equity e commodities correlati positivamente
+- Bond negativamente correlati con equity
+- Diversificazione "funziona"
+
+In CRISI (risk-off estremo):
+- Correlazioni aumentano (tutto scende)
+- "Diversification fails when you need it most"
+- Solo safe havens (gold, treasury) tengono
+
+================================================================================
+8. CALENDAR TRADING
+================================================================================
+
+------------------------------------------------------------------------------
+8.1 ECONOMIC CALENDAR
+------------------------------------------------------------------------------
+
+Eventi chiave da monitorare:
+
+USA:
+- FOMC (8 volte/anno)
+- NFP (primo venerdì mese)
+- CPI (metà mese)
+- GDP (fine trimestre)
+- Retail Sales
+
+EUROPA:
+- ECB meetings
+- German IFO, ZEW
+- Eurozone PMI
+
+ALTRI:
+- BOJ, BOE meetings
+- China PMI, GDP
+- OPEC meetings (per oil)
+
+------------------------------------------------------------------------------
+8.2 TRADING AROUND EVENTS
+------------------------------------------------------------------------------
+
+PRIMA DELL'EVENTO:
+- Volatilità implicita sale
+- Market makers allargano spread
+- Rischio di fare previsioni
+
+RELEASE:
+- Spike di volatilità
+- Slippage elevato
+- Difficile eseguire
+
+DOPO L'EVENTO:
+- Price discovery
+- IV crush (vol implicita crolla)
+- Trend può emergere o revertire
+
+STRATEGIE:
+- Stare fuori durante release ad alto impatto
+- Fare vol play (long vol prima, short dopo)
+- Attendere che polvere si depositi
+
+------------------------------------------------------------------------------
+8.3 SEASONALITY
+------------------------------------------------------------------------------
+
+MENSILE:
+- End-of-month flows (window dressing)
+- Options expiration (terzo venerdì)
+- Rebalancing
+
+TRIMESTRALE:
+- Earnings season
+- Mutual fund reporting
+- Index reconstitution
+
+ANNUALE:
+- January effect
+- Sell in May
+- Santa rally (fine dicembre)
+- Tax-loss selling (dicembre)
+
+================================================================================
+9. APPLICAZIONI PRATICHE
+================================================================================
+
+------------------------------------------------------------------------------
+9.1 MACRO OVERLAY
+------------------------------------------------------------------------------
+
+Usa analisi macro per:
+1. Determinare bias direzionale (long o flat, no short in bull market)
+2. Allocazione tra asset class
+3. Timing di entry/exit
+4. Risk management (reduce exposure pre-eventi)
+
+------------------------------------------------------------------------------
+9.2 REGIME DETECTION
+------------------------------------------------------------------------------
+
+Identifica il regime corrente:
+- Growth + Low Inflation: best for stocks
+- Growth + High Inflation: commodities, value
+- Recession + Low Inflation: bonds
+- Stagflation: difficile, gold, cash
+
+------------------------------------------------------------------------------
+9.3 NEWS TRADING
+------------------------------------------------------------------------------
+
+Per tradare news economiche:
+1. Conosci le aspettative (consensus)
+2. Monitora il dato vs consensus
+3. Considera il contesto (cosa sta prezzando il mercato)
+4. Reagisci velocemente o aspetta conferma
+
+------------------------------------------------------------------------------
+9.4 CODICE PYTHON
+------------------------------------------------------------------------------
+
+```python
+import numpy as np
+import pandas as pd
+
+# Economic Indicator Analysis
+class EconomicIndicators:
+    def __init__(self):
+        # Simulazione dati
+        np.random.seed(42)
+        dates = pd.date_range('2020-01-01', periods=48, freq='M')
+        
+        self.data = pd.DataFrame({
+            'GDP_growth': np.random.normal(2.5, 1.5, 48),
+            'Unemployment': np.random.normal(5, 1, 48).clip(3, 10),
+            'CPI_yoy': np.random.normal(2.5, 1, 48),
+            'Fed_rate': np.cumsum(np.random.choice([-0.25, 0, 0.25], 48, p=[0.2, 0.5, 0.3])).clip(0, 5) + 0.5,
+            '10Y_yield': np.random.normal(2.5, 0.5, 48).clip(1, 4),
+            '2Y_yield': np.random.normal(2.0, 0.5, 48).clip(0.5, 3.5)
+        }, index=dates)
+        
+        # Yield curve spread
+        self.data['Yield_spread'] = self.data['10Y_yield'] - self.data['2Y_yield']
+    
+    def detect_regime(self, row):
+        """Determina regime economico"""
+        growth = row['GDP_growth']
+        inflation = row['CPI_yoy']
+        
+        if growth > 2 and inflation < 3:
+            return 'Goldilocks'  # Crescita sana, inflazione bassa
+        elif growth > 2 and inflation >= 3:
+            return 'Overheating'  # Crescita alta, inflazione alta
+        elif growth <= 2 and growth > 0 and inflation < 3:
+            return 'Slowdown'  # Crescita debole, inflazione bassa
+        elif growth <= 0:
+            return 'Recession'
+        else:
+            return 'Stagflation'  # Crescita bassa, inflazione alta
+    
+    def yield_curve_signal(self):
+        """Analizza yield curve per segnale recessione"""
+        spread = self.data['Yield_spread']
+        
+        signals = []
+        for i, s in enumerate(spread):
+            if s < 0:
+                signals.append('INVERTED - Recession Warning')
+            elif s < 0.5:
+                signals.append('FLAT - Caution')
+            else:
+                signals.append('NORMAL')
+        
+        return signals
+    
+    def real_rate(self):
+        """Calcola tasso reale"""
+        return self.data['Fed_rate'] - self.data['CPI_yoy']
+    
+    def analyze(self):
+        """Analisi completa"""
+        print("="*60)
+        print("ECONOMIC ANALYSIS")
+        print("="*60)
+        
+        latest = self.data.iloc[-1]
+        
+        print(f"\nLatest Data:")
+        print(f"  GDP Growth: {latest['GDP_growth']:.1f}%")
+        print(f"  Unemployment: {latest['Unemployment']:.1f}%")
+        print(f"  CPI YoY: {latest['CPI_yoy']:.1f}%")
+        print(f"  Fed Rate: {latest['Fed_rate']:.2f}%")
+        print(f"  10Y Yield: {latest['10Y_yield']:.2f}%")
+        print(f"  Yield Spread: {latest['Yield_spread']:.2f}%")
+        
+        regime = self.detect_regime(latest)
+        print(f"\nCurrent Regime: {regime}")
+        
+        real_rate = latest['Fed_rate'] - latest['CPI_yoy']
+        print(f"Real Rate: {real_rate:.2f}%")
+        if real_rate < 0:
+            print("  → Negative real rates: bullish for real assets")
+        
+        # Asset allocation suggestion
+        print("\nSuggested Allocation:")
+        if regime == 'Goldilocks':
+            print("  Equity: HIGH (growth favored)")
+            print("  Bonds: MODERATE")
+            print("  Commodities: LOW-MODERATE")
+        elif regime == 'Overheating':
+            print("  Equity: MODERATE (value/inflation hedges)")
+            print("  Bonds: LOW (inflation risk)")
+            print("  Commodities: HIGH")
+        elif regime == 'Recession':
+            print("  Equity: LOW (defensive sectors)")
+            print("  Bonds: HIGH (flight to safety)")
+            print("  Gold: MODERATE-HIGH")
+        elif regime == 'Stagflation':
+            print("  Equity: LOW")
+            print("  Bonds: LOW")
+            print("  Gold/Commodities: HIGH")
+
+# Run analysis
+econ = EconomicIndicators()
+econ.analyze()
+
+# Yield curve analysis
+print("\n" + "="*60)
+print("YIELD CURVE HISTORY")
+print("="*60)
+inverted_months = (econ.data['Yield_spread'] < 0).sum()
+print(f"Months with inverted curve: {inverted_months}")
+print(f"Current spread: {econ.data['Yield_spread'].iloc[-1]:.2f}%")
+```
+
+================================================================================
+                              FINE DOCUMENTO
+================================================================================
