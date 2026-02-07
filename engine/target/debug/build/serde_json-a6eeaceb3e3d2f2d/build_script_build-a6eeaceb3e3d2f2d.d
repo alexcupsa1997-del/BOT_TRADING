@@ -1,5 +1,0 @@
-E:\Progetti\BOT_TRADING\engine\target\debug\build\serde_json-a6eeaceb3e3d2f2d\build_script_build-a6eeaceb3e3d2f2d.d: C:\Users\Alex\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde_json-1.0.149\build.rs
-
-E:\Progetti\BOT_TRADING\engine\target\debug\build\serde_json-a6eeaceb3e3d2f2d\build_script_build-a6eeaceb3e3d2f2d.exe: C:\Users\Alex\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde_json-1.0.149\build.rs
-
-C:\Users\Alex\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde_json-1.0.149\build.rs:
