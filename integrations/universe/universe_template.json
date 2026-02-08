@@ -1,0 +1,67 @@
+{
+    "meta": {
+        "version": "1.0.0",
+        "description": "The God List: Megatrend Assets for GOLIATH Execution",
+        "last_updated": "2026-02-08"
+    },
+    "pillars": [
+        {
+            "id": "demographics",
+            "name": "Silver Economy & New Middle Class",
+            "assets": [
+                {
+                    "symbol": "XLV",
+                    "type": "ETF",
+                    "description": "Healthcare Select Sector SPDR"
+                },
+                {
+                    "symbol": "NKE",
+                    "type": "Stock",
+                    "description": "Nike (Middle Class Consumption)"
+                }
+            ]
+        },
+        {
+            "id": "technology",
+            "name": "AI & Connectivity",
+            "assets": [
+                {
+                    "symbol": "RNDR",
+                    "type": "Crypto",
+                    "description": "Render Token (Distributed Compute)"
+                },
+                {
+                    "symbol": "FET",
+                    "type": "Crypto",
+                    "description": "Artificial Liquid Intelligence"
+                },
+                {
+                    "symbol": "SOL",
+                    "type": "Crypto",
+                    "description": "High Throughput Blockchain"
+                }
+            ]
+        },
+        {
+            "id": "environment",
+            "name": "Energy Transition",
+            "assets": [
+                {
+                    "symbol": "ICLN",
+                    "type": "ETF",
+                    "description": "iShares Global Clean Energy"
+                },
+                {
+                    "symbol": "POWR",
+                    "type": "Crypto",
+                    "description": "Power Ledger (P2P Energy)"
+                },
+                {
+                    "symbol": "ALGO",
+                    "type": "Crypto",
+                    "description": "Carbon Negative L1"
+                }
+            ]
+        }
+    ]
+}

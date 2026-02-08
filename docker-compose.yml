@@ -36,8 +36,18 @@ services:
       - gateway
     networks:
       - trading-net
-    command: tail -f /dev/null # Keep alive for green light
+    command: python -c "import time; key='KEEP_ALIVE'; [time.sleep(3600) for _ in iter(int, 1)]" # Better keep-alive
     tty: true
+
+  watchdog:
+    image: alpine:latest
+    depends_on:
+      - gateway
+      - engine
+    command: sh -c "while true; do if ! nc -z gateway 8080; then echo 'Gateway down!'; fi; sleep 10; done"
+    networks:
+      - trading-net
+
 
 networks:
   trading-net:

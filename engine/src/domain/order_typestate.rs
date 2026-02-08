@@ -131,7 +131,7 @@ impl Order<Pending> {
     ) -> Self {
         let now = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
+            .expect("Time went backwards")
             .as_millis() as u64;
         
         Order {
@@ -376,7 +376,7 @@ impl<S> OrderInfo for Order<S> {
 fn now() -> u64 {
     std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
-        .unwrap()
+        .expect("Time went backwards")
         .as_millis() as u64
 }
 

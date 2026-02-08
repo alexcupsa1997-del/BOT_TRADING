@@ -62,7 +62,8 @@ func (s *Server) handleConnection(conn net.Conn) {
 	fmt.Println("New MT5 Connection:", conn.RemoteAddr())
 
 	// Stale Check / Heartbeat state
-	lastHeartbeat := time.Now()
+	// Stale Check / Heartbeat state
+	// Using ReadDeadline directly for timeout
 
 	// Using a buffer for framing
 	headerBuf := make([]byte, 4) // 4 bytes length prefix
@@ -89,11 +90,15 @@ func (s *Server) handleConnection(conn net.Conn) {
 			return
 		}
 
-		// 3. Update Heartbeat
-		lastHeartbeat = time.Now()
-		_ = lastHeartbeat // Prevent unused var error for now
+		// 4. Update Heartbeat & Set ReadDeadline
+		// Set a read deadline for the next frame (e.g., 5 seconds)
+		// If no data is received within this window, ReadFull will timeout
+		if err := conn.SetReadDeadline(time.Now().Add(5 * time.Second)); err != nil {
+			fmt.Printf("SetReadDeadline Error: %v\n", err)
+			return
+		}
 
-		// 4. Decode SBE
+		// 5. Decode SBE
 		header, err := DecodeHeader(bodyBuf)
 		if err != nil {
 			fmt.Printf("Header Decode Error: %v\n", err)

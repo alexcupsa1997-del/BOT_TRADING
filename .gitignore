@@ -54,3 +54,10 @@ orders.sbe
 # OS
 .DS_Store
 Thumbs.db
+
+# Security
+*.pem
+*.key
+.env
+.env.local
+.env.*.local
