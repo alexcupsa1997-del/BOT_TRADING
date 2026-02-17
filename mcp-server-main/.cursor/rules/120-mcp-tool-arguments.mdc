@@ -1,0 +1,14 @@
+---
+description: This rule applies when modifying any existing MCP tool functions in the codebase
+globs: 
+alwaysApply: false
+---
+# MCP Tool Arguments Rule
+
+## IMPORTANT: Do not add new arguments to existing MCP tool functions unless explicitly requested.
+
+### Rationale
+
+1. **Context Conservation**: Tool arguments and their descriptions become part of the LLM context. Each additional argument consumes valuable context space.
+
+2. **Dilution of Purpose**: Additional arguments can dilute the primary purpose and usage pattern of a tool.

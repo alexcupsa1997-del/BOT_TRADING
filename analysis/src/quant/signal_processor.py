@@ -23,6 +23,7 @@ class SignalType(Enum):
     SUPPORT_RESISTANCE = "support_resistance"
     CHANNEL = "channel"
     MTF_CONFLUENCE = "mtf_confluence"
+    SMART_MONEY = "smart_money"
 
 
 class SignalDirection(Enum):
@@ -72,11 +73,12 @@ TIMEFRAME_WEIGHTS = {
 }
 
 SIGNAL_TYPE_WEIGHTS = {
-    SignalType.INDICATOR: 0.30,
-    SignalType.PATTERN: 0.25,
-    SignalType.SUPPORT_RESISTANCE: 0.20,
-    SignalType.CHANNEL: 0.15,
+    SignalType.INDICATOR: 0.25,
+    SignalType.PATTERN: 0.20,
+    SignalType.SUPPORT_RESISTANCE: 0.15,
+    SignalType.CHANNEL: 0.10,
     SignalType.MTF_CONFLUENCE: 0.10,
+    SignalType.SMART_MONEY: 0.20,
 }
 
 
@@ -300,6 +302,140 @@ def extract_sr_signals(
 
 
 # =============================================================================
+# SMART MONEY CONCEPT SIGNAL EXTRACTION
+# =============================================================================
+
+def extract_smc_signals(
+    df: pd.DataFrame,
+    symbol: str,
+    timeframe: str,
+) -> List[Signal]:
+    """
+    Extract Smart Money signals from SMC columns.
+
+    Expected columns (added by ``detect_all_smc``):
+        smc_bullish_fvg, smc_bearish_fvg, smc_fvg_distance,
+        smc_bos_bullish, smc_bos_bearish, smc_choch_bullish, smc_choch_bearish,
+        smc_liquidity_sweep, smc_confluence
+    """
+    signals: List[Signal] = []
+    timestamp = df.index[-1] if isinstance(df.index, pd.DatetimeIndex) else pd.Timestamp.now()
+
+    # FVG signals
+    if "smc_bullish_fvg" in df.columns and df["smc_bullish_fvg"].iloc[-1]:
+        signals.append(Signal(
+            source="SMC_BullishFVG",
+            signal_type=SignalType.SMART_MONEY,
+            direction=SignalDirection.BULLISH,
+            strength=75,
+            timeframe=timeframe,
+            symbol=symbol,
+            timestamp=timestamp,
+        ))
+    if "smc_bearish_fvg" in df.columns and df["smc_bearish_fvg"].iloc[-1]:
+        signals.append(Signal(
+            source="SMC_BearishFVG",
+            signal_type=SignalType.SMART_MONEY,
+            direction=SignalDirection.BEARISH,
+            strength=75,
+            timeframe=timeframe,
+            symbol=symbol,
+            timestamp=timestamp,
+        ))
+
+    # BOS signals
+    if "smc_bos_bullish" in df.columns and df["smc_bos_bullish"].iloc[-1]:
+        signals.append(Signal(
+            source="SMC_BOS_Bullish",
+            signal_type=SignalType.SMART_MONEY,
+            direction=SignalDirection.BULLISH,
+            strength=80,
+            timeframe=timeframe,
+            symbol=symbol,
+            timestamp=timestamp,
+        ))
+    if "smc_bos_bearish" in df.columns and df["smc_bos_bearish"].iloc[-1]:
+        signals.append(Signal(
+            source="SMC_BOS_Bearish",
+            signal_type=SignalType.SMART_MONEY,
+            direction=SignalDirection.BEARISH,
+            strength=80,
+            timeframe=timeframe,
+            symbol=symbol,
+            timestamp=timestamp,
+        ))
+
+    # CHOCH signals
+    if "smc_choch_bullish" in df.columns and df["smc_choch_bullish"].iloc[-1]:
+        signals.append(Signal(
+            source="SMC_CHOCH_Bullish",
+            signal_type=SignalType.SMART_MONEY,
+            direction=SignalDirection.BULLISH,
+            strength=70,
+            timeframe=timeframe,
+            symbol=symbol,
+            timestamp=timestamp,
+        ))
+    if "smc_choch_bearish" in df.columns and df["smc_choch_bearish"].iloc[-1]:
+        signals.append(Signal(
+            source="SMC_CHOCH_Bearish",
+            signal_type=SignalType.SMART_MONEY,
+            direction=SignalDirection.BEARISH,
+            strength=70,
+            timeframe=timeframe,
+            symbol=symbol,
+            timestamp=timestamp,
+        ))
+
+    # Liquidity sweep
+    if "smc_liquidity_sweep" in df.columns and df["smc_liquidity_sweep"].iloc[-1]:
+        signals.append(Signal(
+            source="SMC_LiquiditySweep",
+            signal_type=SignalType.SMART_MONEY,
+            direction=SignalDirection.NEUTRAL,
+            strength=65,
+            timeframe=timeframe,
+            symbol=symbol,
+            timestamp=timestamp,
+        ))
+
+    # Confluence score → high-confidence signal
+    if "smc_confluence" in df.columns:
+        conf = df["smc_confluence"].iloc[-1]
+        if conf >= 60:
+            # Determine direction from FVG/BOS columns
+            is_bull = (
+                df.get("smc_bullish_fvg", pd.Series(False)).iloc[-1]
+                or df.get("smc_bos_bullish", pd.Series(False)).iloc[-1]
+                or df.get("smc_choch_bullish", pd.Series(False)).iloc[-1]
+            )
+            is_bear = (
+                df.get("smc_bearish_fvg", pd.Series(False)).iloc[-1]
+                or df.get("smc_bos_bearish", pd.Series(False)).iloc[-1]
+                or df.get("smc_choch_bearish", pd.Series(False)).iloc[-1]
+            )
+            if is_bull and not is_bear:
+                direction = SignalDirection.BULLISH
+            elif is_bear and not is_bull:
+                direction = SignalDirection.BEARISH
+            else:
+                direction = SignalDirection.NEUTRAL
+
+            signals.append(Signal(
+                source="SMC_Confluence",
+                signal_type=SignalType.SMART_MONEY,
+                direction=direction,
+                strength=min(100, conf),
+                timeframe=timeframe,
+                symbol=symbol,
+                timestamp=timestamp,
+                metadata={"confluence_score": conf},
+            ))
+
+    return signals
+
+
+# =============================================================================
 # SIGNAL AGGREGATION
 # =============================================================================
 
@@ -413,7 +549,8 @@ def process_all_symbols(
             # Extract signals from each source
             all_signals.extend(extract_indicator_signals(df, symbol, tf))
             all_signals.extend(extract_pattern_signals(df, symbol, tf))
-            
+            all_signals.extend(extract_smc_signals(df, symbol, tf))
+
             # Add S/R signals if available
             if sr_levels and symbol in sr_levels:
                 support = sr_levels[symbol].get('support', [])
@@ -461,3 +598,46 @@ def get_top_opportunities(
         filtered.append(agg)
     
     return sorted(filtered, key=lambda x: x.confidence, reverse=True)
+
+
+# =============================================================================
+# PERSISTENCE FILTER (Fase 4 — anti-whipsaw)
+# =============================================================================
+
+class PersistenceFilter:
+    """
+    Smooths signal direction to prevent whipsawing.
+
+    A direction change only takes effect if the new direction persists
+    for at least `min_bars` consecutive bars.
+    """
+
+    def __init__(self, min_bars: int = 3):
+        self.min_bars = min_bars
+        self._current_dir: SignalDirection = SignalDirection.NEUTRAL
+        self._pending_dir: SignalDirection = SignalDirection.NEUTRAL
+        self._count: int = 0
+
+    def filter(self, direction: SignalDirection) -> SignalDirection:
+        """Apply persistence filter to a new direction signal."""
+        if direction == self._current_dir:
+            self._pending_dir = direction
+            self._count = 0
+            return self._current_dir
+
+        if direction == self._pending_dir:
+            self._count += 1
+            if self._count >= self.min_bars:
+                self._current_dir = self._pending_dir
+                return self._current_dir
+        else:
+            self._pending_dir = direction
+            self._count = 1
+
+        return self._current_dir
+
+    def reset(self) -> None:
+        """Reset filter state."""
+        self._current_dir = SignalDirection.NEUTRAL
+        self._pending_dir = SignalDirection.NEUTRAL
+        self._count = 0

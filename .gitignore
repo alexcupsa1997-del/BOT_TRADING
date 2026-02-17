@@ -51,6 +51,43 @@ data/
 output/
 orders.sbe
 
+# Model checkpoints & training artifacts
+analysis/models_checkpoint/*.pth
+analysis/models_checkpoint/*.joblib
+analysis/models_checkpoint/*.json
+!analysis/models_checkpoint/.gitkeep
+analysis/runs/
+analysis/data/
+
+# Large reference repos (not part of project)
+Exemples_Bot/
+
+# Temp files
+temp/
+temp_*.csv
+*.tmp
+
+# Training artifacts
+training_pid.txt
+
+# Node / Dashboard
+node_modules/
+dashboard/__pycache__/
+
+# Misc generated
+=0.3.0
+*.exe
+*.dll
+*.dylib
+diagrams/*.png
+
 # OS
 .DS_Store
 Thumbs.db
+
+# Security
+*.pem
+*.key
+.env
+.env.local
+.env.*.local

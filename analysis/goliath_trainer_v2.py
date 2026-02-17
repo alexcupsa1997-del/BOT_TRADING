@@ -39,10 +39,11 @@ from sklearn.preprocessing import StandardScaler
 from loguru import logger
 
 # Project imports
-sys.path.insert(0, str(Path(__file__).parent))
-from src.quant.hft_features import HFTFeatureEngineer
-from src.quant.indicators import compute_all_indicators
-from src.quant.patterns import detect_all_patterns
+sys.path.insert(0, str(Path(__file__).parent.parent))  # Add project root
+from engine.models.goliath import GoliathTransformerV2
+from analysis.src.quant.hft_features import HFTFeatureEngineer
+from analysis.src.quant.indicators import compute_all_indicators
+from analysis.src.quant.patterns import detect_all_patterns
 
 # =============================================================================
 # CONFIGURATION
@@ -118,91 +119,6 @@ def detect_gpu() -> Tuple[torch.device, bool, str]:
     
     logger.warning("No GPU detected. Training will be slow.")
     return torch.device("cpu"), False, "CPU"
-
-
-# =============================================================================
-# GOLIATH TRANSFORMER MODEL
-# =============================================================================
-
-class GoliathTransformerV2(nn.Module):
-    """
-    Enhanced Transformer for trading signals.
-    
-    Triple-head output:
-    - Direction (Buy/Sell/Hold)
-    - TP/SL multipliers
-    - Confidence score
-    """
-    
-    def __init__(self, config: TrainingConfig, input_dim: int):
-        super().__init__()
-        self.config = config
-        
-        # Input projection
-        self.input_proj = nn.Linear(input_dim, config.d_model)
-        
-        # Positional encoding
-        self.pos_encoding = nn.Parameter(
-            torch.randn(1, config.sequence_length, config.d_model) * 0.02
-        )
-        
-        # Transformer encoder
-        encoder_layer = nn.TransformerEncoderLayer(
-            d_model=config.d_model,
-            nhead=config.nhead,
-            dim_feedforward=config.d_model * 4,
-            dropout=config.dropout,
-            batch_first=True
-        )
-        self.transformer = nn.TransformerEncoder(encoder_layer, config.num_layers)
-        
-        # Output heads
-        self.direction_head = nn.Sequential(
-            nn.Linear(config.d_model, 128),
-            nn.ReLU(),
-            nn.Dropout(config.dropout),
-            nn.Linear(128, 3)  # Buy, Hold, Sell
-        )
-        
-        self.tp_sl_head = nn.Sequential(
-            nn.Linear(config.d_model, 64),
-            nn.ReLU(),
-            nn.Linear(64, 2),  # TP multiplier, SL multiplier
-            nn.Sigmoid()  # 0-1 range, will scale to 1-5 ATR
-        )
-        
-        self.confidence_head = nn.Sequential(
-            nn.Linear(config.d_model, 32),
-            nn.ReLU(),
-            nn.Linear(32, 1),
-            nn.Sigmoid()
-        )
-        
-    def forward(self, x: torch.Tensor) -> Dict[str, torch.Tensor]:
-        """
-        Forward pass.
-        
-        Args:
-            x: Input tensor (batch, seq_len, features)
-            
-        Returns:
-            Dict with direction_logits, tp_sl, confidence
-        """
-        # Project input
-        x = self.input_proj(x)
-        x = x + self.pos_encoding[:, :x.size(1), :]
-        
-        # Transformer encoding
-        x = self.transformer(x)
-        
-        # Use last token for prediction
-        x = x[:, -1, :]
-        
-        return {
-            'direction': self.direction_head(x),
-            'tp_sl': self.tp_sl_head(x) * 4 + 1,  # Scale to 1-5 ATR
-            'confidence': self.confidence_head(x).squeeze(-1)
-        }
 
 
 # =============================================================================
@@ -446,29 +362,34 @@ class GoliathTrainer:
         self.config = config
         self.device, self.has_gpu, self.gpu_name = detect_gpu()
         
-        # Mixed precision
-        self.scaler = torch.cuda.amp.GradScaler() if (
+        # Model & Optimizer
+        self.model: Optional[GoliathTransformerV2] = None
+        self.optimizer: Optional[optim.AdamW] = None
+        self.scheduler: Optional[optim.lr_scheduler.OneCycleLR] = None
+        self.scaler: Optional[StandardScaler] = None # This is for feature scaling, not GradScaler
+        
+        # Mixed precision (GradScaler)
+        self.grad_scaler = torch.cuda.amp.GradScaler() if (
             self.has_gpu and config.mixed_precision
         ) else None
         
-        # Model & optimizer (initialized later)
-        self.model: Optional[GoliathTransformerV2] = None
-        self.optimizer: Optional[optim.Optimizer] = None
-        self.scheduler: Optional[optim.lr_scheduler._LRScheduler] = None
-        
-        # Tracking
+        # State
         self.best_accuracy = 0.0
         self.best_model_path = ""
-        self.training_start: Optional[datetime] = None
+        self.training_start = datetime.now()
         
-        # TensorBoard
-        os.makedirs(config.tensorboard_dir, exist_ok=True)
+        # Logging
+        os.makedirs(config.checkpoint_dir, exist_ok=True)
         self.writer = SummaryWriter(
             log_dir=f"{config.tensorboard_dir}/run_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         )
         
         # Checkpoints
         os.makedirs(config.checkpoint_dir, exist_ok=True)
+
+    def register_scaler(self, scaler: StandardScaler):
+        """Register scaler for saving."""
+        self.scaler = scaler
         
     def initialize_model(self, input_dim: int):
         """Initialize or load model."""
@@ -524,17 +445,17 @@ class GoliathTrainer:
             X, y = X.to(self.device), y.to(self.device)
             
             # Mixed precision forward
-            if self.scaler:
+            if self.grad_scaler:
                 with torch.cuda.amp.autocast():
                     outputs = self.model(X)
                     loss = criterion(outputs['direction'], y)
                     loss = loss / accumulation_steps
                     
-                self.scaler.scale(loss).backward()
+                self.grad_scaler.scale(loss).backward()
                 
                 if (batch_idx + 1) % accumulation_steps == 0:
-                    self.scaler.step(self.optimizer)
-                    self.scaler.update()
+                    self.grad_scaler.step(self.optimizer)
+                    self.grad_scaler.update()
                     self.optimizer.zero_grad()
             else:
                 outputs = self.model(X)
@@ -570,7 +491,7 @@ class GoliathTrainer:
             for X, y in val_loader:
                 X, y = X.to(self.device), y.to(self.device)
                 
-                if self.scaler:
+                if self.grad_scaler:
                     with torch.cuda.amp.autocast():
                         outputs = self.model(X)
                         loss = criterion(outputs['direction'], y)
@@ -610,6 +531,21 @@ class GoliathTrainer:
         
         torch.save(self.model.state_dict(), path)
         logger.info(f"Saved checkpoint: {filename}")
+        
+        # Save Scaler
+        if self.scaler:
+            scaler_path = f"{self.config.checkpoint_dir}/goliath_scaler_v{epoch}.json"
+            with open(scaler_path, 'w') as f:
+                json.dump({
+                    'mean': self.scaler.mean_.tolist(),
+                    'scale': self.scaler.scale_.tolist()
+                }, f)
+            logger.info(f"Saved scaler: {scaler_path}")
+            
+            # Update production scaler
+            if accuracy > self.best_accuracy:
+                prod_scaler_path = f"{self.config.checkpoint_dir}/goliath_scaler.json"
+                shutil.copy(scaler_path, prod_scaler_path)
         
         # Update production model if best
         if accuracy > self.best_accuracy:
@@ -768,6 +704,7 @@ def main():
     # Initialize trainer
     trainer = GoliathTrainer(config)
     trainer.initialize_model(input_dim=len(pipeline.feature_cols))
+    trainer.register_scaler(pipeline.scaler)
     
     # Run training
     if args.mode == "week":

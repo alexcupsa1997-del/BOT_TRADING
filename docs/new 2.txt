@@ -1,0 +1,16 @@
+ho usato questo commando "PYTHONPATH=. python -m pytest analysis/tests/ -v --tb=short" e
+ho ottenuto questo risultato "analysis/tests/test_coper.py: 14 warnings
+  /home/a-cupsa/Desktop/BOT_TRADING/analysis/tests/test_coper.py:19: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    ts = datetime.utcnow() - timedelta(days=days_ago)
+
+analysis/tests/test_coper.py::TestHashRetrieval::test_hash_exact_match
+analysis/tests/test_fallback.py::TestTier1COPER::test_coper_used_when_effective
+  /home/a-cupsa/Desktop/BOT_TRADING/analysis/src/ml/memory/coper.py:189: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    ts = timestamp or datetime.utcnow()
+
+analysis/tests/test_coper.py::TestEffectiveness::test_stale_decay_reduces_effectiveness
+  /home/a-cupsa/Desktop/BOT_TRADING/analysis/src/ml/memory/coper.py:111: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    ref = reference_time or datetime.utcnow()
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=============================================================== 121 passed, 17 warnings in 1.68s ===

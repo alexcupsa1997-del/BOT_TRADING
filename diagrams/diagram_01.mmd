@@ -1,0 +1,56 @@
+graph TB
+    subgraph "🧠 Ground_Zero — AI Brain"
+        TV["TradingView API"]
+        YF["Yahoo Finance API"]
+        FE["Feature Engineering<br/>feature_engineering.py"]
+        TM["Train Model<br/>XGBoost Classifier"]
+        AO["Ask Oracle<br/>Live Predictor"]
+        MM["Market Monitor<br/>1-min Collector"]
+        DM["DataManager<br/>Core Data Layer"]
+        BE["BacktestEngine<br/>SuperTrend Strategy"]
+        KB["Knowledge Base<br/>111 Documents"]
+    end
+
+    subgraph "⚡ BOT_TRADING — HFT Infrastructure"
+        GW["Go Gateway<br/>HTTP:8080 + TCP:5555"]
+        MT5["MT5 Bridge<br/>TCP Connector"]
+        RE["Rust Engine<br/>Domain + Risk + Matching"]
+        AN["Python Analysis<br/>GoliathTransformer"]
+        WD["Watchdog<br/>Alpine Health Check"]
+        DC["Docker Compose<br/>4 Services"]
+    end
+
+    subgraph "📊 Data Layer"
+        PQ["Parquet Files<br/>7 datasets"]
+        CSV["CSV Files<br/>4 datasets"]
+        MDL["Model Checkpoints<br/>4 models"]
+    end
+
+    TV --> MM
+    TV --> FE
+    YF --> FE
+    YF --> DM
+    FE --> TM
+    TM --> AO
+    DM --> BE
+    
+    GW --> MT5
+    GW --> RE
+    GW --> AN
+    WD --> GW
+    DC --> GW
+    DC --> RE
+    DC --> AN
+    DC --> WD
+
+    AN --> PQ
+    FE --> CSV
+    TM --> MDL
+    AN --> MDL
+
+    style TV fill:#2196F3,color:#fff
+    style YF fill:#2196F3,color:#fff
+    style GW fill:#4CAF50,color:#fff
+    style RE fill:#FF5722,color:#fff
+    style AN fill:#9C27B0,color:#fff
+    style TM fill:#FF9800,color:#fff

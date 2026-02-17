@@ -1,0 +1,44 @@
+[project]
+name = "blockscout-mcp-server"
+version = "0.14.0.dev0"
+description = "MCP server for Blockscout"
+requires-python = ">=3.11"
+dependencies = [
+    # Requires >=1.26.0 for proper json_response support in HTTP mode
+    "mcp[cli]==1.26.0",
+    "httpx>=0.27.0",
+    "pydantic>=2.0",
+    "pydantic-settings>=2.0",
+    "anyio>=4.0.0",  # For async task management and progress reporting,
+    "uvicorn>=0.23.1",  # For HTTP Streamable mode
+    "web3==7.13.0",
+    "mixpanel==4.10.1",
+]
+
+[project.scripts]
+blockscout-mcp-server = "blockscout_mcp_server.server:run_server_cli" # For CLI entry
+
+[project.optional-dependencies]
+test = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+    "pytest-cov>=4.0.0"
+]
+dev = [
+    "ruff>=0.12.0"
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["blockscout_mcp_server"]
+
+[tool.ruff.lint]
+select = ["C4", "E", "F", "I", "PERF", "UP"]
+ignore = ["PERF203"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"

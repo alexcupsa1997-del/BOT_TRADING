@@ -1,0 +1,31 @@
+# Environment variables
+.env
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Coverage reports
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+
+# Ruff
+.ruff_cache/
+
+# local documents
+temp/
+
+# MCP bundle build
+mcpb/_build/
+
+# MacOS
+.DS_Store
+
+# private key
+key.pem
+
+# Claude settings for local development
+.claude/settings.local.json

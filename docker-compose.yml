@@ -1,5 +1,11 @@
 version: '3.8'
 
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
 services:
   gateway:
     build:
@@ -10,9 +16,17 @@ services:
       - "5555:5555"
     volumes:
       - ./data:/app/data
+    environment:
+      - ANALYSIS_HOST=analysis:8000
     networks:
       - trading-net
     restart: always
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    logging: *default-logging
 
   engine:
     build:
@@ -21,10 +35,12 @@ services:
     volumes:
       - ./data:/app/data
     depends_on:
-      - gateway
+      gateway:
+        condition: service_healthy
     networks:
       - trading-net
     restart: on-failure
+    logging: *default-logging
 
   analysis:
     build:
@@ -33,11 +49,39 @@ services:
     volumes:
       - ./data:/app/data
     depends_on:
-      - gateway
+      gateway:
+        condition: service_healthy
     networks:
       - trading-net
-    command: tail -f /dev/null # Keep alive for green light
-    tty: true
+    env_file: .env
+    command: python -m src.integration.signal_server
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: on-failure
+    logging: *default-logging
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - trading-net
+    restart: always
+    logging: *default-logging
+
+  watchdog:
+    image: alpine:latest
+    depends_on:
+      gateway:
+        condition: service_healthy
+    command: sh -c "while true; do if ! nc -z gateway 8080; then echo 'Gateway down!'; fi; if ! nc -z analysis 8000; then echo 'Analysis down!'; fi; sleep 10; done"
+    networks:
+      - trading-net
+    logging: *default-logging
 
 networks:
   trading-net:

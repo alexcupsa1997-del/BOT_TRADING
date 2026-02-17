@@ -1,0 +1,155 @@
+import pytest
+
+from blockscout_mcp_server.constants import INPUT_DATA_TRUNCATION_LIMIT
+from blockscout_mcp_server.models import TokenTransfer, ToolResponse, TransactionInfoData
+from blockscout_mcp_server.tools.common import get_blockscout_base_url
+from blockscout_mcp_server.tools.transaction.get_transaction_info import get_transaction_info
+from tests.integration.helpers import retry_on_network_error
+
+
+def find_truncated_value(value):
+    if isinstance(value, dict):
+        if value.get("value_truncated") is True:
+            return value
+        for item in value.values():
+            found = find_truncated_value(item)
+            if found:
+                return found
+    elif isinstance(value, list):
+        for item in value:
+            found = find_truncated_value(item)
+            if found:
+                return found
+    return None
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_get_transaction_info_integration(mock_ctx):
+    """Tests that get_transaction_info returns full data and omits raw_input by default."""
+    tx_hash = "0xd4df84bf9e45af2aa8310f74a2577a28b420c59f2e3da02c52b6d39dc83ef10f"
+    result = await retry_on_network_error(
+        lambda: get_transaction_info(chain_id="1", transaction_hash=tx_hash, ctx=mock_ctx),
+        action_description="get_transaction_info default request",
+    )
+
+    assert isinstance(result, ToolResponse)
+    assert isinstance(result.data, TransactionInfoData)
+    data = result.data
+    assert data.status == "ok"
+    assert data.decoded_input is not None
+    assert data.raw_input is None
+    assert isinstance(data.from_address, str) and data.from_address.startswith("0x")
+    assert isinstance(data.to_address, str) and data.to_address.startswith("0x")
+
+    assert isinstance(data.token_transfers, list)
+    for transfer in data.token_transfers:
+        assert isinstance(transfer, TokenTransfer)
+        assert isinstance(transfer.transfer_type, str)
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_get_transaction_info_integration_no_decoded_input(mock_ctx):
+    """Tests that get_transaction_info keeps raw_input when decoded_input is null."""
+    tx_hash = "0x12341be874149efc8c714f4ef431db0ce29f64532e5c70d3882257705e2b1ad2"
+    chain_id = "1"
+
+    base_url = await get_blockscout_base_url(chain_id)
+    result = await retry_on_network_error(
+        lambda: get_transaction_info(chain_id=chain_id, transaction_hash=tx_hash, ctx=mock_ctx),
+        action_description="get_transaction_info no decoded input request",
+    )
+
+    assert isinstance(result, ToolResponse)
+    assert isinstance(result.data, TransactionInfoData)
+    assert result.notes is not None
+    assert f'`curl "{base_url.rstrip("/")}/api/v2/transactions/{tx_hash}"`' in result.notes[1]
+
+    data = result.data
+    assert data.decoded_input is None
+    assert isinstance(data.from_address, str)
+    assert data.to_address is None
+
+    assert data.raw_input is not None
+    assert data.raw_input_truncated is True
+
+    assert len(data.token_transfers) > 0
+    first_transfer = data.token_transfers[0]
+    assert isinstance(first_transfer, TokenTransfer)
+    assert first_transfer.transfer_type == "token_minting"
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_get_transaction_info_with_truncation_integration(mock_ctx):
+    """Tests that get_transaction_info correctly truncates oversized decoded_input fields."""
+    tx_hash = "0x2daa533b1e4e6fddd9118503a28cde58eadeb965201e5739ca61aafeb83424ed"
+    chain_id = "1"
+
+    base_url = await get_blockscout_base_url(chain_id)
+    result = await retry_on_network_error(
+        lambda: get_transaction_info(chain_id=chain_id, transaction_hash=tx_hash, ctx=mock_ctx),
+        action_description="get_transaction_info truncation request",
+    )
+
+    assert isinstance(result, ToolResponse)
+    assert isinstance(result.data, TransactionInfoData)
+    assert result.notes is not None
+    assert f'`curl "{base_url.rstrip("/")}/api/v2/transactions/{tx_hash}"`' in result.notes[1]
+
+    data = result.data
+    assert data.decoded_input is not None
+    truncated_value = find_truncated_value(data.decoded_input.parameters)
+    assert truncated_value is not None
+    assert truncated_value["value_truncated"] is True
+    assert len(truncated_value["value_sample"]) == INPUT_DATA_TRUNCATION_LIMIT
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_get_transaction_info_integration_user_ops(mock_ctx):
+    """Tests that get_transaction_info returns user operations for an AA transaction on Base."""
+    tx_hash = "0xf477d77e222a8ba10923a5c8876af11a01845795bc5bfe7cb1a5e1eaecc898fc"
+    chain_id = "8453"
+
+    result = await retry_on_network_error(
+        lambda: get_transaction_info(chain_id=chain_id, transaction_hash=tx_hash, ctx=mock_ctx),
+        action_description="get_transaction_info AA transaction request",
+    )
+
+    assert isinstance(result, ToolResponse)
+    assert isinstance(result.data, TransactionInfoData)
+    assert result.data.user_operations is not None
+    assert len(result.data.user_operations) > 0
+    assert result.notes is not None
+    assert any("successful bundle transaction" in note for note in result.notes)
+    assert result.instructions is not None
+    assert any("USER OPERATIONS REQUIRE EXPANSION" in instr for instr in result.instructions)
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_get_transaction_info_integration_null_token_metadata(mock_ctx):
+    """Tests that get_transaction_info accepts null token metadata on Base."""
+    tx_hash = "0xc24036ecca307090efee492f1da40d3abda9f86b9e8edde1f77e4a79fb99853f"
+    chain_id = "8453"
+
+    result = await retry_on_network_error(
+        lambda: get_transaction_info(chain_id=chain_id, transaction_hash=tx_hash, ctx=mock_ctx),
+        action_description="get_transaction_info null token metadata request",
+    )
+
+    assert isinstance(result, ToolResponse)
+    assert isinstance(result.data, TransactionInfoData)
+    assert isinstance(result.data.token_transfers, list)
+
+    if not result.data.token_transfers:
+        pytest.skip("Token transfers were empty for the Base transaction.")
+
+    has_null_token = any(transfer.token is None for transfer in result.data.token_transfers)
+    if not has_null_token:
+        pytest.skip("No token transfers with null metadata were returned by the API.")
+
+    for transfer in result.data.token_transfers:
+        assert isinstance(transfer, TokenTransfer)

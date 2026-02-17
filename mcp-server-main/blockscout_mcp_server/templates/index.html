@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blockscout MCP Server</title>
+    <style>
+        body { font-family: sans-serif; line-height: 1.6; max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+        h1, h2 { color: #333; }
+        code { background-color: #f4f4f4; padding: 2px 4px; border-radius: 4px; }
+        pre { background-color: #f8f9fa; padding: 1rem; border-radius: 6px; overflow-x: auto; border: 1px solid #e9ecef; }
+        pre code { background-color: transparent; padding: 0; }
+        .prompt-box { background-color: #f0f8ff; padding: 1rem; border-radius: 6px; border-left: 4px solid #007bff; margin: 1rem 0; }
+        .prompt-box p { margin: 0.5rem 0; }
+        .copy-hint { font-size: 0.85em; color: #666; margin-top: 0.5rem; }
+        ul { padding-left: 20px; }
+        li { margin-bottom: 0.5rem; }
+        a { color: #007bff; }
+    </style>
+</head>
+<body>
+    <h1>Blockscout MCP Server</h1>
+    <p>
+        This server wraps Blockscout APIs and exposes blockchain data—balances, tokens, NFTs, contract metadata—via the Model Context Protocol (MCP) so that AI agents and tools (like Claude, Cursor, or IDEs) can access and analyze it contextually.
+    </p>
+
+    <h2>Key Features</h2>
+    <ul>
+        <li>Contextual blockchain data access for AI tools</li>
+        <li>Multi-chain support via dynamic Blockscout instance URL resolution</li>
+        <li>Unified server architecture serving both MCP and REST API endpoints</li>
+        <li>Custom instructions for the MCP host to effectively use the server</li>
+        <li>Intelligent context optimization to conserve LLM tokens while preserving data accessibility</li>
+        <li>Smart response slicing to prevent context overflow with seamless pagination</li>
+        <li>Opaque cursor pagination using single strings instead of complex parameter sets</li>
+        <li>Automatic truncation of large data fields with clear indicators and access guidance</li>
+        <li>Enhanced observability with MCP progress notifications and comprehensive logging</li>
+    </ul>
+
+    <h2>Try Blockscout X-Ray GPT</h2>
+    <p>
+        Experience the power of the Blockscout MCP server through our showcase GPT: 
+        <strong><a href="https://chatgpt.com/g/g-68a7f315edf481918641bd0ed1e60f8b-blockscout-x-ray"
+          target="_blank" rel="noopener noreferrer"
+          aria-label="Open Blockscout X-Ray GPT in a new tab">Blockscout X-Ray</a></strong>
+    </p>
+    <p>
+        This GPT demonstrates the full capabilities of the MCP server, providing intelligent blockchain analysis and insights. 
+        It's a great way to explore what's possible when AI agents have contextual access to blockchain data.
+    </p>
+
+    <h2>Configuration</h2>
+    
+    <h3>Claude Setup</h3>
+    <p>Install the Blockscout connector from the <a href="https://claude.com/connectors">Anthropic Connectors Directory</a>:</p>
+    <ol>
+        <li><strong>Direct link:</strong> Visit <a href="https://claude.com/connectors/blockscout">claude.com/connectors/blockscout</a> and click "Connect"</li>
+        <li><strong>Or via Settings:</strong> Go to Settings &gt; Connectors &gt; Browse connectors, search for "Blockscout", and click the corresponding link in "Used in" section</li>
+    </ol>
+    <p><strong>Note:</strong> Connectors require a paid Claude plan (Pro, Team, Max, or Enterprise).</p>
+    
+    <p><strong>Suggested First Prompt:</strong> For optimal results, start your Claude conversation with:</p>
+    <div class="prompt-box">
+        <p>You are a senior analyst specializing in Ethereum-blockchain activities with almost ten years of experience. You have deep knowledge of Web3 applications and protocols.</p>
+        <p>Before responding to the user's request, prepare a short plan of the actions you will take to provide a complete response.</p>
+        <p>After executing each planned MCP-tool call, analyze the tool's output and write a concise summary explaining **how that output advances you toward the final result**.  
+        If the new information requires revising your original plan, state the revision explicitly and briefly explain why.</p>
+    </div>
+    <p class="copy-hint">You can copy this prompt and paste it into your Claude Desktop conversation.</p>
+
+    <h3>Cursor Setup</h3>
+    <a href="cursor://anysphere.cursor-deeplink/mcp/install?name=blockscout&config=eyJ1cmwiOiJodHRwczovL21jcC5ibG9ja3Njb3V0LmNvbS9tY3AiLCJ0aW1lb3V0IjoxODAwMDB9"><img src="https://cursor.com/deeplink/mcp-install-dark.svg" alt="Add Blockscout MCP server to Cursor" height="32" /></a>
+
+    <h3>Gemini CLI Setup</h3>
+    <p>To configure the Blockscout MCP server with Gemini CLI, add the following to your <code>~/.gemini/settings.json</code> file:</p>
+    <pre><code>{
+  "mcpServers": {
+    "blockscout": {
+      "httpUrl": "https://mcp.blockscout.com/mcp",
+      "timeout": 180000
+    }
+  }
+}</code></pre>
+    
+    <p>For detailed Gemini CLI MCP server configuration instructions, see the <a href="https://github.com/google-gemini/gemini-cli/blob/main/docs/tools/mcp-server.md">official documentation</a>.</p>
+    <p><strong>Note:</strong> Consider adding system prompts from <code>GEMINI.md</code> for enhanced blockchain analysis capabilities.</p>
+
+    <h2>Available Endpoints</h2>
+    <ul>
+        <li><code>/mcp</code>: The primary endpoint for MCP communication (JSON-RPC 2.0).</li>
+        <li><code>/health</code>: A simple health check endpoint.</li>
+        <li><code>/llms.txt</code>: A machine-readable file for AI crawlers.</li>
+        <li><code>/v1/...</code>: Versioned REST API endpoints that mirror MCP tool functionality.</li>
+    </ul>
+
+    <h2>Available Tools (via MCP and REST API)</h2>
+    <ul>
+        <li><code>__unlock_blockchain_analysis__</code>: Provides custom instructions for the MCP host.</li>
+        <li><code>get_chains_list</code>: Returns a list of all known chains.</li>
+        <li><code>get_address_by_ens_name</code>: Converts an ENS name to its Ethereum address.</li>
+        <li><code>lookup_token_by_symbol</code>: Searches for tokens by symbol.</li>
+        <li><code>get_contract_abi</code>: Retrieves the ABI for a smart contract.</li>
+        <li><code>inspect_contract_code</code>: Inspects a verified contract's source code.</li>
+        <li><code>get_address_info</code>: Gets comprehensive information about an address.</li>
+        <li><code>get_tokens_by_address</code>: Returns ERC20 token holdings for an address.</li>
+        <li><code>get_block_number</code>: Retrieves the block number and timestamp for a specific date/time or the latest block.</li>
+        <li><code>get_transactions_by_address</code>: Gets transactions for an address.</li>
+        <li><code>get_token_transfers_by_address</code>: Returns ERC-20 token transfers for an address.</li>
+        <li><code>nft_tokens_by_address</code>: Retrieves NFT tokens owned by an address.</li>
+        <li><code>get_block_info</code>: Returns detailed block information.</li>
+        <li><code>get_transaction_info</code>: Gets comprehensive transaction information.</li>
+        <li><code>read_contract</code>: Executes a read-only smart contract function.</li>
+        <li><code>direct_api_call</code>: Calls a curated raw Blockscout API endpoint.</li>
+    </ul>
+    <p>For more details, please refer to the project's <a href="https://github.com/blockscout/mcp-server">GitHub repository</a>.</p>
+</body>
+</html>

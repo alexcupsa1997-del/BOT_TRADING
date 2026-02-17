@@ -22,7 +22,7 @@ import numpy as np
 from dataclasses import dataclass, field
 from typing import Dict, List, Tuple, Optional
 from enum import Enum
-import pickle
+import json
 import os
 
 
@@ -396,13 +396,21 @@ class NeuralTrader:
             'scaler': self.scaler.scale_config,
             'importance': self.indicator_importance
         }
-        with open(filepath, 'wb') as f:
-            pickle.dump(data, f)
-    
+        serializable = {
+            k: v.tolist() if isinstance(v, np.ndarray) else v
+            for k, v in data.items()
+        }
+        with open(filepath, 'w') as f:
+            json.dump(serializable, f)
+
     def load(self, filepath: str):
         """Load model weights and config."""
-        with open(filepath, 'rb') as f:
-            data = pickle.load(f)
+        with open(filepath, 'r') as f:
+            data = json.load(f)
+        # Restore numpy arrays from lists
+        for key in ('W_input', 'W_dense1', 'b_dense1', 'W_output', 'b_output'):
+            if key in data and isinstance(data[key], list):
+                data[key] = np.array(data[key])
         
         self.config = data['config']
         self.W_input = data['W_input']

@@ -1,8 +1,7 @@
 use proptest::prelude::*;
-use std::str::FromStr;
 
 // Import your published crate's modules
-use engine::domain::value_objects::{Price, Quantity, Currency};
+use engine::domain::value_objects::{Price, Quantity};
 
 proptest! {
     // Fuzz test that Price creation works for valid positive integers
@@ -12,10 +11,10 @@ proptest! {
         fraction in 0i64..99_999_999
     ) {
         let price = Price::new(integer, fraction).expect("Price should be valid");
-        
+
         // Basic identity check
         assert!(price.raw() >= 0);
-        
+
         // Identity: integer part should match
         let recovered_int = price.raw() / 100_000_000;
         assert_eq!(recovered_int as i64, integer);
@@ -32,13 +31,12 @@ proptest! {
         let q2 = Quantity::from_raw(v2).expect("Valid raw qty");
 
         let sum = q1 + q2;
-        
+
         // Mathematical property: sum > parts (since positive)
         assert!(sum.raw() > q1.raw());
         assert!(sum.raw() > q2.raw());
-        
+
         // Exact arithmetic check
         assert_eq!(sum.raw(), v1 + v2);
     }
 }
-

@@ -3,9 +3,9 @@
 //! Makes illegal order state transitions impossible at compile time.
 //! You cannot cancel a filled order - the type system prevents it.
 
-use std::marker::PhantomData;
-use serde::{Deserialize, Serialize};
 use super::value_objects::{Price, Quantity, TradingPair};
+use serde::{Deserialize, Serialize};
+use std::marker::PhantomData;
 
 // =============================================================================
 // Order State Types (Zero-Sized Types for State)
@@ -97,7 +97,7 @@ pub struct Fill {
 // =============================================================================
 
 /// Order with compile-time state tracking
-/// 
+///
 /// The state parameter S determines what operations are available:
 /// - `Order<Pending>` can be validated or rejected
 /// - `Order<Open>` can be matched, cancelled, or expired
@@ -109,6 +109,7 @@ pub struct Order<S> {
     core: OrderCore,
     filled_quantity: Quantity,
     fills: Vec<Fill>,
+    #[allow(dead_code)] // Set on every transition; read when persistence is added
     updated_at: u64,
     _state: PhantomData<S>,
 }
@@ -131,9 +132,9 @@ impl Order<Pending> {
     ) -> Self {
         let now = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
+            .expect("Time went backwards")
             .as_millis() as u64;
-        
+
         Order {
             core: OrderCore {
                 id,
@@ -152,7 +153,7 @@ impl Order<Pending> {
             _state: PhantomData,
         }
     }
-    
+
     /// Validate order and transition to Open state
     pub fn validate(self) -> Order<Open> {
         Order {
@@ -163,7 +164,7 @@ impl Order<Pending> {
             _state: PhantomData,
         }
     }
-    
+
     /// Reject order (terminal state)
     pub fn reject(self, _reason: &str) -> Order<Rejected> {
         Order {
@@ -185,12 +186,12 @@ impl Order<Open> {
     pub fn fill(self, fill: Fill) -> FillResult {
         let new_filled = self.filled_quantity + fill.quantity;
         let remaining = self.remaining_quantity();
-        
+
         if fill.quantity >= remaining {
             // Complete fill
             let mut fills = self.fills;
             fills.push(fill);
-            
+
             let original_quantity = self.core.original_quantity;
             FillResult::Complete(Order {
                 core: self.core,
@@ -203,7 +204,7 @@ impl Order<Open> {
             // Partial fill
             let mut fills = self.fills;
             fills.push(fill);
-            
+
             FillResult::Partial(Order {
                 core: self.core,
                 filled_quantity: new_filled,
@@ -213,7 +214,7 @@ impl Order<Open> {
             })
         }
     }
-    
+
     /// Cancel the order (terminal state)
     pub fn cancel(self) -> Order<Cancelled> {
         Order {
@@ -224,7 +225,7 @@ impl Order<Open> {
             _state: PhantomData,
         }
     }
-    
+
     /// Expire the order (terminal state)
     pub fn expire(self) -> Order<Expired> {
         Order {
@@ -246,12 +247,12 @@ impl Order<PartiallyFilled> {
     pub fn fill(self, fill: Fill) -> FillResult {
         let new_filled = self.filled_quantity + fill.quantity;
         let remaining = self.remaining_quantity();
-        
+
         if fill.quantity >= remaining {
             // Complete fill
             let mut fills = self.fills;
             fills.push(fill);
-            
+
             let original_quantity = self.core.original_quantity;
             FillResult::Complete(Order {
                 core: self.core,
@@ -264,7 +265,7 @@ impl Order<PartiallyFilled> {
             // Still partial
             let mut fills = self.fills;
             fills.push(fill);
-            
+
             FillResult::Partial(Order {
                 core: self.core,
                 filled_quantity: new_filled,
@@ -274,7 +275,7 @@ impl Order<PartiallyFilled> {
             })
         }
     }
-    
+
     /// Cancel remaining quantity
     pub fn cancel(self) -> Order<Cancelled> {
         Order {
@@ -318,53 +319,55 @@ impl<S> OrderInfo for Order<S> {
     fn id(&self) -> OrderId {
         self.core.id
     }
-    
+
     fn user_id(&self) -> UserId {
         self.core.user_id
     }
-    
+
     fn symbol(&self) -> &TradingPair {
         &self.core.symbol
     }
-    
+
     fn side(&self) -> Side {
         self.core.side
     }
-    
+
     fn order_type(&self) -> OrderType {
         self.core.order_type
     }
-    
+
     fn original_quantity(&self) -> Quantity {
         self.core.original_quantity
     }
-    
+
     fn filled_quantity(&self) -> Quantity {
         self.filled_quantity
     }
-    
+
     fn remaining_quantity(&self) -> Quantity {
         self.core.original_quantity - self.filled_quantity
     }
-    
+
     fn fills(&self) -> &[Fill] {
         &self.fills
     }
-    
+
     fn average_fill_price(&self) -> Option<Price> {
         if self.fills.is_empty() {
             return None;
         }
-        
-        let total_value: i128 = self.fills.iter()
+
+        let total_value: i128 = self
+            .fills
+            .iter()
             .map(|f| f.price.raw() * f.quantity.raw() / 100_000_000)
             .sum();
-        
+
         let total_qty = self.filled_quantity.raw();
         if total_qty == 0 {
             return None;
         }
-        
+
         Price::from_raw(total_value * 100_000_000 / total_qty).ok()
     }
 }
@@ -376,7 +379,7 @@ impl<S> OrderInfo for Order<S> {
 fn now() -> u64 {
     std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
-        .unwrap()
+        .expect("Time went backwards")
         .as_millis() as u64
 }
 
@@ -401,10 +404,10 @@ mod tests {
             Quantity::from_str("1.0").unwrap(),
             Some(Price::from_str("50000.0").unwrap()),
         );
-        
+
         // Validate -> Open
         let order = order.validate();
-        
+
         // Partial fill
         let fill = Fill {
             fill_id: 1,
@@ -413,9 +416,9 @@ mod tests {
             timestamp: 0,
             is_maker: true,
         };
-        
+
         let result = order.fill(fill);
-        
+
         match result {
             FillResult::Partial(order) => {
                 // Can still fill more or cancel

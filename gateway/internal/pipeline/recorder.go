@@ -70,6 +70,16 @@ func (r *Recorder) Stop() {
 	r.wg.Wait()
 }
 
+// IsRunning returns true if the worker is active (quit channel is open).
+func (r *Recorder) IsRunning() bool {
+	select {
+	case <-r.quit:
+		return false
+	default:
+		return true
+	}
+}
+
 // Record pushes a tick to the buffer. Non-blocking (drops if full).
 // Enterprise principle: Better to lose history than to block the Trading Engine path.
 func (r *Recorder) Record(tick MarketTick) {

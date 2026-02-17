@@ -1,0 +1,103 @@
+name: GOLIATH CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  gateway:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+      - name: Lint Gateway
+        working-directory: ./gateway
+        run: |
+          go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+          golangci-lint run ./...
+      - name: Test Gateway (with coverage)
+        working-directory: ./gateway
+        run: go test -v -race -coverprofile=coverage.out ./...
+      - name: Check Go vulnerability database
+        working-directory: ./gateway
+        run: |
+          go install golang.org/x/vuln/cmd/govulncheck@latest
+          govulncheck ./...
+      - name: Build Gateway
+        working-directory: ./gateway
+        run: CGO_ENABLED=0 go build -o gateway ./cmd/gateway/main.go
+
+  engine:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - name: Lint Engine (fmt)
+        working-directory: ./engine
+        run: cargo fmt -- --check
+      - name: Lint Engine (clippy)
+        working-directory: ./engine
+        run: cargo clippy -- -D warnings
+      - name: Test Engine
+        working-directory: ./engine
+        run: cargo test --release
+      - name: Security Audit (cargo-audit)
+        working-directory: ./engine
+        run: |
+          cargo install cargo-audit
+          cargo audit
+      - name: Build Engine
+        working-directory: ./engine
+        run: cargo build --release --bins
+
+  analysis:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - name: Install Dependencies
+        working-directory: ./analysis
+        run: pip install -r requirements.txt
+      - name: Lint Analysis (flake8)
+        working-directory: ./analysis
+        run: |
+          pip install flake8
+          flake8 src/ --max-line-length=120 --extend-ignore=E203 --count --statistics
+      - name: Security Audit (pip-audit)
+        working-directory: ./analysis
+        run: |
+          pip install pip-audit
+          pip-audit --desc
+      - name: Test Analysis (with coverage)
+        working-directory: ./analysis
+        run: |
+          pip install pytest-cov
+          PYTHONPATH=. pytest tests/ -v --tb=short -x --cov=src --cov-report=term-missing --cov-fail-under=60
+
+  deploy:
+    needs: [gateway, engine, analysis]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to Proxmox Docker Host
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            cd /opt/goliath
+            git pull origin main
+            docker compose build --parallel
+            docker compose up -d --remove-orphans
+            sleep 5
+            curl -sf http://localhost:8080/health || exit 1
+            echo "Deploy successful"

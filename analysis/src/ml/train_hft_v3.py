@@ -23,8 +23,8 @@ import os
 # Add project root
 sys.path.append(os.getcwd())
 
-from analysis.src.quant.hft_features import HFTFeatureEngineer
-from analysis.src.ml.models.goliath_transformer import GoliathTransformer, GoliathConfig
+from src.quant.hft_features import HFTFeatureEngineer
+from src.ml.models.goliath_transformer import GoliathTransformer, GoliathConfig
 
 # --- PRO CONFIGURATION ---
 SEQ_LEN = 64

@@ -1,0 +1,23 @@
+{
+    "mode": "paper",
+    "symbols": [
+        "BTCUSD",
+        "ETHUSD"
+    ],
+    "timeframe": "1m",
+    "balance": 10000.0,
+    "strategy": {
+        "name": "ml_strategy",
+        "model_path": "engine/models/goliath.pth",
+        "confidence_threshold": 0.7
+    },
+    "execution": {
+        "gateway_url": "tcp://localhost:5555",
+        "risk_limit_per_trade": 0.02,
+        "max_open_trades": 5
+    },
+    "logging": {
+        "level": "INFO",
+        "file": "logs/paper_trading.log"
+    }
+}

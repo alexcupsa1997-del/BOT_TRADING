@@ -1,0 +1,8 @@
+stateDiagram-v2
+    [*] --> Flat
+    Flat --> Long : SuperTrend Up
+    Flat --> Short : SuperTrend Down
+    Long --> Flat : Trend Reversal
+    Short --> Flat : Trend Reversal
+    Long --> Short : Direct Reversal
+    Short --> Long : Direct Reversal

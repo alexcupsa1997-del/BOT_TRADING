@@ -1,0 +1,37 @@
+graph TD
+    subgraph "Ground_Zero Architecture"
+        direction TB
+        subgraph "Connectors Layer"
+            C1["fetch_history.py<br/>46 lines"]
+            C2["tv_bridge.py<br/>49 lines"]
+        end
+        subgraph "Core Layer"
+            C3["data_manager.py<br/>53 lines"]
+        end
+        subgraph "Models Layer"
+            C4["feature_engineering.py<br/>91 lines"]
+            C5["train_model.py<br/>76 lines"]
+        end
+        subgraph "Tools Layer"
+            C6["ask_oracle.py<br/>142 lines"]
+            C7["market_monitor.py<br/>74 lines"]
+        end
+        subgraph "Backtest Layer"
+            C8["engine.py<br/>74 lines"]
+        end
+    end
+
+    C1 --> C4
+    C2 --> C7
+    C3 --> C8
+    C4 --> C5
+    C5 --> C6
+
+    style C1 fill:#81C784
+    style C2 fill:#81C784
+    style C3 fill:#64B5F6
+    style C4 fill:#FFB74D
+    style C5 fill:#FFB74D
+    style C6 fill:#E57373
+    style C7 fill:#E57373
+    style C8 fill:#CE93D8

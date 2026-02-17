@@ -13,5 +13,9 @@ COPY . .
 # Set Path
 ENV PYTHONPATH=/app
 
+# Run as non-root
+RUN adduser --disabled-password --no-create-home appuser
+USER appuser
+
 # Default command
 CMD ["python", "dummy_train.py"]

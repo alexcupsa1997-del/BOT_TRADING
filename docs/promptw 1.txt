@@ -1,0 +1,10 @@
+we shall start enforcing and following the FUSION_PLAN.md and all of it's content into our project. We must proceed slowly and methodically, and establish guardrails before starting the operation. we must validate every step of of execution and follow the fusion plan as a bible. we tackle one issue at the time, and if issues are small, we make small batches. if a single issue ends up being too complex, we must divide it into subtasks to ensure precision
+
+
+Still Remaining (future work per the plan)
+TLS termination (needs infra decision: reverse proxy vs native)
+JWT/API key authentication middleware
+Rate limiting
+GDPR & financial compliance documents
+Prometheus metrics & Grafana dashboards
+Expanded Go test coverage

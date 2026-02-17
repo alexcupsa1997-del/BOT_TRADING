@@ -83,23 +83,69 @@ def generate_gbm_data(
     df.to_parquet(output_file, engine='pyarrow')
     print("Done.")
 
+def generate_ohlcv_data(
+    symbol: str,
+    start_price: float,
+    mu: float,
+    sigma: float,
+    duration_days: int,
+    output_path: str
+):
+    """Generates synthetic 1-minute OHLCV data."""
+    print(f"Generating OHLCV data for {symbol}...")
+    
+    # 1 Minute bars
+    minutes = duration_days * 24 * 60
+    dt = 1.0 / (24 * 60)
+    
+    # GBM for Close Prices
+    shocks = np.random.normal(0, np.sqrt(dt), minutes)
+    brownian = np.cumsum(shocks)
+    t = np.linspace(0, duration_days, minutes)
+    close_prices = start_price * np.exp((mu - 0.5 * sigma**2) * t + sigma * brownian)
+    
+    # High/Low/Open derived from Close
+    # Simplified intra-bar movement
+    opens = np.roll(close_prices, 1)
+    opens[0] = start_price
+    
+    highs = np.maximum(opens, close_prices) + np.random.uniform(0, start_price*0.002, minutes)
+    lows = np.minimum(opens, close_prices) - np.random.uniform(0, start_price*0.002, minutes)
+    
+    # Timestamps
+    start_ts = pd.Timestamp("2024-01-01").value // 10**9 # seconds
+    timestamps = start_ts + np.arange(minutes) * 60
+    
+    # Volume
+    volumes = np.random.lognormal(mean=2.0, sigma=0.5, size=minutes)
+    
+    df = pd.DataFrame({
+        "timestamp": pd.to_datetime(timestamps, unit='s'), # Polars/Pandas compat
+        "open": opens,
+        "high": highs,
+        "low": lows,
+        "close": close_prices,
+        "trade_price": close_prices, # For feature calc parity
+        "volume": volumes,
+        "symbol": symbol
+    })
+    
+    # Ensure directory
+    Path(output_path).parent.mkdir(parents=True, exist_ok=True)
+    
+    # Save
+    print(f"Saving {minutes} rows to {output_path}...")
+    df.to_parquet(output_path)
+    print("Done.")
+
 if __name__ == "__main__":
-    # Simulate 1 Year of Data (approx 1 tick per minute for speed, or more)
-    # For backtest speed, let's generate 1 month of "Medium Frequency" data (e.g. 1 tick every 10 sec)
-    # 1 Month = 30 days
-    # Ticks per day = 8640 (10 sec)
-    
-    # Let's do 1 Year of 1-minute data for the "Strategy" test
-    # 365 * 1440 = 525,600 ticks
-    
-    output_path = "analysis/data/synthetic_market.parquet"
-    
-    generate_gbm_data(
-        symbol_id=1,
-        start_price=45000.0, # BTC-ish
-        mu=0.1,              # 10% Annual Drift (Bull market)
-        sigma=0.5,           # 50% Annual Volatility (Crypto style)
-        duration_days=365,
-        ticks_per_day=1440,  # 1 tick per minute
-        output_file=output_path
+    # Generate 1-minute OHLCV for Goliath Training
+    generate_ohlcv_data(
+        symbol="BTCUSD",
+        start_price=45000.0,
+        mu=0.1,
+        sigma=0.5,
+        duration_days=30, # 1 Month
+        output_path="data/raw/BTCUSD/1m/synthetic.parquet"
     )
+

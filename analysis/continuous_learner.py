@@ -22,6 +22,7 @@ from copy import deepcopy
 sys.path.insert(0, str(Path(__file__).parent))
 from etl_pipeline import load_parquet_files, prepare_ohlcv, process_timeframe, create_sequences
 from src.ml.models.lstm_network import GoliathLSTM  # Assumiamo che questo modello esista o lo creiamo dinamicamente
+from src.integration.notifier import Notifier, NotifierConfig, NotifyLevel
 
 # CONFIGURAZIONE HARDWARE & TRAINING
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -39,12 +40,13 @@ UPDATE_SIGNAL_PATH = BASE_PATH / "models_checkpoint" / "UPDATE_SIGNAL"
 logger.add("cortex_training.log", rotation="100 MB")
 
 class ContinuousTrainer:
-    def __init__(self):
+    def __init__(self, notifier: Notifier | None = None):
         self.model = None
         self.optimizer = None
         self.criterion = nn.CrossEntropyLoss()
         self.best_accuracy = 0.0
-        
+        self.notifier = notifier or Notifier(NotifierConfig(enable_console=True))
+
         logger.info(f"🚀 GOLIATH CORTEX Initialized on {DEVICE}")
         if DEVICE.type == 'cuda':
             logger.info(f"🎮 GPU: {torch.cuda.get_device_name(0)}")
@@ -61,7 +63,7 @@ class ContinuousTrainer:
             try:
                 self.model.load_state_dict(checkpoint['model_state_dict'])
                 self.best_accuracy = checkpoint.get('accuracy', 0.0)
-            except:
+            except Exception:
                 logger.warning("Architettura cambiata, riparto da zero (Transfer Learning resettato)")
         else:
             logger.info("Nessun modello trovato. Creazione nuova architettura neurale.")
@@ -195,6 +197,11 @@ class ContinuousTrainer:
                         # Notifica al sistema Rust (touch file o signal)
                         with open(UPDATE_SIGNAL_PATH, "w") as f:
                             f.write(str(time.time()))
+                        # Fase 5: Notify model retrain
+                        self.notifier.model_retrained(
+                            "AdvancedLSTM",
+                            {"accuracy": acc, "loss": loss},
+                        )
                 else:
                     patience_counter += 1
                     if patience_counter >= patience:

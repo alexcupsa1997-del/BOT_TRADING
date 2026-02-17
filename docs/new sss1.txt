@@ -1,0 +1,127 @@
+a-cupsa@alex-cupsa-ubuntu:~/Desktop/BOT_TRADING$ PYTHONPATH=. python analysis/goliath_trainer_v2.py --mode=week
+2026-02-15 00:09:45.414 | INFO     | __main__:main:754 - Initializing data pipeline...
+2026-02-15 00:09:45.415 | INFO     | __main__:load_all_data:228 - Loading 8 data files...
+2026-02-15 00:09:45.445 | WARNING  | __main__:load_all_data:250 - Failed to load data/ticks_20260207_005141.parquet: Could not open Parquet input source '<Buffer>': Parquet magic bytes not found in footer. Either the file is corrupted or this is not a parquet file.
+2026-02-15 00:09:45.487 | INFO     | __main__:load_all_data:263 - Loaded 785,601 total records
+2026-02-15 00:09:45.487 | INFO     | __main__:engineer_features:268 - Engineering features...
+2026-02-15 00:09:45.565 | INFO     | src.quant.hft_features:compute_all_features:63 - Feature Engineering complete. Added 14 new features.
+2026-02-15 00:09:45.566 | INFO     | src.quant.hft_features:compute_all_features:64 - Data shape after cleaning: (259950, 26)
+2026-02-15 00:09:45.566 | INFO     | __main__:engineer_features:322 - Engineered 14 features: ['feature_obi', 'feature_spread_bps', 'feature_spread_change', 'feature_log_ret', 'feature_vol_10', 'feature_mom_10', 'feature_vol_50', 'feature_mom_50', 'feature_rsi', 'feature_macd', 'feature_macd_signal', 'feature_macd_hist', 'feature_flow_imbalance', 'feature_flow_ratio']
+2026-02-15 00:09:45.568 | INFO     | __main__:engineer_features:326 - Data after dropna: 259,950 rows
+2026-02-15 00:09:45.801 | INFO     | __main__:create_sequences:393 - Created 259,876 sequences
+2026-02-15 00:09:45.807 | WARNING  | __main__:detect_gpu:119 - No GPU detected. Training will be slow.
+2026-02-15 00:09:46.173 | INFO     | __main__:initialize_model:505 - Model initialized: 4,816,902 parameters
+2026-02-15 00:09:46.173 | INFO     | __main__:run_week_training:679 - ============================================================
+2026-02-15 00:09:46.173 | INFO     | __main__:run_week_training:680 - 🚀 GOLIATH 1-WEEK INTENSIVE TRAINING STARTED
+2026-02-15 00:09:46.173 | INFO     | __main__:run_week_training:681 -    GPU: CPU
+2026-02-15 00:09:46.173 | INFO     | __main__:run_week_training:682 -    Start: 2026-02-15 00:09:46.173180
+2026-02-15 00:09:46.173 | INFO     | __main__:run_week_training:683 -    End:   2026-02-22 00:09:46.173180
+2026-02-15 00:09:46.173 | INFO     | __main__:run_week_training:684 -    Target: 80% accuracy
+2026-02-15 00:09:46.173 | INFO     | __main__:run_week_training:685 - ============================================================
+2026-02-15 00:09:46.173 | INFO     | __main__:run_training_session:630 - Starting training session 0
+/home/a-cupsa/Desktop/BOT_TRADING/.venv/lib/python3.12/site-packages/torch/utils/data/dataloader.py:1118: UserWarning: 'pin_memory' argument is set as true but no accelerator is found, then device pinned memory won't be used.
+  super().__init__(loader)
+^CTraceback (most recent call last):
+  File "/home/a-cupsa/Desktop/BOT_TRADING/analysis/goliath_trainer_v2.py", line 789, in <module>
+    main()
+  File "/home/a-cupsa/Desktop/BOT_TRADING/analysis/goliath_trainer_v2.py", line 774, in main
+    trainer.run_week_training(train_loader, val_loader, test_loader)
+  File "/home/a-cupsa/Desktop/BOT_TRADING/analysis/goliath_trainer_v2.py", line 691, in run_week_training
+    session_acc = self.run_training_session(
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/a-cupsa/Desktop/BOT_TRADING/analysis/goliath_trainer_v2.py", line 636, in run_training_session
+    train_loss, train_acc = self.train_epoch(train_loader, epoch)
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/a-cupsa/Desktop/BOT_TRADING/analysis/goliath_trainer_v2.py", line 543, in train_epoch
+    loss.backward()
+  File "/home/a-cupsa/Desktop/BOT_TRADING/.venv/lib/python3.12/site-packages/torch/_tensor.py", line 630, in backward
+    torch.autograd.backward(
+  File "/home/a-cupsa/Desktop/BOT_TRADING/.venv/lib/python3.12/site-packages/torch/autograd/__init__.py", line 364, in backward
+    _engine_run_backward(
+  File "/home/a-cupsa/Desktop/BOT_TRADING/.venv/lib/python3.12/site-packages/torch/autograd/graph.py", line 865, in _engine_run_backward
+    return Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+KeyboardInterrupt
+
+a-cupsa@alex-cupsa-ubuntu:~/Desktop/BOT_TRADING$ PYTHONPATH=. python analysis/continuous_learner.py
+Traceback (most recent call last):
+  File "/home/a-cupsa/Desktop/BOT_TRADING/analysis/continuous_learner.py", line 24, in <module>
+    from src.ml.models.lstm_network import GoliathLSTM  # Assumiamo che questo modello esista o lo creiamo dinamicamente
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ModuleNotFoundError: No module named 'src.ml.models.lstm_network
+
+
+\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+
+
+a-cupsa@alex-cupsa-ubuntu:~/Desktop/BOT_TRADING$ python -c "
+import torch
+from pathlib import Path
+ckpt_dir = Path('analysis/models_checkpoint')
+for f in ckpt_dir.glob('*.pth'):
+    ckpt = torch.load(f, map_location='cpu', weights_only=False)
+    keys = list(ckpt.keys()) if isinstance(ckpt, dict) else ['raw_tensor']
+    size_mb = f.stat().st_size / (1024*1024)
+    print(f'{f.name}: {size_mb:.1f} MB | Keys: {keys[:5]}...')
+"
+goliath_best.pth: 1.6 MB | Keys: ['input_projection.weight', 'input_projection.bias', 'pos_encoder.pe', 'transformer_encoder.layers.0.self_attn.in_proj_weight', 'transformer_encoder.layers.0.self_attn.in_proj_bias']...
+goliath_v1.pth: 0.4 MB | Keys: ['input_projection.weight', 'input_projection.bias', 'pos_encoder.pe', 'transformer_encoder.layers.0.self_attn.in_proj_weight', 'transformer_encoder.layers.0.self_attn.in_proj_bias']...
+goliath_pro.pth: 1.6 MB | Keys: ['input_projection.weight', 'input_projection.bias', 'pos_encoder.pe', 'transformer_encoder.layers.0.self_attn.in_proj_weight', 'transformer_encoder.layers.0.self_attn.in_proj_bias']...
+
+
+\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+
+
+ho testato lo script goliath.py e alcuni test sono passati ma questi sono gli errori trovati: 
+
+ 2026-02-15 00:18:16,363 [ERROR] [GOLIATH] [GO] FAIL: Dependencies (0.04s)
+2026-02-15 00:18:16,363 [INFO] [GOLIATH] [GO] EXEC: Static Analysis
+2026-02-15 00:18:16,415 [ERROR] [GOLIATH] [GO] FAIL: Static Analysis (0.05s)
+2026-02-15 00:18:16,415 [INFO] [GOLIATH] [GO] EXEC: RBAC Layer
+2026-02-15 00:18:16,455 [ERROR] [GOLIATH] [GO] FAIL: RBAC Layer (0.04s)
+2026-02-15 00:18:16,455 [INFO] [GOLIATH] [GO] EXEC: Pipeline
+2026-02-15 00:18:16,501 [ERROR] [GOLIATH] [GO] FAIL: Pipeline (0.05s)
+2026-02-15 00:18:16,502 [INFO] [GOLIATH] [GO] EXEC: MT5 Bridge
+2026-02-15 00:18:16,547 [ERROR] [GOLIATH] [GO] FAIL: MT5 Bridge (0.05s)
+2026-02-15 00:18:16,547 [INFO] [GOLIATH] [PYTHON] EXEC: Interpreter
+2026-02-15 00:19:16,607 [ERROR] [GOLIATH] [PYTHON] TIMEOUT: Interpreter
+2026-02-15 00:19:16,607 [INFO] [GOLIATH] [PYTHON] EXEC: Core Dependencies
+2026-02-15 00:20:16,616 [ERROR] [GOLIATH] [PYTHON] TIMEOUT: Core Dependencies
+2026-02-15 00:20:16,616 [INFO] [GOLIATH] [PYTHON] EXEC: UI Dependencies
+Traceback (most recent call last):       
+  File "/home/a-cupsa/Desktop/BOT_TRADING/scripts/tools/goliath.py", line 572, in <module>
+    main()
+  File "/home/a-cupsa/Desktop/BOT_TRADING/scripts/tools/goliath.py", line 564, in main
+    g.verify_python_brain()
+  File "/home/a-cupsa/Desktop/BOT_TRADING/scripts/tools/goliath.py", line 456, in verify_python_brain
+    self.run_command(cmd, PROJECT_ROOT, comp, name, env=env)
+  File "/home/a-cupsa/Desktop/BOT_TRADING/scripts/tools/goliath.py", line 288, in run_command
+    result = subprocess.run(
+             ^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 550, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 1209, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 2115, in _communicate
+    ready = selector.select(timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/selectors.py", line 415, in select
+    fd_event_list = self._selector.poll(timeout)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+KeyboardInterrupt
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+============================================================
+a-cupsa@alex-cupsa-ubuntu:~/Desktop/BOT_TRADING$ PYTHONPATH=. python -m pytest analysis/tests/ --cov=analysis/src --cov-report=term-missing
+ERROR: usage: __main__.py [options] [file_or_dir] [file_or_dir] [...]
+__main__.py: error: unrecognized arguments: --cov=analysis/src --cov-report=term-missing
+  inifile: None
+  rootdir: /home/a-cupsa/Desktop/BOT_TRADING

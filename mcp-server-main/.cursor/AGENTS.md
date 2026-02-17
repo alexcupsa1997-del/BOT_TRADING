@@ -1,0 +1,49 @@
+# Agent Rules Overview
+
+This directory `.cursor/rules` contains rule files that govern the behavior and guidelines for AI agents working on the Blockscout MCP Server project.
+
+## Rule Application Guidelines
+
+AI agents should consult the appropriate rule files based on the context of their work. Here are the specific guidelines for when to apply each rule:
+
+### Always Apply First
+
+- **Always read** `.cursor/rules/000-role-and-task.mdc` since it defines the AI agent's role and the task it is performing
+- **Always read** `.cursor/rules/010-implementation-rules.mdc` and resources mentioned in it before answering questions about the project or suggesting any changes
+
+### MCP Tool Development
+
+- **Follow** `.cursor/rules/110-new-mcp-tool.mdc` whenever creating new MCP tool functions or modifying existing ones
+- **Follow** `.cursor/rules/112-direct-api-handlers.mdc` when creating new handlers for the `direct_api_call` tool
+- **Follow** `.cursor/rules/113-direct-api-migration-checklist.mdc` when migrating an existing MCP tool to become a `direct_api_call` handler
+- **Apply** `.cursor/rules/115-tool-module-structure.mdc` to keep a 1:1 mapping between tool functions and their modules
+- **Apply** `.cursor/rules/120-mcp-tool-arguments.mdc` rules to the tool's parameters list whenever modifying existing MCP tool functions
+- **Follow** `.cursor/rules/130-version-management.mdc` when updating the version of the MCP server
+- **Apply** `.cursor/rules/135-mcpb-manifest-version.mdc` when editing `mcpb/manifest.json` (changes to `server` or the `tools` list require bumping `version`)
+- **Apply** `.cursor/rules/140-tool-description.mdc` rules to the tool's description field whenever creating a new MCP tool or updating an existing one
+- **Follow** `.cursor/rules/170-mcp-server-instructions-management.mdc` when adding new MCP server instruction groups or modifying existing ones
+
+### API Endpoints & Static Content
+
+- **Apply** `.cursor/rules/150-rest-api-implementation.mdc` when implementing REST API endpoints that wrap MCP tools
+- **Apply** `.cursor/rules/160-static-content-caching.mdc` when serving static files in API routes
+
+### Testing & Development
+
+- **Follow** `.cursor/rules/200-development-testing-workflow.mdc` testing workflow whenever making ANY code changes to the MCP server (new features, bug fixes, modifications, refactoring, or test updates)
+- **Before modifying** any unit test files within `tests/tools/` (for example, `tests/tools/address/test_get_address_info.py`) or adding new unit tests, follow guidelines from `.cursor/rules/210-unit-testing-guidelines.mdc`
+- **Before working** with integration test files within `tests/integration/`, consult `.cursor/rules/220-integration-testing-guidelines.mdc`
+- **Apply** `.cursor/rules/230-api-route-tests.mdc` when editing `tests/api/test_routes.py`
+- **Apply** `.cursor/rules/240-terminal-path-usage.mdc` to avoid path errors in terminal commands (assume cwd is repo root; do not prefix paths with `bs-mcp-server/`)
+
+### Code Quality & Formatting
+
+- **Apply** `.cursor/rules/300-ruff-lint-and-format.mdc` when identifying and fixing linting and formatting issues
+
+### Documentation Rules
+
+- **Apply** `.cursor/rules/800-api-documentation-guidelines.mdc` when adding or updating any REST API endpoint documentation in `API.md`.
+
+### Meta Operations
+
+- **Must follow** `.cursor/rules/900-rules-maintenance.mdc` when creating, modifying, or deleting any rule files in `.cursor/rules/`

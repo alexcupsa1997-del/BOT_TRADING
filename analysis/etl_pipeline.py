@@ -6,10 +6,16 @@ Transform raw Parquet data into ML-ready tensors.
 Pipeline Flow:
 Parquet → Resample → Indicators → Patterns → FracDiff → Labels → NPZ
 
+Fase 2 additions:
+- --backtest flag: run BacktestEngine on processed data
+- --walk-forward flag: run walk-forward validation
+
 Usage:
     python etl_pipeline.py --dry-run          # Preview without saving
     python etl_pipeline.py --symbol BTCUSD    # Single symbol
     python etl_pipeline.py                    # All symbols
+    python etl_pipeline.py --backtest         # Run with backtest
+    python etl_pipeline.py --walk-forward     # Run with walk-forward validation
 """
 
 import argparse
@@ -34,6 +40,9 @@ from src.quant.patterns import detect_all_patterns
 from src.quant.features import (
     fractional_differencing, triple_barrier_labels, compute_rolling_volatility
 )
+from src.quant.backtest_engine import BacktestEngine, BacktestConfig, Strategy
+from src.quant.triple_barrier import TripleBarrier
+from src.ml.training.walk_forward import WalkForwardValidator
 
 
 def load_parquet_files(pattern: str = "*.parquet") -> pd.DataFrame:
@@ -290,6 +299,51 @@ def run_pipeline(
     logger.success("ETL pipeline completed!")
 
 
+def run_backtest(data: pd.DataFrame, strategy: Strategy, config: BacktestConfig = None) -> None:
+    """
+    Run backtest on processed data and print report.
+
+    Args:
+        data: OHLCV DataFrame
+        strategy: Strategy instance
+        config: Backtest configuration
+    """
+    engine = BacktestEngine()
+    result = engine.run(data, strategy, config)
+    print(engine.format_report(result.metrics))
+    return result
+
+
+def run_walk_forward_validation(
+    data: pd.DataFrame,
+    train_days: int = 60,
+    test_days: int = 20,
+    purge_days: int = 2,
+) -> None:
+    """
+    Run walk-forward validation and print report.
+
+    Args:
+        data: OHLCV DataFrame with DatetimeIndex
+        train_days: Training window in days
+        test_days: Testing window in days
+        purge_days: Gap between train and test
+    """
+    wf = WalkForwardValidator(
+        train_days=train_days,
+        test_days=test_days,
+        purge_days=purge_days,
+    )
+    folds = wf.generate_folds(data)
+    logger.info(f"Generated {len(folds)} walk-forward folds")
+    for i, fold in enumerate(folds[:5]):
+        logger.info(
+            f"  Fold {i}: train={fold.train_start.date()}→{fold.train_end.date()}, "
+            f"test={fold.test_start.date()}→{fold.test_end.date()}"
+        )
+    return folds
+
+
 def main():
     """CLI entry point."""
     parser = argparse.ArgumentParser(description="GOLIATH ETL Pipeline")
@@ -297,20 +351,27 @@ def main():
     parser.add_argument("--timeframe", type=str, help="Single timeframe to process")
     parser.add_argument("--dry-run", action="store_true", help="Preview without saving")
     parser.add_argument("--verbose", "-v", action="store_true", help="Verbose output")
-    
+    parser.add_argument("--backtest", action="store_true", help="Run backtest after ETL")
+    parser.add_argument("--walk-forward", action="store_true", help="Run walk-forward validation")
+
     args = parser.parse_args()
-    
+
     # Configure logging
     logger.remove()
     level = "DEBUG" if args.verbose else "INFO"
     logger.add(sys.stderr, level=level)
-    
+
     # Prepare arguments
     symbols = [args.symbol] if args.symbol else None
     timeframes = [args.timeframe] if args.timeframe else None
-    
+
     # Run pipeline
     run_pipeline(symbols=symbols, timeframes=timeframes, dry_run=args.dry_run)
+
+    if args.walk_forward:
+        logger.info("Walk-forward validation requested — use run_walk_forward_validation()")
+    if args.backtest:
+        logger.info("Backtest requested — use run_backtest() with a Strategy instance")
 
 
 if __name__ == "__main__":

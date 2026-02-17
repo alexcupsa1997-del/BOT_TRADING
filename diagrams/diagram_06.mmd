@@ -1,0 +1,21 @@
+sequenceDiagram
+    participant MT5 as MT5 Bridge
+    participant CH as Channel Buffer<br/>(10K capacity)
+    participant W as Worker Goroutine
+    participant PQ as Parquet File
+
+    MT5->>CH: Record(tick)
+    Note over CH: Non-blocking<br/>Drop if full
+
+    loop Worker Loop
+        CH->>W: Receive tick
+        W->>PQ: Write batch
+        Note over W: Check rotation<br/>(time or size)
+    end
+
+    Note over W: Periodic Flush<br/>every 5 seconds
+
+    MT5->>CH: Record(tick)
+    Note over CH: Buffer FULL
+    CH-->>MT5: DROP (silent)
+    Note right of MT5: "Better to lose history<br/>than block Trading Engine"

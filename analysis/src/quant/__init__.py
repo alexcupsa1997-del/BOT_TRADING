@@ -25,6 +25,15 @@ from .neural_decision import (
     TradeDecision, TradeAction, FeatureVector,
     generate_decision, process_decisions, get_best_entries
 )
+from .feature_registry import FeatureRegistry, FeatureSpec
+from .smart_money import (
+    Bias, FVGType, StructureBreakType,
+    FairValueGap, SwingPoint, StructureBreak, LiquidityZone, SMCSetup,
+    detect_swing_points, detect_structure_breaks,
+    detect_fvg, classify_fvg, check_fvg_mitigation,
+    detect_liquidity_zones, detect_liquidity_sweeps,
+    score_smc_setup, detect_all_smc,
+)
 
 # Phase 4: Neural Trading System
 from .indicator_library import (
@@ -41,4 +50,11 @@ from .neural_trader import (
     NeuralTrader, TrainingPipeline
 )
 
-
+# Fase 2: Backtesting + Triple Barrier + Walk-Forward
+from .triple_barrier import (
+    ExitReason, BarrierConfig, ExitSignal, BarrierState, TripleBarrier
+)
+from .backtest_engine import (
+    Trade, BacktestMetrics, BacktestResult, BacktestConfig,
+    Strategy, BacktestEngine
+)

@@ -158,6 +158,10 @@ def assemble_feature_vector(
     features.append(sr_proximity.get('resistance_distance', 50))
     names.append('sr_resistance_dist')
     
+    # Validate feature parity against the registry contract
+    from .feature_registry import FeatureRegistry
+    FeatureRegistry.get_instance().validate_parity(names)
+
     return FeatureVector(
         symbol=symbol,
         features=np.array(features),

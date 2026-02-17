@@ -1,5 +1,5 @@
 # Build Stage
-FROM rust:alpine AS builder
+FROM rust:1.84-alpine AS builder
 
 WORKDIR /app
 
@@ -18,15 +18,19 @@ COPY src ./src
 RUN cargo build --release --bins
 
 # Runtime Stage
-FROM alpine:latest
+FROM alpine:3.21
 
 WORKDIR /app
 
 # Copy Binaries
 COPY --from=builder /app/target/release/backtester .
-# COPY --from=builder /app/target/release/sbe_consumer . 
+# COPY --from=builder /app/target/release/sbe_consumer .
 
 # Data Volume
 VOLUME ["/app/data"]
+
+# Run as non-root
+RUN adduser -D appuser
+USER appuser
 
 CMD ["./backtester"]

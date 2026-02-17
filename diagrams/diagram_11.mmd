@@ -1,0 +1,19 @@
+graph TB
+    subgraph "Docker Network: trading-net (bridge)"
+        G["gateway<br/>:8080 :5555<br/>restart: always"]
+        E["engine<br/>depends: gateway<br/>restart: on-failure"]
+        A["analysis<br/>depends: gateway<br/>command: sleep loop"]
+        W["watchdog<br/>depends: gateway, engine<br/>nc health check"]
+    end
+
+    V["Volume: ./data<br/>Shared across G, E, A"]
+
+    G --> V
+    E --> V
+    A --> V
+
+    style G fill:#4CAF50,color:#fff
+    style E fill:#FF5722,color:#fff
+    style A fill:#9C27B0,color:#fff
+    style W fill:#607D8B,color:#fff
+    style V fill:#FFC107,color:#000

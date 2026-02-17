@@ -1,0 +1,14 @@
+flowchart TD
+    IN["Input Tensor<br/>[Batch, 64, Features]"] --> IP["Linear Projection<br/>Features → d_model=256"]
+    CTX["Global Context<br/>[Batch, ctx_dim]"] --> CP["Context Projection<br/>ctx_dim → d_model"]
+    CP --> FUSE["Broadcast Addition<br/>Context + Every Timestep"]
+    IP --> FUSE
+    FUSE --> PE["Positional Encoding<br/>Sinusoidal"]
+    PE --> TE["6× Transformer Encoder Layer<br/>8-head Self-Attention<br/>FFN: 1024 → 256"]
+    TE --> LAST["Extract Last Timestep<br/>output[:, -1, :]"]
+    LAST --> DEC["Linear Decoder<br/>256 → 3 classes"]
+    DEC --> OUT["Logits<br/>[Batch, 3]"]
+
+    style IN fill:#2196F3,color:#fff
+    style TE fill:#9C27B0,color:#fff
+    style OUT fill:#4CAF50,color:#fff

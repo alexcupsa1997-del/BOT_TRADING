@@ -1,0 +1,25 @@
+ho visto che nel tool di debug test_bot.py ci sono elencati nella indicator library i 
+seguenti indicatori vorrei capire su che basi sono scelti i dati e cosa rappresenta la 
+scala del segnale di ogniuno di essi, intanto te li elenco,
+ Momentum Indicators:
+  RSI(14): 30.52 | Signal: 0.000
+  Stochastic: K=4.05 D=9.79 | Signal: 0.798
+  MACD: Line=0.00001 | Signal: -0.574
+
+📈 Trend Indicators:
+  ADX: 25.38 | +DI: 12.63 | -DI: 37.72
+  SAR: 1.08264 | Signal: -1
+  Supertrend: 1.08271 | Direction: -1
+
+📉 Volatility Indicators:
+  ATR(14): 0.00057 (0.05%)
+  Bollinger: Upper=1.08348 Lower=1.08084
+  BB %B: 0.030 | Signal: 0.852
+
+📊 Volume Indicators:
+  OBV: -177 | Signal: 0.573
+  MFI: 36.25 | Signal: 0.000
+
+🔄 Indicator Aggregator:
+  Total features computed: 27
+  Consensus: Direction=0.030 Confidence=25.9%

@@ -1,0 +1,17 @@
+graph LR
+    subgraph "Rust Engine Modules"
+        D["domain/<br/>Value Objects<br/>Typestate Pattern<br/>Specifications"]
+        M["matching/<br/>Order Matching<br/>SIMD Optimization"]
+        R["risk/<br/>Margin Calculator<br/>Circuit Breaker<br/>Liquidation<br/>Spiral Protection"]
+        A["audit/<br/>SHA-256 Hash Chain<br/>Tamper Detection"]
+    end
+
+    D --> M
+    D --> R
+    R --> M
+    M --> A
+
+    style D fill:#FF7043,color:#fff
+    style M fill:#FFA726,color:#fff
+    style R fill:#EF5350,color:#fff
+    style A fill:#5C6BC0,color:#fff

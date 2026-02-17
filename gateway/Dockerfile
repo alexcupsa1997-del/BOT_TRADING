@@ -1,5 +1,5 @@
 # Build Stage
-FROM golang:latest AS builder
+FROM golang:1.24-alpine AS builder
 
 WORKDIR /app
 
@@ -14,7 +14,7 @@ COPY . .
 RUN CGO_ENABLED=0 go build -o gateway ./cmd/gateway/main.go
 
 # Runtime Stage
-FROM alpine:latest
+FROM alpine:3.21
 
 WORKDIR /app
 
@@ -29,5 +29,9 @@ EXPOSE 5555
 
 # Data Volume
 VOLUME ["/app/data"]
+
+# Run as non-root
+RUN adduser -D appuser
+USER appuser
 
 CMD ["./gateway"]

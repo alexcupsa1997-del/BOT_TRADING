@@ -1,0 +1,44 @@
+graph TB
+    subgraph "Docker Compose Network: trading-net"
+        subgraph "🚪 Gateway Service [Go]"
+            direction TB
+            HTTP["HTTP Server :8080<br/>Health + Admin + Signal API"]
+            TCP["TCP Server :5555<br/>MT5 Bridge"]
+            PIPE["Pipeline Recorder<br/>Parquet Writer"]
+            RBAC["RBAC Middleware"]
+            PII["PII Scrubber"]
+        end
+
+        subgraph "⚙️ Engine Service [Rust]"
+            direction TB
+            DOM["Domain Layer<br/>Value Objects + Typestate"]
+            MATCH["Matching Engine<br/>SIMD-optimized"]
+            RISK["Risk Module<br/>Margin + Circuit Breaker<br/>+ Liquidation + Spiral"]
+            AUDIT["Audit Trail<br/>SHA-256 Hash Chain"]
+        end
+
+        subgraph "🧠 Analysis Service [Python]"
+            direction TB
+            GOLIATH["GoliathTransformer<br/>PyTorch Encoder"]
+            QUANT["Quant Engine<br/>Features + Indicators"]
+            RISKPY["RiskManager<br/>440 lines"]
+            ETL["ETL Pipeline<br/>Parquet → Tensors"]
+        end
+
+        subgraph "🐕 Watchdog [Alpine]"
+            HEALTH["nc -z gateway 8080<br/>ogni 10 secondi"]
+        end
+    end
+
+    TCP --> PIPE
+    HTTP --> RBAC --> PII
+    PIPE --> ETL
+    ETL --> GOLIATH
+    GOLIATH --> HTTP
+    HEALTH --> HTTP
+
+    style HTTP fill:#4CAF50,color:#fff
+    style TCP fill:#2196F3,color:#fff
+    style DOM fill:#FF5722,color:#fff
+    style GOLIATH fill:#9C27B0,color:#fff
+    style HEALTH fill:#607D8B,color:#fff

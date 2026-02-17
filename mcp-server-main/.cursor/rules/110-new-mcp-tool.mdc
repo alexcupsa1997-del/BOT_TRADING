@@ -1,0 +1,728 @@
+---
+description: Follow these instructions whenever creating new MCP tool functions or modifying existing ones
+globs: 
+alwaysApply: false
+---
+# Adding Tools to the MCP Server
+
+## Setting Up New API Endpoints
+
+If your new tool needs to access an API endpoint that is different from the existing Blockscout (dynamically resolved via `get_blockscout_base_url`), BENS (`bens_url`), or Chainscout (`chainscout_url`) endpoints, follow these steps first:
+
+1. **Add endpoint configuration to `blockscout_mcp_server/config.py`**:
+
+   ```python
+   class ServerConfig(BaseSettings):
+       # Existing endpoints (examples)
+       bs_api_key: str = ""
+       bs_timeout: float = 120.0
+       bens_url: str = "https://bens.services.blockscout.com"
+       bens_timeout: float = 30.0
+       chainscout_url: str = "https://chains.blockscout.com"
+       chainscout_timeout: float = 15.0
+       metadata_url: str = "https://metadata.services.blockscout.com"
+       metadata_timeout: float = 30.0
+       chain_cache_ttl_seconds: int = 1800
+       
+       # Add your new endpoint
+       new_api_url: str = "https://api.example.com"
+       new_api_timeout: float = 60.0
+       # Add API key if needed
+       new_api_key: str = ""
+   ```
+
+2. **Create a request helper function in `blockscout_mcp_server/tools/common.py`**:
+
+   ```python
+   from blockscout_mcp_server.tools.common import _create_httpx_client
+
+   async def make_new_api_request(api_path: str, params: dict | None = None) -> dict:
+       """
+       Make a GET request to the New API.
+       
+       Args:
+           api_path: The API path to request
+           params: Optional query parameters
+           
+       Returns:
+           The JSON response as a dictionary
+           
+       Raises:
+           httpx.HTTPStatusError: If the HTTP request returns an error status code
+           httpx.TimeoutException: If the request times out
+       """
+       async with _create_httpx_client(timeout=config.new_api_timeout) as client:
+           if params is None:
+               params = {}
+           if config.new_api_key:
+               params["apikey"] = config.new_api_key  # Adjust based on API requirements
+
+           url = f"{config.new_api_url}{api_path}"
+           response = await client.get(url, params=params)
+           response.raise_for_status()
+           return response.json()
+   ```
+
+   The `_create_httpx_client` helper automatically enables `follow_redirects=True` to handle HTTP redirects consistently across all tools. Use this helper whenever creating a new `httpx.AsyncClient`.
+
+3. **Update environment configuration files**:
+   - Add to `.env.example`:
+
+     ```shell
+     BLOCKSCOUT_NEW_API_URL="https://api.example.com"
+     BLOCKSCOUT_NEW_API_KEY=""
+     BLOCKSCOUT_NEW_API_TIMEOUT=60.0
+     ```
+
+   - Add to `Dockerfile`:
+
+     ```dockerfile
+     # Existing environment variables
+     ENV BLOCKSCOUT_BS_TIMEOUT="120.0"
+     ENV BLOCKSCOUT_BENS_URL="https://bens.services.blockscout.com"
+     ENV BLOCKSCOUT_METADATA_URL="https://metadata.services.blockscout.com"
+     ENV BLOCKSCOUT_METADATA_TIMEOUT="30.0"
+     
+     # New environment variables
+     ENV BLOCKSCOUT_NEW_API_URL="https://api.example.com"
+     ENV BLOCKSCOUT_NEW_API_KEY=""
+     ENV BLOCKSCOUT_NEW_API_TIMEOUT="60.0"
+     ```
+
+## Required File Modifications
+
+When adding a new tool to the MCP server, you need to modify these files:
+
+1. **Create a data model in `blockscout_mcp_server/models.py`**:
+   - Define a specific Pydantic model for your tool's `data` payload
+   - This ensures type safety and provides clear structure for the AI
+   - See "Data Model Creation Guidelines" section below for detailed guidance
+
+2. **Create or modify a tool module file** in `blockscout_mcp_server/tools/`:
+   - Choose an existing module (e.g., `block_tools.py`, `address_tools.py`) if your tool fits with existing functionality
+   - Create a new module if your tool introduces a new category of functionality
+   - Decorate each tool function with `@log_tool_invocation` from `tools.common`
+
+3. **Register the tool in `blockscout_mcp_server/server.py`**:
+   - Import the tool function
+   - Register it with the MCP server using the `@mcp.tool()` decorator
+   - In the `mcp.tool()` call, use the `create_tool_annotations()` helper function to generate the `annotations` object, passing the tool's human-readable title.
+
+4. **Update documentation in `AGENTS.md`**:
+   - If you created a new module, add it to the project structure file listing
+   - Add it both in the directory tree structure AND in the "Individual Tool Modules" examples section
+   - If you added a tool to an existing module, update the "Examples" section to include your new tool function
+
+5. **Expose the tool via the REST API**:
+   - Create a wrapper endpoint in `api/routes.py` following the [REST API implementation guidelines](mdc:.cursor/rules/150-rest-api-implementation.mdc).
+   - Register the route so it is available under the `/v1/` prefix.
+
+6. **Update the REST API documentation in `API.md`**:
+   - Add or update the endpoint's documentation following the [API documentation guidelines](mdc:.cursor/rules/800-api-documentation-guidelines.mdc).
+
+## Data Model Creation Guidelines
+
+**All tools MUST return a strongly-typed `ToolResponse[YourDataModel]` instead of generic `ToolResponse[dict]`.** This ensures consistency, reliability, and better AI reasoning.
+
+When defining your `BaseModel` subclasses, provide `Field(description=...)` annotations for each attribute so future readers understand the intent of every field.
+
+### When to Use `ConfigDict(extra="allow")`
+
+#### ✅ **USE `extra="allow"`** for External API Response Models
+
+When your model represents data from external APIs, use `extra="allow"` to handle future API changes:
+
+```python
+class MyApiResponseData(BaseModel):
+    """Represents data from external API that may evolve."""
+
+    # External APIs may add new fields; allow them to avoid validation errors
+    model_config = ConfigDict(extra="allow")
+
+    # Define known fields with explicit annotations
+    address: str = Field(description="The account address.")
+    transaction_count: int = Field(
+        description="Number of transactions associated with the address."
+    )
+```
+
+**Why:** External APIs evolve and add new fields. Without `extra="allow"`, your model will fail when APIs return unexpected data.
+
+#### ❌ **DON'T USE `extra="allow"`** for Internal Structured Data
+
+When your model represents data we control internally, don't use `extra="allow"`:
+
+```python
+class MyInternalData(BaseModel):
+    """Our own structured data with controlled schema."""
+
+    # No extra="allow" - we control this structure
+    extracted_field: str = Field(description="Normalized data we compute.")
+    computed_value: int = Field(description="Derived value used for analytics.")
+```
+
+## Tool Function Structure
+
+For tools that query Blockscout API (which now support dynamic chain resolution):
+
+```python
+from typing import Annotated, Optional
+from pydantic import Field
+from blockscout_mcp_server.tools.common import (
+    make_blockscout_request,
+    get_blockscout_base_url,
+    build_tool_response,
+    log_tool_invocation,
+)
+from blockscout_mcp_server.models import ToolResponse, YourDataModel
+
+@log_tool_invocation
+async def tool_name(
+    chain_id: Annotated[str, Field(description="The ID of the blockchain")],
+    required_arg: Annotated[str, Field(description="Description of required argument")],
+    optional_arg: Annotated[Optional[str], Field(description="Description of optional argument")] = None
+) -> ToolResponse[YourDataModel]:  # Return strongly-typed ToolResponse
+    """
+    Descriptive docstring explaining what the tool does.
+    Include use cases and examples if helpful.
+    **SUPPORTS PAGINATION**: If response includes 'pagination' field, use the provided next_call to get additional pages.
+    """
+    # Construct API path, often with argument interpolation
+    api_path = f"/api/v2/some_endpoint/{required_arg}"
+    
+    # Build query parameters for arguments with position: query
+    query_params = {}
+    if optional_arg:
+        query_params["optional_param"] = optional_arg
+    
+    # Get the Blockscout base URL for the specified chain
+    base_url = await get_blockscout_base_url(chain_id)
+    
+    # Make API request with the dynamic base URL
+    # For multiple data sources, consider Performance Optimization patterns (concurrent API calls)
+    response_data = await make_blockscout_request(base_url=base_url, api_path=api_path, params=query_params)
+    
+    # Create structured data using your specific model based on implementation patterns below
+    # (See Response Handling and Progress Reporting patterns)
+    structured_data = YourDataModel(
+        field1=response_data.get("field1"),
+        field2=response_data.get("field2"),
+        # Additional fields preserved automatically if using extra="allow"
+    )
+    
+    return build_tool_response(data=structured_data)
+```
+
+For tools that use fixed API endpoints (like BENS or other services):
+
+```python
+from typing import Annotated, Optional
+from pydantic import Field
+from blockscout_mcp_server.tools.common import (
+    make_bens_request,
+    build_tool_response,  # or other API helper
+    log_tool_invocation,
+)
+from blockscout_mcp_server.models import ToolResponse, YourDataModel
+
+@log_tool_invocation
+async def tool_name(
+    required_arg: Annotated[str, Field(description="Description of required argument")],
+    optional_arg: Annotated[Optional[str], Field(description="Description of optional argument")] = None
+) -> ToolResponse[YourDataModel]:  # Return strongly-typed ToolResponse
+    """
+    Descriptive docstring explaining what the tool does.
+    Include use cases and examples if helpful.
+    """
+    # Construct API path, often with argument interpolation
+    api_path = f"/api/v1/some_endpoint/{required_arg}"
+    
+    # Build query parameters for arguments with position: query
+    query_params = {}
+    if optional_arg:
+        query_params["optional_param"] = optional_arg
+    
+    # Make API request  
+    # For multiple data sources, consider Performance Optimization patterns (concurrent API calls)
+    response_data = await make_bens_request(api_path=api_path, params=query_params)
+    
+    # Create structured data using your specific model based on implementation patterns below
+    # (See Response Handling and Progress Reporting patterns)
+    structured_data = YourDataModel(
+        field1=response_data.get("field1"),
+        field2=response_data.get("field2"),
+        # Additional fields preserved automatically if using extra="allow"
+    )
+    
+    return build_tool_response(data=structured_data)
+```
+
+## Implementation Patterns
+
+### Response Handling
+
+**All tools MUST return a standardized `ToolResponse[YourDataModel]` object.** This ensures consistency and provides clear, machine-readable data to the AI. The `ToolResponse` model is generic, allowing you to specify the exact type of the `data` payload for maximum type safety and clarity.
+
+**❌ AVOID:** Generic `ToolResponse[dict]` or `ToolResponse[Any]`
+**✅ PREFER:** Specific `ToolResponse[YourDataModel]`
+
+**Note on Dynamic Dispatcher Tools:**
+An exception to the `AVOID: ToolResponse[Any]` rule exists for tools that function as dynamic dispatchers (e.g., `direct_api_call`). Such tools MAY be annotated with `-> ToolResponse[Any]` to accommodate multiple, strongly-typed responses from their specialized handlers. However, each underlying handler MUST still return a specific `ToolResponse[YourDataModel]`.
+
+Use the `build_tool_response` helper from `tools/common.py` to construct the response. The following patterns demonstrate how to process API data and package it into the appropriate fields of a `ToolResponse` object.
+
+#### 1. Using a Specific Data Model for the Payload (`return_type: ToolResponse[MyDataModel]`)
+
+**This is the preferred pattern for most tools.** Define a specific Pydantic model for the `data` payload to provide the best type safety and clarity.
+
+```python
+from pydantic import BaseModel, Field
+from blockscout_mcp_server.models import ToolResponse, LatestBlockData
+from blockscout_mcp_server.tools.common import build_tool_response, make_blockscout_request, get_blockscout_base_url
+
+# In a real scenario, this model would be in `models.py`
+# class LatestBlockData(BaseModel):
+#     block_number: int = Field(description="The block number (height) in the blockchain")
+#     timestamp: str = Field(description="The timestamp when the block was mined (ISO format)")
+
+async def get_latest_block(chain_id: str) -> ToolResponse[LatestBlockData]:
+    """Gets the latest block information."""
+    # The actual API returns a list, we take the first item.
+    raw_data_list = await make_blockscout_request(
+        base_url=await get_blockscout_base_url(chain_id),
+        api_path="/api/v2/main-page/blocks"
+    )
+    if not raw_data_list:
+        raise ValueError("No block data returned from API.")
+
+    raw_data = raw_data_list[0]
+
+    # Validate and structure the data using your specific model
+    block_data = LatestBlockData(
+        block_number=raw_data.get("height"),
+        timestamp=raw_data.get("timestamp"),
+    )
+
+    return build_tool_response(data=block_data)
+```
+
+#### 2. Processing Lists with Specific Item Models (`return_type: ToolResponse[list[MyItemModel]]`)
+
+Use when returning lists of structured items:
+
+```python
+from blockscout_mcp_server.models import ToolResponse, TokenSearchResult
+
+async def lookup_tokens(chain_id: str, symbol: str) -> ToolResponse[list[TokenSearchResult]]:
+    """Search for tokens."""
+    response_data = await make_blockscout_request(...)
+    
+    items = response_data.get("items", [])
+    
+    # Convert to strongly-typed list
+    search_results = [
+        TokenSearchResult(
+            address=item.get("address_hash", ""),
+            name=item.get("name", ""),
+            symbol=item.get("symbol", ""),
+            # ... other fields
+        )
+        for item in items
+    ]
+    
+    return build_tool_response(data=search_results)
+```
+
+#### 3. Legacy Pattern: Full JSON Response (`return_type: ToolResponse[dict]`)
+
+**Use this pattern sparingly, only when you truly need dynamic/unstructured output:**
+
+```python
+# Only use this for truly dynamic responses where a specific model isn't practical
+return build_tool_response(data=response_data)
+```
+
+#### 4. Rich Response with Multiple Optional Fields (`return_type: ToolResponse[dict]`)
+
+Use when you need to provide additional context beyond just the data payload:
+
+```python
+# Process the main data
+processed_data = {
+    "summary": response_data.get("summary", {}),
+    "items_count": len(response_data.get("items", [])),
+    "status": response_data.get("status", "unknown")
+}
+
+# Prepare optional fields
+data_description = [
+    "Transaction Summary Report",
+    "The 'items_count' field represents the total number of transactions found.",
+    "Status indicates the current state of the address."
+]
+
+notes = []
+if processed_data["items_count"] > 100:
+    notes.append("Large number of transactions found - consider using pagination for detailed analysis.")
+
+instructions = [
+    "Use get_transactions_by_address() for detailed transaction data.",
+    "Use get_address_info() for more comprehensive address information."
+]
+
+return build_tool_response(
+    data=processed_data,
+    data_description=data_description,
+    notes=notes if notes else None,
+    instructions=instructions
+)
+```
+
+#### 5. Handling Pagination with Opaque Cursors (`return_type: ToolResponse[list[dict]]`)
+
+For tools that return paginated data, do not expose individual pagination parameters (like `page`, `offset`, `items_count`) in the tool's signature. Instead, use a single, opaque `cursor` string. This improves robustness and saves LLM context.
+
+**Context Conservation Strategy:**
+Many blockchain APIs return large datasets (50+ items per page) that would overwhelm LLM context. To balance network efficiency with context conservation, tools should:
+
+- Fetch larger pages from APIs (typically 50 items) for network efficiency
+- Return smaller slices to the LLM (typically 10-20 items) to conserve context
+- Generate pagination objects that allow the LLM to request additional pages when needed
+
+**A. Handling the Incoming Cursor:**
+Your tool should accept an optional `cursor` argument. If it's provided, use the `apply_cursor_to_params` helper from `tools/common.py`. This helper centralizes the logic for decoding the cursor and handling potential `InvalidCursorError` exceptions, raising a user-friendly `ValueError` automatically.
+
+**B. Generating Structured Pagination:**
+**ALWAYS use the `create_items_pagination` helper** from `tools/common.py` instead of manually creating pagination objects. This function implements the response slicing strategy described above, while also ensuring consistency and handling edge cases properly.
+
+**C. Page Size Configuration:**
+For each new paginated tool, you must add a dedicated page size configuration variable:
+
+1. **Add to `blockscout_mcp_server/config.py`**:
+
+   ```python
+   class ServerConfig(BaseSettings):
+       # Existing page sizes
+       nft_page_size: int = 10
+       logs_page_size: int = 10
+       advanced_filters_page_size: int = 10
+       
+       # Add your new page size
+       my_tool_page_size: int = 15  # Adjust based on typical item size
+   ```
+
+2. **Add to `.env.example`**:
+
+   ```shell
+   BLOCKSCOUT_MY_TOOL_PAGE_SIZE=15
+   ```
+
+3. **Add to `Dockerfile`**:
+
+   ```dockerfile
+   ENV BLOCKSCOUT_MY_TOOL_PAGE_SIZE="15"
+   ```
+
+**D. Tool Description Guidelines:**
+For paginated tools, **MUST** include this exact notice in the docstring: `**SUPPORTS PAGINATION**: If response includes 'pagination' field, use the provided next_call to get additional pages.`
+
+**Complete Example Pattern:**
+
+```python
+from typing import Annotated, Optional
+from pydantic import Field
+from blockscout_mcp_server.tools.common import (
+    make_blockscout_request,
+    get_blockscout_base_url,
+    apply_cursor_to_params,
+    build_tool_response,
+    create_items_pagination,
+)
+from blockscout_mcp_server.models import ToolResponse
+from blockscout_mcp_server.config import config
+
+def extract_cursor_params(item: dict) -> dict:
+    """Extract cursor parameters from an item for pagination continuation.
+    
+    This function determines which fields from the last item should be used
+    as cursor parameters for the next page request. The returned dictionary
+    will be encoded as an opaque cursor string.
+    """
+    return {
+        "some_id": item.get("id"),  # Primary pagination key
+        "timestamp": item.get("timestamp"),  # Secondary sort key if needed
+        "items_count": 50,  # Page size for next request
+    }
+
+async def paginated_tool_name(
+    chain_id: Annotated[str, Field(description="The ID of the blockchain")],
+    address: Annotated[str, Field(description="The address to query")],
+    cursor: Annotated[Optional[str], Field(description="The pagination cursor from a previous response to get the next page of results.")] = None,
+    ctx: Context = None
+) -> ToolResponse[list[dict]]:
+    """
+    A tool that demonstrates the correct way to handle pagination.
+    **SUPPORTS PAGINATION**: If response includes 'pagination' field, use the provided next_call to get additional pages.
+    """
+    api_path = f"/api/v2/some_paginated_endpoint/{address}"
+    query_params = {}
+
+    # 1. Handle incoming cursor using the helper function
+    apply_cursor_to_params(cursor, query_params)
+
+    base_url = await get_blockscout_base_url(chain_id)
+    response_data = await make_blockscout_request(base_url=base_url, api_path=api_path, params=query_params)
+
+    # 2. Process/transform items if needed
+    items = response_data.get("items", [])
+    processed_items = process_items(items)  # Your transformation logic here
+
+    # 3. Use create_items_pagination helper to handle slicing and pagination
+    sliced_items, pagination = create_items_pagination(
+        items=processed_items,
+        page_size=config.my_tool_page_size,  # Use the page size you configured above
+        tool_name="paginated_tool_name",
+        next_call_base_params={
+            "chain_id": chain_id,
+            "address": address,
+            # Include other non-cursor parameters that should be preserved
+        },
+        cursor_extractor=extract_cursor_params,
+        force_pagination=False,  # Set to True if you know there are more pages despite few items
+    )
+
+    return build_tool_response(data=sliced_items, pagination=pagination)
+```
+
+#### 6. Simplifying Address Objects to Save Context (`return_type: ToolResponse[dict]`)
+
+**Rationale:** Many Blockscout API endpoints return addresses as complex JSON objects containing the hash, name, tags, etc. To conserve LLM context and encourage compositional tool use, we must simplify these objects into a single address string. If the AI needs more details about an address, it should be guided to use the dedicated `get_address_info` tool.
+
+##### Example: Transforming a Transaction Response
+
+**Before (Raw API Response):**
+This is the verbose data we get from the Blockscout API.
+
+```json
+{
+  "from": {
+    "hash": "0xAbC123...",
+    "name": "SenderContract",
+    "is_contract": true
+  },
+  "to": {
+    "hash": "0xDeF456...",
+    "name": "ReceiverContract",
+    "is_contract": true
+  },
+  "value": "1000000000000000000"
+}
+```
+
+**After (Optimized Tool Output):**
+This is the clean, concise data our tool should return.
+
+```json
+{
+  "from": "0xAbC123...",
+  "to": "0xDeF456...",
+  "value": "1000000000000000000"
+}
+```
+
+**Implementation Pattern:**
+Here is how you would implement this transformation inside a tool function.
+
+```python
+async def some_tool_that_returns_addresses(chain_id: str, ...) -> ToolResponse[dict]:
+    # 1. Get the raw response from the API helper
+    raw_response = await make_blockscout_request(...)
+
+    # 2. Create a copy to modify
+    transformed_response = raw_response.copy()
+
+    # 3. Simplify the 'from' address object into a string
+    if isinstance(transformed_response.get("from"), dict):
+        transformed_response["from"] = transformed_response["from"].get("hash")
+
+    # 4. Simplify the 'to' address object into a string
+    if isinstance(transformed_response.get("to"), dict):
+        transformed_response["to"] = transformed_response["to"].get("hash")
+
+    # 5. Return the structured response
+    return build_tool_response(data=transformed_response)
+```
+
+#### 7. Truncating Large Data Fields to Save Context (`return_type: ToolResponse[dict]`)
+
+**Rationale:** Some API fields, like the raw `data` field or deeply nested values inside a log's `decoded` object, can be extremely large and consume excessive LLM context. We shorten these values and explicitly flag the truncation, providing guidance on how to retrieve the full data if needed.
+
+**Implementation Pattern:**
+This pattern uses a shared helper to centralize the truncation logic and conditionally adds notes about truncation.
+
+```python
+from .common import _process_and_truncate_log_items # Shared helper handles both raw and decoded truncation
+
+async def tool_with_large_data_fields(chain_id: str, hash: str, ctx: Context) -> ToolResponse[dict]:
+    # 1. Get raw response from API
+    base_url = await get_blockscout_base_url(chain_id)
+    raw_response = await make_blockscout_request(...)
+
+    # 2. Use the helper to process items and check for truncation.
+    #    It shortens the raw `data` field and any long strings inside
+    #    the nested `decoded` structure.
+    processed_items, was_truncated = _process_and_truncate_log_items(
+        raw_response.get("items", [])
+    )
+
+    # 3. Prepare structured response with conditional notes
+    notes = None
+    if was_truncated:
+        notes = [
+            "Some data was truncated to save context.",
+            f"To get the full data, use: curl \"{base_url}/api/v2/some_endpoint/{hash}\""
+        ]
+
+    return build_tool_response(
+        data={"items": processed_items},
+        notes=notes
+    )
+```
+
+#### 8. Recursively Truncating Nested Data Structures (`return_type: ToolResponse[dict]`)
+
+**Rationale:** Some API fields, like `decoded_input` in a transaction, can contain deeply nested lists and tuples with large data blobs. A simple check is not enough. To handle this, we use a recursive helper to traverse the structure and truncate any long strings found within, replacing them with a structured object to signal the truncation.
+
+**Implementation Pattern:**
+This pattern uses a shared recursive helper to centralize the logic and conditionally adds notes about truncation.
+
+```python
+from .common import _recursively_truncate_and_flag_long_strings # Shared helper for nested truncation
+
+async def tool_with_nested_data(chain_id: str, hash: str, ctx: Context) -> ToolResponse[dict]:
+    # 1. Get raw response from API
+    base_url = await get_blockscout_base_url(chain_id)
+    raw_response = await make_blockscout_request(...)
+
+    # 2. Use the recursive helper on the part of the response with nested data
+    processed_params, params_truncated = _recursively_truncate_and_flag_long_strings(
+        raw_response.get("decoded_input", {}).get("parameters", [])
+    )
+    if params_truncated:
+        raw_response["decoded_input"]["parameters"] = processed_params
+
+    # 3. Prepare structured response with conditional notes
+    notes = None
+    if params_truncated:
+        notes = [
+            "Some nested data was truncated to save context.",
+            f"To get the full data, use: curl \"{base_url}/api/v2/some_endpoint/{hash}\""
+        ]
+
+    return build_tool_response(data=raw_response, notes=notes)
+```
+
+### Error Handling
+
+**CRITICAL: Always raise exceptions for error conditions, never return "error" responses.** The MCP framework converts exceptions to `isError=True`, but `ToolResponse` objects with error messages in `notes` are treated as successful responses (`isError=False`).
+
+**Exception Types:**
+
+- `ValueError`: Invalid input parameters
+- `RuntimeError`: API failures or infrastructure issues
+- `TimeoutError`: Timeout conditions
+
+**Notes Field Usage:**
+
+```python
+# ✅ CORRECT: Warnings about successful data
+return build_tool_response(data=data, notes=["Data was truncated"])
+
+# ❌ INCORRECT: Error conditions (treated as success!)
+return build_tool_response(data=[], notes=["Error: Not found"])
+
+# ✅ CORRECT: Proper error handling
+raise ValueError("Not found")  # Framework converts to isError=True
+```
+
+### Progress Reporting
+
+To ensure good observability and debuggability, all progress updates should be reported to the client and simultaneously logged as an `info` message. This provides immediate feedback for developers via logs, while also supporting clients that can render progress UIs.
+
+Instead of calling `ctx.report_progress` directly, **always use the `report_and_log_progress` helper function** from `tools/common.py`.
+
+**Implementation Pattern:**
+
+```python
+from blockscout_mcp_server.tools.common import report_and_log_progress
+
+async def some_tool_with_progress(
+    chain_id: Annotated[str, Field(description="The ID of the blockchain")],
+    ctx: Context
+):
+    """A tool demonstrating correct progress reporting."""
+    # Report start
+    await report_and_log_progress(
+        ctx, progress=0.0, total=2.0, message="Starting operation..."
+    )
+
+    # ... perform some work ...
+    base_url = await get_blockscout_base_url(chain_id)
+
+    # Report intermediate step
+    await report_and_log_progress(
+        ctx, progress=1.0, total=2.0, message="Resolved Blockscout URL. Fetching data..."
+    )
+
+    # ... perform the final step ...
+    response_data = await make_blockscout_request(base_url, "/api/v2/some_endpoint")
+
+    # Report completion
+    await report_and_log_progress(
+        ctx, progress=2.0, total=2.0, message="Successfully fetched data."
+    )
+
+    return response_data
+```
+
+This centralized helper ensures that every progress update is visible, regardless of the MCP client's capabilities.
+
+### Performance Optimization
+
+#### Concurrent API Calls
+
+**When to Use:** When your tool needs data from multiple independent API sources (e.g., Blockscout + Metadata, block + transactions).
+
+**Implementation Pattern:**
+
+```python
+import asyncio
+
+# Execute multiple API calls concurrently
+result1, result2 = await asyncio.gather(
+    make_blockscout_request(base_url=base_url, api_path="/api/v2/addresses/{address}"),
+    make_metadata_request(api_path="/api/v1/metadata", params={"addresses": address}),
+    return_exceptions=True  # Critical: prevents one failure from breaking the entire operation
+)
+
+# Handle results with proper exception checking
+if isinstance(result1, Exception):
+    raise result1  # Re-raise the original exception
+
+# Combine results into structured data
+combined_data = {
+    "primary_data": result1,
+    "secondary_data": result2 if not isinstance(result2, Exception) else None
+}
+
+# Add notes if secondary data failed
+notes = None
+if isinstance(result2, Exception):
+    notes = [f"Secondary data unavailable: {result2}"]
+
+return build_tool_response(data=combined_data, notes=notes)
+```
+
+**Key Points:**
+
+- Always use `return_exceptions=True`
