@@ -12,12 +12,19 @@ from config import settings
 
 def read_log_file(filename: Optional[str] = None, lines: int = 100) -> list[str]:
     """Read last N lines from a log file."""
-    log_dir = Path(settings.log_dir)
+    log_dir = Path(settings.log_dir).resolve()
     if not log_dir.exists():
         return []
 
     if filename:
-        log_path = log_dir / filename
+        # Sanitize filename to prevent path traversal
+        safe_name = Path(filename).name
+        if safe_name != filename or ".." in filename:
+            return []
+        log_path = log_dir / safe_name
+        # Verify resolved path is still inside log_dir
+        if not log_path.resolve().is_relative_to(log_dir):
+            return []
     else:
         # Find most recent log file
         log_files = sorted(log_dir.glob("*.log"), key=os.path.getmtime, reverse=True)

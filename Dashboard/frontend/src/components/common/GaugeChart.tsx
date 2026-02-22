@@ -57,7 +57,7 @@ export default function GaugeChart({
     ? `M ${bgX1} ${bgY1} A ${r} ${r} 0 ${largeArc} 1 ${fX} ${fY}`
     : '';
 
-  const gradientId = `gauge-grad-${label.replace(/\s/g, '')}`;
+  const gradientId = `gauge-grad-${label.replace(/[^a-zA-Z0-9]/g, '')}`;
 
   return (
     <div className="flex flex-col items-center">

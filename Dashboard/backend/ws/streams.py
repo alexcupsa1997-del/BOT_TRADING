@@ -57,6 +57,7 @@ async def ws_trading(websocket: WebSocket):
             orders = await redis_service.get_orders()
             positions = await redis_service.get_positions()
             equity_curve = await redis_service.get_equity_curve()
+            trade_history = await redis_service.get_trade_history()
 
             data = {
                 "daily_pnl": status.get("daily_pnl", 0) if status else 0,
@@ -67,6 +68,7 @@ async def ws_trading(websocket: WebSocket):
                 "orders": orders,
                 "positions": positions,
                 "equity_curve": equity_curve[-100:] if equity_curve else [],
+                "trade_history": trade_history[:20] if trade_history else [],
             }
 
             await websocket.send_json(data)

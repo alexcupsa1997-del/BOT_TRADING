@@ -1,5 +1,11 @@
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 
+// Recharts does NOT resolve CSS custom properties - must use hex values
+const COLORS = {
+  green: '#10b981',
+  bgDim: 'rgba(30,41,59,0.5)',
+};
+
 interface WinRateDonutProps {
   winRate: number;
   label?: string;
@@ -27,8 +33,8 @@ export default function WinRateDonut({ winRate, label = 'Win Rate' }: WinRateDon
               dataKey="value"
               stroke="none"
             >
-              <Cell fill="var(--accent-green)" />
-              <Cell fill="rgba(30,41,59,0.5)" />
+              <Cell fill={COLORS.green} />
+              <Cell fill={COLORS.bgDim} />
             </Pie>
           </PieChart>
         </ResponsiveContainer>

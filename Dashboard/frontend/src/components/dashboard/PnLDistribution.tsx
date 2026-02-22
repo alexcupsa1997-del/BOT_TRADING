@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import {
   BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, Cell,
 } from 'recharts';
@@ -5,6 +6,15 @@ import {
 interface PnLDistributionProps {
   trades?: number[];
 }
+
+// Recharts does NOT resolve CSS custom properties - must use hex values
+const COLORS = {
+  green: '#10b981',
+  red: '#ef4444',
+  textMuted: '#64748b',
+  bgSecondary: '#1a1f2e',
+  border: '#2a3040',
+};
 
 function generateSampleTrades(): number[] {
   const trades: number[] = [];
@@ -33,28 +43,29 @@ function buildHistogram(trades: number[], bins = 12): { range: string; count: nu
 }
 
 export default function PnLDistribution({ trades }: PnLDistributionProps) {
-  const data = buildHistogram(trades || generateSampleTrades());
+  const data = useMemo(() => buildHistogram(trades || generateSampleTrades()), [trades]);
 
   return (
     <ResponsiveContainer width="100%" height={200}>
       <BarChart data={data} barCategoryGap="10%">
         <XAxis
           dataKey="range"
-          tick={{ fontSize: 9, fill: 'var(--text-muted)' }}
+          tick={{ fontSize: 9, fill: COLORS.textMuted }}
           axisLine={false}
           tickLine={false}
         />
         <YAxis
-          tick={{ fontSize: 10, fill: 'var(--text-muted)' }}
+          tick={{ fontSize: 10, fill: COLORS.textMuted }}
           axisLine={false}
           tickLine={false}
         />
         <Tooltip
           contentStyle={{
-            background: 'var(--bg-secondary)',
-            border: '1px solid var(--border-color)',
+            background: COLORS.bgSecondary,
+            border: `1px solid ${COLORS.border}`,
             borderRadius: '8px',
             fontSize: '12px',
+            color: '#e2e8f0',
           }}
           labelFormatter={(v) => `PnL: $${v}`}
         />
@@ -62,7 +73,7 @@ export default function PnLDistribution({ trades }: PnLDistributionProps) {
           {data.map((entry, i) => (
             <Cell
               key={i}
-              fill={entry.isPositive ? 'var(--accent-green)' : 'var(--accent-red)'}
+              fill={entry.isPositive ? COLORS.green : COLORS.red}
               fillOpacity={0.7}
             />
           ))}

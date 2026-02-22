@@ -241,18 +241,18 @@ export default function DashboardPage() {
               <AreaChart data={latencyData}>
                 <defs>
                   <linearGradient id="latencyGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="var(--accent-blue)" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="var(--accent-blue)" stopOpacity={0} />
+                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <XAxis dataKey="time" tick={{ fontSize: 10, fill: 'var(--text-muted)' }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 10, fill: 'var(--text-muted)' }} axisLine={false} tickLine={false} width={35} />
+                <XAxis dataKey="time" tick={{ fontSize: 10, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 10, fill: '#64748b' }} axisLine={false} tickLine={false} width={35} />
                 <Tooltip
-                  contentStyle={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', fontSize: '12px' }}
-                  labelStyle={{ color: 'var(--text-secondary)' }}
+                  contentStyle={{ background: '#1a1f2e', border: '1px solid #2a3040', borderRadius: '8px', fontSize: '12px', color: '#e2e8f0' }}
+                  labelStyle={{ color: '#94a3b8' }}
                   formatter={(v: number) => [`${v.toFixed(1)}ms`, 'Latency']}
                 />
-                <Area type="monotone" dataKey="latency" stroke="var(--accent-blue)" strokeWidth={2} fill="url(#latencyGrad)" />
+                <Area type="monotone" dataKey="latency" stroke="#3b82f6" strokeWidth={2} fill="url(#latencyGrad)" />
               </AreaChart>
             </ResponsiveContainer>
           ) : (

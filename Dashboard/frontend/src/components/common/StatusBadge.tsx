@@ -5,8 +5,11 @@ interface StatusBadgeProps {
 
 const colorMap: Record<string, { bg: string; text: string; dot: string }> = {
   ok: { bg: 'rgba(16,185,129,0.12)', text: 'var(--accent-green)', dot: 'var(--accent-green)' },
+  open: { bg: 'rgba(16,185,129,0.12)', text: 'var(--accent-green)', dot: 'var(--accent-green)' },
   error: { bg: 'rgba(239,68,68,0.12)', text: 'var(--accent-red)', dot: 'var(--accent-red)' },
   unreachable: { bg: 'rgba(234,179,8,0.12)', text: 'var(--accent-yellow)', dot: 'var(--accent-yellow)' },
+  pending: { bg: 'rgba(234,179,8,0.12)', text: 'var(--accent-yellow)', dot: 'var(--accent-yellow)' },
+  warning: { bg: 'rgba(234,179,8,0.12)', text: 'var(--accent-yellow)', dot: 'var(--accent-yellow)' },
   running: { bg: 'rgba(59,130,246,0.12)', text: 'var(--accent-blue)', dot: 'var(--accent-blue)' },
   completed: { bg: 'rgba(16,185,129,0.12)', text: 'var(--accent-green)', dot: 'var(--accent-green)' },
   failed: { bg: 'rgba(239,68,68,0.12)', text: 'var(--accent-red)', dot: 'var(--accent-red)' },

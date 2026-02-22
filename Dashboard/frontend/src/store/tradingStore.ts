@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { Order, Position, TradingData } from '../api/types';
+import type { Order, Position, Trade, TradingData } from '../api/types';
 
 interface TradingState {
   dailyPnl: number;
@@ -10,6 +10,7 @@ interface TradingState {
   orders: Order[];
   positions: Position[];
   equityCurve: Record<string, string>[];
+  tradeHistory: Trade[];
   wsConnected: boolean;
   setTradingData: (data: TradingData) => void;
   setWsConnected: (c: boolean) => void;
@@ -24,6 +25,7 @@ export const useTradingStore = create<TradingState>((set) => ({
   orders: [],
   positions: [],
   equityCurve: [],
+  tradeHistory: [],
   wsConnected: false,
   setTradingData: (data) =>
     set({
@@ -35,6 +37,7 @@ export const useTradingStore = create<TradingState>((set) => ({
       orders: data.orders,
       positions: data.positions,
       equityCurve: data.equity_curve as unknown as Record<string, string>[],
+      tradeHistory: data.trade_history || [],
     }),
   setWsConnected: (wsConnected) => set({ wsConnected }),
 }));

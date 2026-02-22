@@ -54,6 +54,7 @@ export default function CommandPalette() {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (filtered.length === 0) return;
     if (e.key === 'ArrowDown') {
       e.preventDefault();
       setSelected((s) => Math.min(s + 1, filtered.length - 1));

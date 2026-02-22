@@ -15,7 +15,7 @@ import {
 export default function TradingPage() {
   const {
     dailyPnl, pnlPercent, activeStrategy,
-    openPositions, tradesCount, orders, positions,
+    openPositions, tradesCount, orders, positions, tradeHistory,
   } = useTradingStore();
 
   // Compute risk metrics from real position data
@@ -158,7 +158,7 @@ export default function TradingPage() {
                           ${parseFloat(String(order.price)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </td>
                         <td className="py-3 px-5 text-right">
-                          <StatusBadge status={order.status.toLowerCase() === 'open' ? 'ok' : 'error'} label={order.status} />
+                          <StatusBadge status={order.status.toLowerCase()} label={order.status} />
                         </td>
                       </tr>
                     ))}
@@ -239,7 +239,7 @@ export default function TradingPage() {
           />
           <SignalPanel />
           <KillSwitch />
-          <TradeTimeline />
+          <TradeTimeline trades={tradeHistory.length > 0 ? tradeHistory : undefined} />
         </div>
       </div>
     </div>

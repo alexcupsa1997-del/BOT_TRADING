@@ -34,12 +34,12 @@ export default function DrawdownChart({ data }: DrawdownChartProps) {
           </defs>
           <XAxis
             dataKey="time"
-            tick={{ fontSize: 9, fill: 'var(--text-muted)' }}
+            tick={{ fontSize: 9, fill: '#64748b' }}
             axisLine={false}
             tickLine={false}
           />
           <YAxis
-            tick={{ fontSize: 10, fill: 'var(--text-muted)' }}
+            tick={{ fontSize: 10, fill: '#64748b' }}
             axisLine={false}
             tickLine={false}
             width={35}
@@ -47,10 +47,11 @@ export default function DrawdownChart({ data }: DrawdownChartProps) {
           />
           <Tooltip
             contentStyle={{
-              background: 'var(--bg-secondary)',
-              border: '1px solid var(--border-color)',
+              background: '#1a1f2e',
+              border: '1px solid #2a3040',
               borderRadius: '8px',
               fontSize: '12px',
+              color: '#e2e8f0',
             }}
             formatter={(v: number) => [`${v.toFixed(2)}%`, 'Drawdown']}
           />

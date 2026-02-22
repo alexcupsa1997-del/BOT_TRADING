@@ -48,6 +48,17 @@ export interface Position {
   side: 'LONG' | 'SHORT';
 }
 
+export interface Trade {
+  id: string;
+  symbol: string;
+  side: 'BUY' | 'SELL';
+  price: string;
+  quantity: string;
+  pnl: string;
+  time: string;
+  timestamp?: string;
+}
+
 export interface TradingData {
   daily_pnl: number;
   pnl_percent: number;
@@ -57,6 +68,7 @@ export interface TradingData {
   orders: Order[];
   positions: Position[];
   equity_curve: EquityPoint[];
+  trade_history?: Trade[];
 }
 
 export interface EquityPoint {

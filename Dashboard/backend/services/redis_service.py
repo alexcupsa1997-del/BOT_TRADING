@@ -4,10 +4,22 @@ Reads keys exactly as published by mock_dashboard_data.py and live engine.
 """
 
 import json
+import logging
 import redis.asyncio as aioredis
 from typing import Optional
 
 from config import settings
+
+logger = logging.getLogger(__name__)
+
+
+def _safe_json_loads(raw: str, default=None):
+    """Parse JSON safely, returning default on error."""
+    try:
+        return json.loads(raw)
+    except (json.JSONDecodeError, TypeError) as e:
+        logger.warning("Failed to parse Redis JSON: %s", e)
+        return default
 
 
 class RedisService:
@@ -55,7 +67,7 @@ class RedisService:
     async def get_system_status(self) -> Optional[dict]:
         raw = await self.client.get(settings.redis_key_status)
         if raw:
-            return json.loads(raw)
+            return _safe_json_loads(raw)
         return None
 
     # ── Trading data ───────────────────────────────────────────────
@@ -63,25 +75,25 @@ class RedisService:
     async def get_orders(self) -> list[dict]:
         raw = await self.client.get(settings.redis_key_orders)
         if raw:
-            return json.loads(raw)
+            return _safe_json_loads(raw, default=[])
         return []
 
     async def get_positions(self) -> list[dict]:
         raw = await self.client.get(settings.redis_key_positions)
         if raw:
-            return json.loads(raw)
+            return _safe_json_loads(raw, default=[])
         return []
 
     async def get_equity_curve(self) -> list[dict]:
         raw = await self.client.get(settings.redis_key_equity_curve)
         if raw:
-            return json.loads(raw)
+            return _safe_json_loads(raw, default=[])
         return []
 
     async def get_trade_history(self) -> list[dict]:
         raw = await self.client.get(settings.redis_key_trade_history)
         if raw:
-            return json.loads(raw)
+            return _safe_json_loads(raw, default=[])
         return []
 
     # ── Logs ───────────────────────────────────────────────────────
