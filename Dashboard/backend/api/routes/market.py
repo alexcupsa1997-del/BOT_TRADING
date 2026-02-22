@@ -26,19 +26,25 @@ async def get_market_data(
     if not data_dir.exists():
         raise HTTPException(status_code=404, detail="Data directory not found")
 
+    # Normalize: strip slashes, underscores, hyphens for fuzzy symbol matching
+    def _norm(s: str) -> str:
+        return s.lower().replace("/", "").replace("_", "").replace("-", "")
+
+    sym_norm = _norm(symbol)
+
     # Search for matching data files
     candidates = []
     for ext in ("*.parquet", "*.csv"):
         for f in data_dir.rglob(ext):
-            if symbol.lower().replace("/", "") in f.name.lower().replace("/", ""):
+            if sym_norm in _norm(f.stem):
                 if timeframe.lower() in f.name.lower():
                     candidates.append(f)
 
     if not candidates:
-        # Try broader match (just symbol)
+        # Try broader match (just symbol, ignore timeframe)
         for ext in ("*.parquet", "*.csv"):
             for f in data_dir.rglob(ext):
-                if symbol.lower().replace("/", "") in f.name.lower().replace("/", ""):
+                if sym_norm in _norm(f.stem):
                     candidates.append(f)
 
     if not candidates:

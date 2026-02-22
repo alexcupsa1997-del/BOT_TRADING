@@ -379,9 +379,9 @@ export default function MarketDataPage() {
           <ResponsiveContainer width="100%" height={120}>
             <LineChart data={rsiData}>
               <XAxis dataKey="idx" hide />
-              <YAxis domain={[0, 100]} ticks={[30, 50, 70]} tick={{ fontSize: 10, fill: 'var(--text-muted)' }} axisLine={false} tickLine={false} width={25} />
+              <YAxis domain={[0, 100]} ticks={[30, 50, 70]} tick={{ fontSize: 10, fill: '#64748b' }} axisLine={false} tickLine={false} width={25} />
               <Tooltip
-                contentStyle={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', fontSize: '12px' }}
+                contentStyle={{ background: '#1a1f2e', border: '1px solid #2a3040', borderRadius: '8px', fontSize: '12px', color: '#e2e8f0' }}
                 formatter={(v: number) => [v.toFixed(1), 'RSI']}
               />
               <ReferenceLine y={70} stroke="rgba(239,68,68,0.3)" strokeDasharray="3 3" />
