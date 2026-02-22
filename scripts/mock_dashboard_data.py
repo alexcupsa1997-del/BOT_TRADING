@@ -17,7 +17,7 @@ r = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB)
 equity = Decimal("100000")
 daily_pnl = Decimal("0")
 trades_today = 0
-position_state: list[dict] = []
+trade_history: list[dict] = []
 
 SYMBOLS = ["XAUUSD", "BTCUSD", "EURUSD", "GBPUSD"]
 STRATEGIES = ["LiT-Transformer-HFT", "JEPA-Momentum", "GNN-MeanReversion"]
@@ -43,7 +43,7 @@ def generate_equity_curve() -> list[dict]:
 def generate_positions() -> list[dict]:
     """Generate random open positions."""
     positions = []
-    count = random.randint(0, 4)
+    count = random.randint(1, 4)
     for _ in range(count):
         symbol = random.choice(SYMBOLS)
         side = random.choice(["LONG", "SHORT"])
@@ -78,7 +78,7 @@ def generate_positions() -> list[dict]:
 def generate_orders() -> list[dict]:
     """Generate active orders."""
     orders = []
-    for _ in range(random.randint(0, 5)):
+    for _ in range(random.randint(1, 5)):
         symbol = random.choice(SYMBOLS)
         if symbol == "XAUUSD":
             price = random.uniform(2610, 2690)
@@ -97,11 +97,46 @@ def generate_orders() -> list[dict]:
     return orders
 
 
+def generate_trade_history() -> list[dict]:
+    """Generate trade history entries periodically."""
+    global trade_history
+
+    if random.random() < 0.15:
+        symbol = random.choice(SYMBOLS)
+        side = random.choice(["BUY", "SELL"])
+        if symbol == "XAUUSD":
+            price = random.uniform(2620, 2680)
+            qty = random.choice([0.1, 0.2, 0.5])
+            pnl = round(random.uniform(-30, 50), 2)
+        elif symbol == "BTCUSD":
+            price = random.uniform(65500, 69500)
+            qty = random.choice([0.01, 0.02, 0.05])
+            pnl = round(random.uniform(-25, 40), 2)
+        else:
+            price = random.uniform(1.06, 1.28)
+            qty = random.choice([1000, 5000])
+            pnl = round(random.uniform(-10, 20), 2)
+
+        trade = {
+            "id": f"TRD-{random.randint(10000, 99999)}",
+            "symbol": symbol,
+            "side": side,
+            "price": f"{price:.2f}",
+            "quantity": str(qty),
+            "pnl": f"{pnl:+.2f}",
+            "time": datetime.utcnow().strftime("%H:%M"),
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+        trade_history.insert(0, trade)
+        trade_history = trade_history[:20]
+
+    return trade_history
+
+
 def generate_system_status() -> dict:
     """System metrics with real psutil data."""
     global daily_pnl, trades_today
 
-    # Slowly drift PnL
     daily_pnl += Decimal(str(random.uniform(-5, 8)))
     trades_today += 1 if random.random() < 0.3 else 0
 
@@ -127,7 +162,7 @@ def generate_system_status() -> dict:
         "daily_pnl": float(daily_pnl.quantize(Decimal("0.01"))),
         "pnl_percent": float((daily_pnl / Decimal("100000") * 100).quantize(Decimal("0.01"))),
         "active_strategy": random.choice(STRATEGIES),
-        "open_positions": random.randint(0, 4),
+        "open_positions": random.randint(1, 4),
         "trades_count": trades_today,
     }
 
@@ -162,6 +197,7 @@ def generate_logs() -> None:
         ("[INFO] Strategy switch: {} activated".format(random.choice(STRATEGIES)), 0.04),
         ("[DEBUG] Heartbeat OK - all services responsive", 0.20),
         ("[CRITICAL] Max drawdown threshold breached: -{}%".format(round(random.uniform(5, 15), 1)), 0.01),
+        ("[INFO] Trade executed: {} {} @ market".format(random.choice(["BUY", "SELL"]), random.choice(SYMBOLS)), 0.10),
     ]
 
     for msg, prob in log_types:
@@ -172,13 +208,18 @@ def generate_logs() -> None:
 
 
 def main():
-    print(f"GOLIATH Mock Data Generator v2")
+    print(f"GOLIATH Mock Data Generator v3")
     print(f"Redis: {REDIS_HOST}:{REDIS_PORT}")
     print(f"Press Ctrl+C to stop\n")
 
-    # Seed initial equity curve
+    # Seed initial data
     equity_curve = generate_equity_curve()
     r.set("goliath:equity_curve", json.dumps(equity_curve))
+
+    # Seed initial trade history
+    for _ in range(5):
+        generate_trade_history()
+    r.set("goliath:trade_history", json.dumps(trade_history))
 
     try:
         tick = 0
@@ -192,6 +233,10 @@ def main():
             r.set("goliath:orders", json.dumps(trading["orders"]))
             r.set("goliath:positions", json.dumps(trading["positions"]))
             r.set("goliath:trading", json.dumps(trading))
+
+            # Trade history
+            history = generate_trade_history()
+            r.set("goliath:trade_history", json.dumps(history))
 
             # Equity curve (every 10 ticks)
             if tick % 10 == 0:
@@ -207,7 +252,8 @@ def main():
                     f"CPU: {status['cpu_percent']:.0f}% | "
                     f"PnL: ${status['daily_pnl']:.2f} | "
                     f"Positions: {trading['open_positions']} | "
-                    f"Orders: {len(trading['orders'])}"
+                    f"Orders: {len(trading['orders'])} | "
+                    f"Trades: {len(history)}"
                 )
 
             tick += 1

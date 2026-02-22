@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { api } from '../api/client';
 import type { ApiResponse, OHLCVBar, DataFile } from '../api/types';
 import {
@@ -6,7 +6,7 @@ import {
   HistogramSeries, LineSeries,
 } from 'lightweight-charts';
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip, ReferenceLine } from 'recharts';
-import { BarChart3, TrendingUp, Layers } from 'lucide-react';
+import { BarChart3, TrendingUp, Layers, RefreshCw, AlertCircle } from 'lucide-react';
 
 function computeEMA(closes: number[], period: number): (number | null)[] {
   const ema: (number | null)[] = [];
@@ -51,12 +51,32 @@ function computeRSI(closes: number[], period = 14): number[] {
   return rsi;
 }
 
+/**
+ * Parse timestamp to unix seconds for lightweight-charts.
+ * Handles: nanoseconds (>1e15), milliseconds (>1e12), seconds, ISO strings.
+ */
+function parseTimestamp(ts: string): number {
+  const num = Number(ts);
+  if (!isNaN(num) && num > 0) {
+    if (num > 1e15) return Math.floor(num / 1e9);       // nanoseconds → seconds
+    if (num > 1e12) return Math.floor(num / 1e3);       // milliseconds → seconds
+    if (num > 1e9) return Math.floor(num);               // already seconds
+    // Could be a small number (days since epoch for daily data)
+    return Math.floor(num);
+  }
+  // ISO string or date string
+  const date = new Date(ts);
+  if (!isNaN(date.getTime())) return Math.floor(date.getTime() / 1000);
+  return 0;
+}
+
 export default function MarketDataPage() {
   const [dataFiles, setDataFiles] = useState<DataFile[]>([]);
   const [symbol, setSymbol] = useState('BTCUSDT');
   const [timeframe, setTimeframe] = useState('1h');
   const [bars, setBars] = useState<OHLCVBar[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const [showEMA, setShowEMA] = useState(true);
   const [showBB, setShowBB] = useState(false);
   const chartRef = useRef<HTMLDivElement>(null);
@@ -64,17 +84,34 @@ export default function MarketDataPage() {
 
   useEffect(() => {
     api.get<ApiResponse<DataFile[]>>('/market/files')
-      .then((res) => setDataFiles(res.data))
-      .catch(() => {});
+      .then((res) => {
+        setDataFiles(res.data || []);
+        // Auto-select first available symbol from files
+        if (res.data && res.data.length > 0) {
+          const firstName = res.data[0].name.toLowerCase();
+          if (firstName.includes('btc')) setSymbol('BTCUSDT');
+          else if (firstName.includes('xau')) setSymbol('XAUUSD');
+          else if (firstName.includes('eth')) setSymbol('ETHUSDT');
+        }
+      })
+      .catch(() => setDataFiles([]));
   }, []);
 
   const loadData = useCallback(async () => {
     setLoading(true);
+    setError('');
     try {
       const res = await api.get<ApiResponse<OHLCVBar[]>>(`/market/data/${symbol}?timeframe=${timeframe}&limit=500`);
-      setBars(res.data);
-    } catch {
+      if (res.data && res.data.length > 0) {
+        setBars(res.data);
+      } else {
+        setBars([]);
+        setError('No data returned for this symbol/timeframe');
+      }
+    } catch (e) {
       setBars([]);
+      const msg = e instanceof Error ? e.message : 'Failed to load data';
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -116,20 +153,26 @@ export default function MarketDataPage() {
     });
     chart.priceScale('volume').applyOptions({ scaleMargins: { top: 0.8, bottom: 0 } });
 
-    const toTs = (ts: string) => isNaN(Number(ts))
-      ? Math.floor(new Date(ts).getTime() / 1000)
-      : Math.floor(Number(ts));
-
     const closes = bars.map((b) => parseFloat(b.close));
-    const timestamps = bars.map((b) => toTs(b.timestamp));
+    const timestamps = bars.map((b) => parseTimestamp(b.timestamp));
 
-    const candleData = bars.map((bar, i) => ({
-      time: timestamps[i] as any,
+    // Validate timestamps - filter out invalid (0) entries
+    const validBars = bars.filter((_, i) => timestamps[i] > 0);
+    const validTimestamps = timestamps.filter((t) => t > 0);
+    const validCloses = validBars.map((b) => parseFloat(b.close));
+
+    if (validBars.length === 0) {
+      chart.remove();
+      return;
+    }
+
+    const candleData = validBars.map((bar, i) => ({
+      time: validTimestamps[i] as any,
       open: parseFloat(bar.open), high: parseFloat(bar.high),
       low: parseFloat(bar.low), close: parseFloat(bar.close),
     }));
-    const volumeData = bars.map((bar, i) => ({
-      time: timestamps[i] as any,
+    const volumeData = validBars.map((bar, i) => ({
+      time: validTimestamps[i] as any,
       value: parseFloat(bar.volume),
       color: parseFloat(bar.close) >= parseFloat(bar.open) ? 'rgba(16,185,129,0.25)' : 'rgba(239,68,68,0.25)',
     }));
@@ -138,30 +181,33 @@ export default function MarketDataPage() {
     volumeSeries.setData(volumeData);
 
     // EMA overlays
-    if (showEMA) {
-      const ema9 = computeEMA(closes, 9);
-      const ema21 = computeEMA(closes, 21);
-      const ema50 = computeEMA(closes, 50);
+    if (showEMA && validCloses.length >= 9) {
+      const ema9 = computeEMA(validCloses, 9);
+      const ema21 = computeEMA(validCloses, 21);
+      const ema50 = computeEMA(validCloses, 50);
 
       const addEmaLine = (values: (number | null)[], color: string) => {
         const series = chart.addSeries(LineSeries, {
           color, lineWidth: 1, priceLineVisible: false, lastValueVisible: false,
         });
-        series.setData(values.map((v, i) => v !== null ? { time: timestamps[i] as any, value: v } : null).filter(Boolean) as any);
+        series.setData(
+          values.map((v, i) => v !== null ? { time: validTimestamps[i] as any, value: v } : null)
+            .filter(Boolean) as any
+        );
       };
       addEmaLine(ema9, '#3b82f6');
       addEmaLine(ema21, '#f59e0b');
-      addEmaLine(ema50, '#8b5cf6');
+      if (validCloses.length >= 50) addEmaLine(ema50, '#8b5cf6');
     }
 
     // Bollinger Bands
-    if (showBB) {
+    if (showBB && validCloses.length >= 20) {
       const period = 20;
       const upper: (number | null)[] = [];
       const lower: (number | null)[] = [];
-      for (let i = 0; i < closes.length; i++) {
+      for (let i = 0; i < validCloses.length; i++) {
         if (i < period - 1) { upper.push(null); lower.push(null); continue; }
-        const slice = closes.slice(i - period + 1, i + 1);
+        const slice = validCloses.slice(i - period + 1, i + 1);
         const mean = slice.reduce((a, b) => a + b, 0) / period;
         const std = Math.sqrt(slice.reduce((a, b) => a + (b - mean) ** 2, 0) / period);
         upper.push(mean + 2 * std);
@@ -171,7 +217,10 @@ export default function MarketDataPage() {
         const series = chart.addSeries(LineSeries, {
           color, lineWidth: 1, lineStyle: 2, priceLineVisible: false, lastValueVisible: false,
         });
-        series.setData(values.map((v, i) => v !== null ? { time: timestamps[i] as any, value: v } : null).filter(Boolean) as any);
+        series.setData(
+          values.map((v, i) => v !== null ? { time: validTimestamps[i] as any, value: v } : null)
+            .filter(Boolean) as any
+        );
       };
       addBBLine(upper, 'rgba(139,92,246,0.5)');
       addBBLine(lower, 'rgba(139,92,246,0.5)');
@@ -187,16 +236,42 @@ export default function MarketDataPage() {
     return () => { observer.disconnect(); chart.remove(); };
   }, [bars, showEMA, showBB]);
 
-  // RSI data
-  const closes = bars.map((b) => parseFloat(b.close));
-  const rsiValues = computeRSI(closes);
-  const rsiData = rsiValues.slice(-60).map((v, i) => ({ idx: i, rsi: parseFloat(v.toFixed(1)) }));
+  // RSI data (memoized)
+  const rsiData = useMemo(() => {
+    if (bars.length < 15) return [];
+    const closes = bars.map((b) => parseFloat(b.close)).filter((v) => !isNaN(v));
+    if (closes.length < 15) return [];
+    const rsiValues = computeRSI(closes);
+    return rsiValues.slice(-60).map((v, i) => ({ idx: i, rsi: parseFloat(v.toFixed(1)) }));
+  }, [bars]);
+
+  // Last price info
+  const lastBar = bars.length > 0 ? bars[bars.length - 1] : null;
+  const prevBar = bars.length > 1 ? bars[bars.length - 2] : null;
+  const priceChange = lastBar && prevBar
+    ? parseFloat(lastBar.close) - parseFloat(prevBar.close)
+    : 0;
+  const priceChangePct = prevBar
+    ? (priceChange / parseFloat(prevBar.close)) * 100
+    : 0;
 
   return (
     <div className="space-y-6 stagger-children">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Market Data</h1>
-        <p className="text-sm text-[var(--text-secondary)] mt-0.5">Candlestick charts with technical indicators</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Market Data</h1>
+          <p className="text-sm text-[var(--text-secondary)] mt-0.5">Candlestick charts with technical indicators</p>
+        </div>
+        {lastBar && (
+          <div className="text-right">
+            <div className="text-lg font-bold font-mono tabular-nums">
+              ${parseFloat(lastBar.close).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </div>
+            <div className={`text-xs font-medium ${priceChange >= 0 ? 'text-[var(--accent-green)]' : 'text-[var(--accent-red)]'}`}>
+              {priceChange >= 0 ? '+' : ''}{priceChange.toFixed(2)} ({priceChangePct >= 0 ? '+' : ''}{priceChangePct.toFixed(2)}%)
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Controls */}
@@ -209,8 +284,11 @@ export default function MarketDataPage() {
               <option value="BTCUSDT">BTC/USDT</option>
               <option value="ETHUSDT">ETH/USDT</option>
               <option value="XAUUSD">XAU/USD</option>
-              {dataFiles.filter((f) => !['BTCUSDT', 'ETHUSDT', 'XAUUSD'].some((s) => f.name.toLowerCase().includes(s.toLowerCase()))).map((f) => (
-                <option key={f.name} value={f.name.split('_')[1] || f.name}>{f.name}</option>
+              {dataFiles.filter((f) => {
+                const n = f.name.toLowerCase();
+                return !n.includes('btcusdt') && !n.includes('ethusdt') && !n.includes('xauusd') && !n.includes('xau_usd');
+              }).map((f) => (
+                <option key={f.name} value={f.name.replace(/\.(parquet|csv)$/i, '')}>{f.name}</option>
               ))}
             </select>
           </div>
@@ -236,22 +314,49 @@ export default function MarketDataPage() {
               EMA 9/21/50
             </button>
             <button onClick={() => setShowBB(!showBB)}
-              className={`px-2.5 py-1 text-xs rounded-md transition-all ${showBB ? 'bg-[var(--accent-blue-dim)] text-[var(--accent-blue)]' : 'text-[var(--text-muted)]'}`}>
+              className={`px-2.5 py-1 text-xs rounded-md transition-all ${showBB ? 'bg-[var(--accent-purple-dim)] text-[var(--accent-purple)]' : 'text-[var(--text-muted)]'}`}>
               Bollinger
             </button>
           </div>
 
-          <span className="ml-auto text-xs text-[var(--text-muted)] font-mono tabular-nums">
-            {loading ? 'Loading...' : `${bars.length} bars`}
-          </span>
+          <div className="ml-auto flex items-center gap-3">
+            <button onClick={loadData} className="btn-ghost flex items-center gap-1 text-xs py-1.5">
+              <RefreshCw size={12} className={loading ? 'animate-spin' : ''} /> Refresh
+            </button>
+            <span className="text-xs text-[var(--text-muted)] font-mono tabular-nums">
+              {loading ? 'Loading...' : `${bars.length} bars`}
+            </span>
+          </div>
         </div>
       </div>
 
+      {/* Error Banner */}
+      {error && (
+        <div className="glass-card p-4 border-l-2 flex items-center gap-3" style={{ borderLeftColor: 'var(--accent-yellow)' }}>
+          <AlertCircle size={16} className="text-[var(--accent-yellow)] flex-shrink-0" />
+          <div>
+            <p className="text-xs font-medium text-[var(--accent-yellow)]">Data unavailable</p>
+            <p className="text-[10px] text-[var(--text-muted)] mt-0.5">{error}. Try a different symbol or timeframe.</p>
+          </div>
+        </div>
+      )}
+
       {/* Chart */}
       <div className="glass-card overflow-hidden p-1">
-        {bars.length === 0 && !loading ? (
-          <div className="h-[420px] flex items-center justify-center text-sm text-[var(--text-muted)]">
-            No data available for {symbol} {timeframe}
+        {loading ? (
+          <div className="h-[420px] flex items-center justify-center">
+            <div className="flex flex-col items-center gap-2">
+              <RefreshCw size={20} className="animate-spin text-[var(--accent-blue)]" />
+              <span className="text-xs text-[var(--text-muted)]">Loading chart data...</span>
+            </div>
+          </div>
+        ) : bars.length === 0 ? (
+          <div className="h-[420px] flex items-center justify-center">
+            <div className="text-center">
+              <BarChart3 size={32} className="mx-auto text-[var(--text-muted)] mb-3 opacity-30" />
+              <p className="text-sm text-[var(--text-muted)]">No data available for {symbol} {timeframe}</p>
+              <p className="text-[10px] text-[var(--text-muted)] mt-1">Select a different symbol or timeframe</p>
+            </div>
           </div>
         ) : (
           <div ref={chartRef} className="w-full" />
@@ -261,7 +366,16 @@ export default function MarketDataPage() {
       {/* RSI Panel */}
       {rsiData.length > 0 && (
         <div className="glass-card p-5">
-          <h3 className="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider mb-3">RSI (14)</h3>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">RSI (14)</h3>
+            <span className={`text-sm font-bold font-mono ${
+              rsiData[rsiData.length - 1].rsi > 70 ? 'text-[var(--accent-red)]'
+              : rsiData[rsiData.length - 1].rsi < 30 ? 'text-[var(--accent-green)]'
+              : 'text-[var(--text-primary)]'
+            }`}>
+              {rsiData[rsiData.length - 1].rsi}
+            </span>
+          </div>
           <ResponsiveContainer width="100%" height={120}>
             <LineChart data={rsiData}>
               <XAxis dataKey="idx" hide />
@@ -279,20 +393,30 @@ export default function MarketDataPage() {
       )}
 
       {/* Available Files */}
-      <div className="glass-card p-5">
-        <div className="flex items-center gap-2 mb-3">
-          <Layers size={14} className="text-[var(--text-muted)]" />
-          <h3 className="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">Available Data Files</h3>
+      {dataFiles.length > 0 && (
+        <div className="glass-card p-5">
+          <div className="flex items-center gap-2 mb-3">
+            <Layers size={14} className="text-[var(--text-muted)]" />
+            <h3 className="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">Available Data Files</h3>
+            <span className="ml-auto text-xs text-[var(--text-muted)] font-mono">{dataFiles.length} files</span>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+            {dataFiles.map((f) => (
+              <button
+                key={f.name}
+                onClick={() => {
+                  const name = f.name.replace(/\.(parquet|csv)$/i, '');
+                  setSymbol(name);
+                }}
+                className="text-left text-xs bg-[var(--bg-elevated)] rounded-lg px-3 py-2.5 border border-[var(--border-color)]/50 hover:border-[var(--accent-blue)]/30 hover:bg-[var(--bg-card-hover)] transition-all"
+              >
+                <div className="font-medium truncate">{f.name}</div>
+                <div className="text-[var(--text-muted)] mt-0.5">{f.size_mb} MB</div>
+              </button>
+            ))}
+          </div>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-          {dataFiles.map((f) => (
-            <div key={f.name} className="text-xs bg-[var(--bg-elevated)] rounded-lg px-3 py-2.5 border border-[var(--border-color)]/50 hover:border-[var(--accent-blue)]/30 transition-colors cursor-pointer">
-              <div className="font-medium truncate">{f.name}</div>
-              <div className="text-[var(--text-muted)] mt-0.5">{f.size_mb} MB</div>
-            </div>
-          ))}
-        </div>
-      </div>
+      )}
     </div>
   );
 }

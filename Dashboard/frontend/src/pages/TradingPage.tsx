@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useTradingStore } from '../store/tradingStore';
 import KPICard from '../components/common/KPICard';
 import StatusBadge from '../components/common/StatusBadge';
@@ -17,6 +18,32 @@ export default function TradingPage() {
     openPositions, tradesCount, orders, positions,
   } = useTradingStore();
 
+  // Compute risk metrics from real position data
+  const riskMetrics = useMemo(() => {
+    let totalExposure = 0;
+    positions.forEach((pos) => {
+      const qty = parseFloat(pos.quantity);
+      const price = parseFloat(pos.current_price);
+      if (!isNaN(qty) && !isNaN(price)) totalExposure += qty * price;
+    });
+
+    const equity = 100000 + dailyPnl;
+    const marginUsed = equity > 0 ? (totalExposure / equity) * 100 : 0;
+    const leverage = equity > 0 ? totalExposure / equity : 0;
+    const maxDrawdown = Math.abs(Math.min(dailyPnl, 0) / 1000);
+
+    return { exposure: totalExposure, leverage, marginUsed: Math.min(marginUsed, 100), maxDrawdown };
+  }, [positions, dailyPnl]);
+
+  // Total unrealized PnL from positions
+  const totalUnrealizedPnl = useMemo(() =>
+    positions.reduce((sum, pos) => {
+      const pnl = parseFloat(pos.unrealized_pnl);
+      return sum + (isNaN(pnl) ? 0 : pnl);
+    }, 0),
+    [positions]
+  );
+
   return (
     <div className="space-y-6 stagger-children">
       {/* Header */}
@@ -27,6 +54,21 @@ export default function TradingPage() {
             Strategy: <span className="font-medium text-[var(--text-primary)]">{activeStrategy}</span>
           </p>
         </div>
+        {totalUnrealizedPnl !== 0 && (
+          <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg ${
+            totalUnrealizedPnl >= 0 ? 'bg-[var(--accent-green-dim)]' : 'bg-[var(--accent-red-dim)]'
+          }`}>
+            {totalUnrealizedPnl >= 0
+              ? <TrendingUp size={14} className="text-[var(--accent-green)]" />
+              : <TrendingDown size={14} className="text-[var(--accent-red)]" />
+            }
+            <span className={`text-sm font-bold ${
+              totalUnrealizedPnl >= 0 ? 'text-[var(--accent-green)]' : 'text-[var(--accent-red)]'
+            }`}>
+              {totalUnrealizedPnl >= 0 ? '+' : ''}${totalUnrealizedPnl.toFixed(2)} unrealized
+            </span>
+          </div>
+        )}
       </div>
 
       {/* KPI Row */}
@@ -76,32 +118,35 @@ export default function TradingPage() {
         {/* Left: Orders + Positions (2 cols) */}
         <div className="lg:col-span-2 space-y-4">
           {/* Active Orders */}
-          <div className="glass-card p-5">
-            <div className="flex items-center gap-2 mb-4">
+          <div className="glass-card overflow-hidden">
+            <div className="flex items-center gap-2 px-5 py-3 border-b border-[var(--border-color)]">
               <ArrowUpDown size={16} className="text-[var(--accent-blue)]" />
               <h3 className="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">Active Orders</h3>
-              <span className="ml-auto text-xs text-[var(--text-muted)] font-mono">{orders.length}</span>
+              <span className="ml-auto text-xs text-[var(--text-muted)] font-mono tabular-nums">{orders.length}</span>
             </div>
             {orders.length === 0 ? (
-              <p className="text-sm text-[var(--text-muted)] text-center py-8">No active orders</p>
+              <div className="text-center py-10">
+                <ArrowUpDown size={20} className="mx-auto text-[var(--text-muted)] mb-2 opacity-30" />
+                <p className="text-xs text-[var(--text-muted)]">No active orders</p>
+              </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="text-[var(--text-muted)] text-xs uppercase tracking-wider">
-                      <th className="text-left py-2 font-medium">ID</th>
-                      <th className="text-left py-2 font-medium">Symbol</th>
-                      <th className="text-left py-2 font-medium">Side</th>
-                      <th className="text-right py-2 font-medium">Price</th>
-                      <th className="text-right py-2 font-medium">Status</th>
+                    <tr className="text-[var(--text-muted)] text-[10px] uppercase tracking-wider bg-[var(--bg-elevated)]/30">
+                      <th className="text-left py-2.5 px-5 font-medium">ID</th>
+                      <th className="text-left py-2.5 px-3 font-medium">Symbol</th>
+                      <th className="text-left py-2.5 px-3 font-medium">Side</th>
+                      <th className="text-right py-2.5 px-3 font-medium">Price</th>
+                      <th className="text-right py-2.5 px-5 font-medium">Status</th>
                     </tr>
                   </thead>
                   <tbody>
                     {orders.map((order) => (
-                      <tr key={order.id} className="border-t border-[var(--border-color)]/30 hover:bg-[var(--bg-card-hover)] transition-colors">
-                        <td className="py-2.5 font-mono text-xs text-[var(--text-muted)]">{order.id}</td>
-                        <td className="py-2.5 font-medium">{order.symbol}</td>
-                        <td className="py-2.5">
+                      <tr key={order.id} className="border-t border-[var(--border-color)]/20 hover:bg-[var(--bg-card-hover)] transition-colors">
+                        <td className="py-3 px-5 font-mono text-xs text-[var(--text-muted)]">{order.id}</td>
+                        <td className="py-3 px-3 font-medium">{order.symbol}</td>
+                        <td className="py-3 px-3">
                           <span className={`flex items-center gap-1 text-xs font-bold ${
                             order.side === 'BUY' ? 'text-[var(--accent-green)]' : 'text-[var(--accent-red)]'
                           }`}>
@@ -109,10 +154,10 @@ export default function TradingPage() {
                             {order.side}
                           </span>
                         </td>
-                        <td className="py-2.5 text-right font-mono text-xs">
-                          ${parseFloat(String(order.price)).toFixed(2)}
+                        <td className="py-3 px-3 text-right font-mono text-xs tabular-nums">
+                          ${parseFloat(String(order.price)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </td>
-                        <td className="py-2.5 text-right">
+                        <td className="py-3 px-5 text-right">
                           <StatusBadge status={order.status.toLowerCase() === 'open' ? 'ok' : 'error'} label={order.status} />
                         </td>
                       </tr>
@@ -124,44 +169,49 @@ export default function TradingPage() {
           </div>
 
           {/* Open Positions */}
-          <div className="glass-card p-5">
-            <div className="flex items-center gap-2 mb-4">
+          <div className="glass-card overflow-hidden">
+            <div className="flex items-center gap-2 px-5 py-3 border-b border-[var(--border-color)]">
               <Layers size={16} className="text-[var(--accent-green)]" />
               <h3 className="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">Open Positions</h3>
-              <span className="ml-auto text-xs text-[var(--text-muted)] font-mono">{positions.length}</span>
+              <span className="ml-auto text-xs text-[var(--text-muted)] font-mono tabular-nums">{positions.length}</span>
             </div>
             {positions.length === 0 ? (
-              <p className="text-sm text-[var(--text-muted)] text-center py-8">No open positions</p>
+              <div className="text-center py-10">
+                <Layers size={20} className="mx-auto text-[var(--text-muted)] mb-2 opacity-30" />
+                <p className="text-xs text-[var(--text-muted)]">No open positions</p>
+              </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="text-[var(--text-muted)] text-xs uppercase tracking-wider">
-                      <th className="text-left py-2 font-medium">Symbol</th>
-                      <th className="text-left py-2 font-medium">Side</th>
-                      <th className="text-right py-2 font-medium">Qty</th>
-                      <th className="text-right py-2 font-medium">Avg Price</th>
-                      <th className="text-right py-2 font-medium">Current</th>
-                      <th className="text-right py-2 font-medium">PnL</th>
+                    <tr className="text-[var(--text-muted)] text-[10px] uppercase tracking-wider bg-[var(--bg-elevated)]/30">
+                      <th className="text-left py-2.5 px-5 font-medium">Symbol</th>
+                      <th className="text-left py-2.5 px-3 font-medium">Side</th>
+                      <th className="text-right py-2.5 px-3 font-medium">Qty</th>
+                      <th className="text-right py-2.5 px-3 font-medium">Avg Price</th>
+                      <th className="text-right py-2.5 px-3 font-medium">Current</th>
+                      <th className="text-right py-2.5 px-5 font-medium">PnL</th>
                     </tr>
                   </thead>
                   <tbody>
                     {positions.map((pos, i) => {
                       const pnl = parseFloat(pos.unrealized_pnl);
                       return (
-                        <tr key={i} className="border-t border-[var(--border-color)]/30 hover:bg-[var(--bg-card-hover)] transition-colors">
-                          <td className="py-2.5 font-medium">{pos.symbol}</td>
-                          <td className="py-2.5">
-                            <span className={`text-xs font-bold ${
-                              pos.side === 'LONG' ? 'text-[var(--accent-green)]' : 'text-[var(--accent-red)]'
+                        <tr key={i} className="border-t border-[var(--border-color)]/20 hover:bg-[var(--bg-card-hover)] transition-colors">
+                          <td className="py-3 px-5 font-medium">{pos.symbol}</td>
+                          <td className="py-3 px-3">
+                            <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${
+                              pos.side === 'LONG'
+                                ? 'bg-[var(--accent-green-dim)] text-[var(--accent-green)]'
+                                : 'bg-[var(--accent-red-dim)] text-[var(--accent-red)]'
                             }`}>
                               {pos.side}
                             </span>
                           </td>
-                          <td className="py-2.5 text-right font-mono text-xs">{pos.quantity}</td>
-                          <td className="py-2.5 text-right font-mono text-xs">${pos.avg_price}</td>
-                          <td className="py-2.5 text-right font-mono text-xs">${pos.current_price}</td>
-                          <td className={`py-2.5 text-right font-mono text-xs font-bold ${
+                          <td className="py-3 px-3 text-right font-mono text-xs tabular-nums">{pos.quantity}</td>
+                          <td className="py-3 px-3 text-right font-mono text-xs tabular-nums">${pos.avg_price}</td>
+                          <td className="py-3 px-3 text-right font-mono text-xs tabular-nums">${pos.current_price}</td>
+                          <td className={`py-3 px-5 text-right font-mono text-xs font-bold tabular-nums ${
                             pnl >= 0 ? 'text-[var(--accent-green)]' : 'text-[var(--accent-red)]'
                           }`}>
                             {pnl >= 0 ? '+' : ''}${pos.unrealized_pnl}
@@ -179,13 +229,13 @@ export default function TradingPage() {
           <DrawdownChart />
         </div>
 
-        {/* Right Sidebar: Risk, Signals, Kill Switch, Timeline */}
+        {/* Right Sidebar */}
         <div className="space-y-4">
           <RiskPanel
-            exposure={dailyPnl * 10 + 5000}
-            leverage={1.5}
-            marginUsed={35}
-            maxDrawdown={4.2}
+            exposure={riskMetrics.exposure}
+            leverage={riskMetrics.leverage}
+            marginUsed={riskMetrics.marginUsed}
+            maxDrawdown={riskMetrics.maxDrawdown}
           />
           <SignalPanel />
           <KillSwitch />
