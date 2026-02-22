@@ -3,20 +3,26 @@ interface StatusBadgeProps {
   label?: string;
 }
 
-const colorMap: Record<string, string> = {
-  ok: 'bg-[var(--accent-green)]/15 text-[var(--accent-green)] border-[var(--accent-green)]/30',
-  error: 'bg-[var(--accent-red)]/15 text-[var(--accent-red)] border-[var(--accent-red)]/30',
-  unreachable: 'bg-[var(--accent-yellow)]/15 text-[var(--accent-yellow)] border-[var(--accent-yellow)]/30',
-  running: 'bg-[var(--accent-blue)]/15 text-[var(--accent-blue)] border-[var(--accent-blue)]/30',
-  completed: 'bg-[var(--accent-green)]/15 text-[var(--accent-green)] border-[var(--accent-green)]/30',
-  failed: 'bg-[var(--accent-red)]/15 text-[var(--accent-red)] border-[var(--accent-red)]/30',
+const colorMap: Record<string, { bg: string; text: string; dot: string }> = {
+  ok: { bg: 'rgba(16,185,129,0.12)', text: 'var(--accent-green)', dot: 'var(--accent-green)' },
+  error: { bg: 'rgba(239,68,68,0.12)', text: 'var(--accent-red)', dot: 'var(--accent-red)' },
+  unreachable: { bg: 'rgba(234,179,8,0.12)', text: 'var(--accent-yellow)', dot: 'var(--accent-yellow)' },
+  running: { bg: 'rgba(59,130,246,0.12)', text: 'var(--accent-blue)', dot: 'var(--accent-blue)' },
+  completed: { bg: 'rgba(16,185,129,0.12)', text: 'var(--accent-green)', dot: 'var(--accent-green)' },
+  failed: { bg: 'rgba(239,68,68,0.12)', text: 'var(--accent-red)', dot: 'var(--accent-red)' },
 };
 
 export default function StatusBadge({ status, label }: StatusBadgeProps) {
-  const classes = colorMap[status] || colorMap['error'];
+  const colors = colorMap[status] || colorMap['error'];
   return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${classes}`}>
-      <span className="w-1.5 h-1.5 rounded-full bg-current mr-1.5" />
+    <span
+      className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium gap-1.5"
+      style={{ background: colors.bg, color: colors.text }}
+    >
+      <span
+        className="w-1.5 h-1.5 rounded-full status-dot"
+        style={{ background: colors.dot }}
+      />
       {label || status.toUpperCase()}
     </span>
   );
