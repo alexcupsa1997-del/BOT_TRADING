@@ -295,3 +295,116 @@ body {
   justify-content: center;
   padding-top: 20vh;
 }
+
+/* ── Micro-Interactions ──────────────────────────────────────── */
+
+/* Universal focus ring for keyboard navigation */
+*:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Button active press effect */
+.btn-primary:active:not(:disabled),
+.btn-danger:active,
+.btn-ghost:active {
+  transform: translateY(0) scale(0.97);
+  transition-duration: 50ms;
+}
+
+/* Interactive element smooth transitions */
+button, a, [role="button"] {
+  transition: all var(--transition-fast);
+}
+
+/* Table row hover with highlight bar */
+.table-row-interactive {
+  position: relative;
+  transition: all var(--transition-fast);
+}
+.table-row-interactive:hover {
+  background: var(--bg-elevated);
+}
+.table-row-interactive:hover::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--accent-blue);
+  border-radius: 0 2px 2px 0;
+}
+
+/* Card hover lift */
+.card-interactive {
+  transition: all var(--transition-base);
+  cursor: pointer;
+}
+.card-interactive:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+.card-interactive:active {
+  transform: translateY(0);
+  transition-duration: 50ms;
+}
+
+/* Badge pulse on new content */
+@keyframes badge-pop {
+  0% { transform: scale(0.5); opacity: 0; }
+  50% { transform: scale(1.15); }
+  100% { transform: scale(1); opacity: 1; }
+}
+.badge-pop { animation: badge-pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) both; }
+
+/* Smooth number transitions */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+  transition: color var(--transition-fast);
+}
+
+/* Glow pulse for critical metrics */
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: var(--shadow-md); }
+  50% { box-shadow: var(--shadow-md), 0 0 20px var(--glow-color, rgba(59, 130, 246, 0.2)); }
+}
+.glow-pulse { animation: glow-pulse 3s ease-in-out infinite; }
+
+/* Checkbox/toggle styles */
+input[type="checkbox"] {
+  accent-color: var(--accent-blue);
+  cursor: pointer;
+}
+input[type="checkbox"]:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 2px;
+}
+
+/* Select dropdown styles */
+select.input-field {
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 28px;
+  appearance: none;
+}
+
+/* Tooltip animation */
+@keyframes tooltip-in {
+  from { opacity: 0; transform: translateX(-4px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* Nav link active transition */
+.nav-active-bar {
+  transition: all var(--transition-base);
+}
+
+/* Responsive utilities */
+@media (max-width: 768px) {
+  .glass-card { border-radius: 12px; }
+  .glass-card:hover { transform: none; }
+}

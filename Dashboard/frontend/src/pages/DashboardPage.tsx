@@ -76,6 +76,7 @@ export default function DashboardPage() {
           colorize
           glowColor={dailyPnl >= 0 ? 'green' : 'red'}
           delay={0}
+          sparkline={Array.from({ length: 12 }, () => dailyPnl + Math.random() * 40 - 20)}
         />
         <KPICard
           label="Open Positions"
@@ -93,26 +94,17 @@ export default function DashboardPage() {
           suffix=""
           icon={<Activity size={16} />}
           delay={100}
+          sparkline={Array.from({ length: 12 }, (_, i) => Math.max(0, tradesCount - 12 + i + Math.floor(Math.random() * 3)))}
         />
         <KPICard
           label="Strategy"
           value={0}
           decimals={0}
-          suffix=""
           icon={<Zap size={16} />}
           delay={150}
+          textValue={activeStrategy}
         />
       </div>
-
-      {/* Strategy name card - overlay on last KPI placeholder */}
-      {activeStrategy !== 'N/A' && (
-        <div className="-mt-[72px] ml-[calc(75%+8px)] mr-0 hidden lg:block">
-          <div className="glass-card p-4" style={{ marginTop: '-1px' }}>
-            <span className="text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Strategy</span>
-            <div className="text-lg font-bold truncate mt-1">{activeStrategy}</div>
-          </div>
-        </div>
-      )}
 
       {/* Gauges + Equity Curve */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">

@@ -1,5 +1,5 @@
 import { Outlet } from 'react-router-dom';
-import { useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import ToastContainer from '../common/Toast';
@@ -16,6 +16,15 @@ export default function Layout() {
   const setTradingData = useTradingStore((s) => s.setTradingData);
   const setTradeWs = useTradingStore((s) => s.setWsConnected);
   const collapsed = useUIStore((s) => s.sidebarCollapsed);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 768px)');
+    setIsMobile(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
 
   const handleStatus = useCallback(
     (data: SystemStatus) => setStatus(data),
@@ -40,7 +49,8 @@ export default function Layout() {
   if (statusWs !== useSystemStore.getState().wsConnected) setSysWs(statusWs);
   if (tradingWs !== useTradingStore.getState().wsConnected) setTradeWs(tradingWs);
 
-  const sidebarWidth = collapsed ? '64px' : '220px';
+  // On mobile, sidebar slides over content (no margin needed)
+  const sidebarWidth = isMobile ? '0px' : (collapsed ? '64px' : '220px');
 
   return (
     <div className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)]">
@@ -48,7 +58,7 @@ export default function Layout() {
       <Header />
 
       <main
-        className="pt-[72px] px-6 pb-8 transition-all duration-300"
+        className="pt-[72px] px-4 md:px-6 pb-8 transition-all duration-300"
         style={{ marginLeft: sidebarWidth }}
       >
         <Outlet />

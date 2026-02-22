@@ -13,6 +13,33 @@ interface KPICardProps {
   colorize?: boolean;
   glowColor?: 'green' | 'red' | 'blue' | 'none';
   delay?: number;
+  sparkline?: number[];
+  textValue?: string;
+}
+
+function Sparkline({ data, color = 'var(--accent-blue)' }: { data: number[]; color?: string }) {
+  if (data.length < 2) return null;
+  const min = Math.min(...data);
+  const max = Math.max(...data);
+  const range = max - min || 1;
+  const w = 80;
+  const h = 24;
+  const points = data.map((v, i) =>
+    `${(i / (data.length - 1)) * w},${h - ((v - min) / range) * h}`
+  ).join(' ');
+
+  return (
+    <svg width={w} height={h} className="mt-1 opacity-60">
+      <polyline
+        points={points}
+        fill="none"
+        stroke={color}
+        strokeWidth={1.5}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
 }
 
 export default function KPICard({
@@ -27,12 +54,19 @@ export default function KPICard({
   colorize = false,
   glowColor = 'none',
   delay = 0,
+  sparkline,
+  textValue,
 }: KPICardProps) {
   const glowClass =
     glowColor === 'green' ? 'glow-green'
     : glowColor === 'red' ? 'glow-red'
     : glowColor === 'blue' ? 'glow-blue'
     : '';
+
+  const sparkColor =
+    glowColor === 'green' ? 'var(--accent-green)'
+    : glowColor === 'red' ? 'var(--accent-red)'
+    : 'var(--accent-blue)';
 
   return (
     <div
@@ -47,20 +81,31 @@ export default function KPICard({
           {icon}
         </div>
       </div>
-      <div className="text-2xl font-bold tracking-tight">
-        <AnimatedNumber
-          value={value}
-          prefix={prefix}
-          suffix={suffix}
-          decimals={decimals}
-          colorize={colorize}
-        />
-      </div>
-      {delta !== undefined && (
-        <div className={`text-xs mt-1 font-medium ${delta >= 0 ? 'text-[var(--accent-green)]' : 'text-[var(--accent-red)]'}`}>
-          {delta >= 0 ? '+' : ''}{delta.toFixed(2)}{deltaSuffix}
+
+      {textValue ? (
+        <div className="text-lg font-bold tracking-tight truncate">{textValue}</div>
+      ) : (
+        <div className="text-2xl font-bold tracking-tight">
+          <AnimatedNumber
+            value={value}
+            prefix={prefix}
+            suffix={suffix}
+            decimals={decimals}
+            colorize={colorize}
+          />
         </div>
       )}
+
+      <div className="flex items-end justify-between">
+        {delta !== undefined ? (
+          <div className={`text-xs mt-1 font-medium ${delta >= 0 ? 'text-[var(--accent-green)]' : 'text-[var(--accent-red)]'}`}>
+            {delta >= 0 ? '+' : ''}{delta.toFixed(2)}{deltaSuffix}
+          </div>
+        ) : (
+          <div />
+        )}
+        {sparkline && <Sparkline data={sparkline} color={sparkColor} />}
+      </div>
     </div>
   );
 }

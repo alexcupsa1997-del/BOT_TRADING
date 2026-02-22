@@ -67,6 +67,7 @@ export default function TradingPage() {
           value={0}
           decimals={0}
           icon={<Zap size={16} />}
+          textValue={activeStrategy}
         />
       </div>
 
