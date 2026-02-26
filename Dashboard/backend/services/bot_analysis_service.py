@@ -36,6 +36,13 @@ try:
 except ImportError:
     _CCXT_AVAILABLE = False
 
+# Try yfinance for forex fallback
+try:
+    import yfinance as yf
+    _YFINANCE_AVAILABLE = True
+except ImportError:
+    _YFINANCE_AVAILABLE = False
+
 try:
     import pandas as pd
     import numpy as np
@@ -52,7 +59,7 @@ class BotAnalysisService:
     """
 
     def __init__(self):
-        self._exchange = None
+        self._kraken = None
         self._regime_classifier = None
         self._analysis_log: List[Dict[str, Any]] = []
 
@@ -61,52 +68,92 @@ class BotAnalysisService:
 
         if _CCXT_AVAILABLE:
             try:
-                self._exchange = ccxt.binance({
-                    'enableRateLimit': True,
-                    'options': {'defaultType': 'spot'},
-                })
+                self._kraken = ccxt.kraken({'enableRateLimit': True})
             except Exception:
                 pass
 
     # ─── Symbol mapping ─────────────────────────────────────────────────
 
-    _BINANCE_MAP = {
-        'BTCUSD': 'BTC/USDT', 'ETHUSD': 'ETH/USDT', 'XRPUSD': 'XRP/USDT',
-        'SOLUSD': 'SOL/USDT', 'ADAUSD': 'ADA/USDT', 'DOTUSD': 'DOT/USDT',
-        'DOGEUSD': 'DOGE/USDT', 'AVAXUSD': 'AVAX/USDT', 'BNBUSD': 'BNB/USDT',
-        'MATICUSD': 'MATIC/USDT', 'LINKUSD': 'LINK/USDT', 'XAUUSD': 'PAXG/USDT',
+    # Kraken ccxt symbol for each supported pair
+    _KRAKEN_MAP = {
+        'EURUSD': 'EUR/USD',   'USDJPY': 'USD/JPY',   'GBPUSD': 'GBP/USD',
+        'USDCHF': 'USD/CHF',   'AUDUSD': 'AUD/USD',   'USDCAD': 'USD/CAD',
+        'EURJPY': 'EUR/JPY',   'EURGBP': 'EUR/GBP',
+        'BTCUSD': 'BTC/USD',   'ETHUSD': 'ETH/USD',
+        'XAUUSD': 'XAUT/USD',  # Tether Gold on Kraken
+    }
+
+    # Pairs only available via yfinance (not on Kraken)
+    _YFINANCE_MAP = {
+        'NZDUSD': 'NZDUSD=X',
+        'GBPJPY': 'GBPJPY=X',
     }
 
     _TF_MAP = {
         '1m': '1m', '5m': '5m', '15m': '15m', '1h': '1h', '4h': '4h', '1d': '1d',
     }
 
-    def _resolve_symbol(self, symbol: str) -> str:
-        return self._BINANCE_MAP.get(symbol, symbol)
+    _YF_TF_MAP = {
+        '1m': '1m', '5m': '5m', '15m': '15m', '1h': '1h', '4h': '1h', '1d': '1d',
+    }
+
+    _YF_PERIOD_MAP = {
+        '1m': '1d', '5m': '5d', '15m': '5d', '1h': '30d', '4h': '60d', '1d': '2y',
+    }
 
     # ─── Fetch OHLCV ────────────────────────────────────────────────────
 
     async def _fetch_ohlcv(self, symbol: str, timeframe: str, limit: int = 200) -> Optional[Any]:
-        if not _CCXT_AVAILABLE or not _PANDAS_AVAILABLE or self._exchange is None:
+        if not _PANDAS_AVAILABLE:
             return None
 
-        try:
-            ccxt_symbol = self._resolve_symbol(symbol)
-            ccxt_tf = self._TF_MAP.get(timeframe, '1h')
+        # Try Kraken first
+        if symbol in self._KRAKEN_MAP and _CCXT_AVAILABLE and self._kraken is not None:
+            try:
+                ccxt_symbol = self._KRAKEN_MAP[symbol]
+                ccxt_tf = self._TF_MAP.get(timeframe, '1h')
 
-            import asyncio
-            ohlcv = await asyncio.to_thread(
-                self._exchange.fetch_ohlcv, ccxt_symbol, ccxt_tf, limit=limit
-            )
+                import asyncio
+                ohlcv = await asyncio.to_thread(
+                    self._kraken.fetch_ohlcv, ccxt_symbol, ccxt_tf, limit=limit
+                )
 
-            df = pd.DataFrame(ohlcv, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
-            df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
-            df.set_index('timestamp', inplace=True)
-            return df
+                df = pd.DataFrame(ohlcv, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
+                df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
+                df.set_index('timestamp', inplace=True)
+                return df
+            except Exception as e:
+                logger.warning(f"Kraken fetch failed for {symbol}: {e}")
 
-        except Exception as e:
-            logger.error(f"Failed to fetch OHLCV for {symbol}: {e}")
-            return None
+        # Fallback to yfinance for unsupported pairs or Kraken failures
+        if _YFINANCE_AVAILABLE:
+            try:
+                yf_symbol = self._YFINANCE_MAP.get(symbol)
+                if yf_symbol is None:
+                    # Build yfinance ticker from symbol (e.g. EURUSD -> EURUSD=X)
+                    yf_symbol = f"{symbol}=X"
+
+                yf_tf = self._YF_TF_MAP.get(timeframe, '1h')
+                yf_period = self._YF_PERIOD_MAP.get(timeframe, '30d')
+
+                import asyncio
+                df = await asyncio.to_thread(
+                    lambda: yf.download(yf_symbol, period=yf_period, interval=yf_tf, progress=False)
+                )
+
+                if df is not None and len(df) > 0:
+                    # yfinance returns MultiIndex columns when single ticker, flatten
+                    if isinstance(df.columns, pd.MultiIndex):
+                        df.columns = df.columns.get_level_values(0)
+                    df.columns = [c.lower() for c in df.columns]
+                    if 'volume' not in df.columns:
+                        df['volume'] = 0
+                    return df
+            except Exception as e:
+                logger.error(f"yfinance fetch failed for {symbol}: {e}")
+
+        logger.error(f"All data sources failed for {symbol}")
+        return None
 
     # ─── Compute indicators from raw OHLCV ──────────────────────────────
 
