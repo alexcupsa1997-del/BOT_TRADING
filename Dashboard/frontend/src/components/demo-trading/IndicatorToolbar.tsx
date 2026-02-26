@@ -295,13 +295,13 @@ export default function IndicatorToolbar({ indicators, onToggle, onUpdate }: Pro
                                             {ind.label}
                                         </button>
 
-                                        {/* Gear button */}
+                                        {/* Gear button — same py-1 as toggle so heights match */}
                                         <button
                                             onClick={(e) => {
                                                 e.stopPropagation();
                                                 setOpenSettings(isSettingsOpen ? null : ind.id);
                                             }}
-                                            className={`flex items-center justify-center w-5 h-[26px] rounded-r-md border border-l-0 transition-all ${
+                                            className={`flex items-center justify-center px-1 py-1 rounded-r-md border border-l-0 transition-all text-[10px] ${
                                                 ind.active
                                                     ? 'border-opacity-30 bg-opacity-15'
                                                     : 'border-transparent bg-[var(--bg-elevated)]'
