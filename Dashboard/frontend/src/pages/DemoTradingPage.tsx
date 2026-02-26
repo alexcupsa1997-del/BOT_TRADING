@@ -738,7 +738,7 @@ export default function DemoTradingPage() {
             </div>
 
             {/* Main Layout: Chart + Trade Panel */}
-            <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4">
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_240px] gap-3">
                 <div className="glass-card overflow-hidden p-1">
                     {loading ? (
                         <div className="h-[500px] flex items-center justify-center">
@@ -763,7 +763,7 @@ export default function DemoTradingPage() {
                     )}
                 </div>
 
-                <div className="space-y-4">
+                <div className="space-y-2">
                     <TradePanel />
                     <PositionsPanel />
                 </div>
