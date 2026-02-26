@@ -67,8 +67,19 @@ export default function DemoTradingPage() {
         );
     }, []);
 
+    const updateIndicator = useCallback((id: string, changes: Partial<IndicatorConfig>) => {
+        setIndicators((prev) =>
+            prev.map((ind) => (ind.id === id ? { ...ind, ...changes } : ind))
+        );
+    }, []);
+
     const isActive = useCallback(
         (id: string) => indicators.find((i) => i.id === id)?.active ?? false,
+        [indicators],
+    );
+
+    const getInd = useCallback(
+        (id: string) => indicators.find((i) => i.id === id)!,
         [indicators],
     );
 
@@ -258,204 +269,11 @@ export default function DemoTradingPage() {
             volumeSeriesRef.current = volumeSeries as any;
         }
 
-        // ── SMA Overlays ──────────────────────────────────────────────────
-        const smaConfigs = [
-            { id: 'sma20', period: 20, color: '#06b6d4', width: 1 },
-            { id: 'sma50', period: 50, color: '#0ea5e9', width: 1 },
-            { id: 'sma200', period: 200, color: '#0284c7', width: 2 },
-        ];
-        for (const sc of smaConfigs) {
-            if (!isActive(sc.id)) continue;
-            const smaValues = calcSMA(candles, sc.period);
-            chart.addSeries(LineSeries, {
-                color: sc.color, lineWidth: sc.width as 1 | 2, priceLineVisible: false,
-                lastValueVisible: false, crosshairMarkerVisible: false,
-            }, 0).setData(toLineData(smaValues));
-        }
-
-        // ── EMA Overlays ───────────────────────────────────────────────────
-        const emaConfigs = [
-            { id: 'ema9', period: 9, color: '#f59e0b', width: 1 },
-            { id: 'ema21', period: 21, color: '#3b82f6', width: 1 },
-            { id: 'ema50', period: 50, color: '#a855f7', width: 2 },
-            { id: 'ema200', period: 200, color: '#ef4444', width: 2 },
-        ];
-        for (const ec of emaConfigs) {
-            if (!isActive(ec.id)) continue;
-            const emaValues = calcEMA(candles, ec.period);
-            chart.addSeries(LineSeries, {
-                color: ec.color, lineWidth: ec.width as 1 | 2, priceLineVisible: false,
-                lastValueVisible: false, crosshairMarkerVisible: false,
-            }, 0).setData(toLineData(emaValues));
-        }
-
-        // ── Bollinger Bands ────────────────────────────────────────────────
-        if (isActive('bb')) {
-            const bb = calcBollingerBands(candles, 20, 2);
-            const bbOpts = (c: string, style?: number) => ({
-                color: c, lineWidth: 1 as 1, lineStyle: style, priceLineVisible: false,
-                lastValueVisible: false, crosshairMarkerVisible: false,
-            });
-            chart.addSeries(LineSeries, bbOpts('rgba(99,102,241,0.5)'), 0).setData(toLineData(bb.upper));
-            chart.addSeries(LineSeries, bbOpts('rgba(99,102,241,0.3)', 2), 0).setData(toLineData(bb.middle));
-            chart.addSeries(LineSeries, bbOpts('rgba(99,102,241,0.5)'), 0).setData(toLineData(bb.lower));
-        }
-
-        // ── Keltner Channel ────────────────────────────────────────────────
-        if (isActive('keltner')) {
-            const kc = calcKeltnerChannel(candles, 20, 10, 1.5);
-            const kcOpts = (c: string, style?: number) => ({
-                color: c, lineWidth: 1 as 1, lineStyle: style, priceLineVisible: false,
-                lastValueVisible: false, crosshairMarkerVisible: false,
-            });
-            chart.addSeries(LineSeries, kcOpts('rgba(236,72,153,0.5)'), 0).setData(toLineData(kc.upper));
-            chart.addSeries(LineSeries, kcOpts('rgba(236,72,153,0.3)', 2), 0).setData(toLineData(kc.middle));
-            chart.addSeries(LineSeries, kcOpts('rgba(236,72,153,0.5)'), 0).setData(toLineData(kc.lower));
-        }
-
-        // ── Ichimoku Cloud ─────────────────────────────────────────────────
-        if (isActive('ichimoku')) {
-            const ichi = calcIchimoku(candles);
-            const ichiOpts = (c: string, w: number = 1) => ({
-                color: c, lineWidth: w as 1 | 2, priceLineVisible: false,
-                lastValueVisible: false, crosshairMarkerVisible: false,
-            });
-            chart.addSeries(LineSeries, ichiOpts('#2dd4bf', 1), 0).setData(toLineData(ichi.tenkan));
-            chart.addSeries(LineSeries, ichiOpts('#f97316', 1), 0).setData(toLineData(ichi.kijun));
-            chart.addSeries(LineSeries, ichiOpts('rgba(16,185,129,0.4)', 1), 0).setData(toLineData(ichi.senkouA));
-            chart.addSeries(LineSeries, ichiOpts('rgba(239,68,68,0.4)', 1), 0).setData(toLineData(ichi.senkouB));
-        }
-
-        // ── Parabolic SAR ──────────────────────────────────────────────────
-        if (isActive('psar')) {
-            const psarValues = calcParabolicSAR(candles);
-            chart.addSeries(LineSeries, {
-                color: '#fbbf24', lineWidth: 1, lineStyle: 0, priceLineVisible: false,
-                lastValueVisible: false, crosshairMarkerVisible: false,
-                pointMarkersVisible: true, pointMarkersRadius: 2,
-            }, 0).setData(toLineData(psarValues));
-        }
-
-        // ── VWAP ───────────────────────────────────────────────────────────
-        if (isActive('vwap')) {
-            const vwapValues = calcVWAP(candles);
-            chart.addSeries(LineSeries, {
-                color: '#14b8a6', lineWidth: 2, lineStyle: 2, priceLineVisible: false,
-                lastValueVisible: false, crosshairMarkerVisible: false,
-            }, 0).setData(toLineData(vwapValues));
-        }
-
-        // ── RSI Pane ───────────────────────────────────────────────────────
-        let nextPaneIdx = 1;
-        if (hasRSI) {
-            chart.addPane();
-            const rsiValues = calcRSI(candles, 14);
-
-            const rsiSeries = chart.addSeries(LineSeries, {
-                color: '#f97316',
-                lineWidth: 2,
-                priceLineVisible: false,
-                lastValueVisible: true,
-            }, nextPaneIdx);
-
-            rsiSeries.setData(
-                candles.map((c, i) => ({ time: c.time as any, value: rsiValues[i] ?? undefined }))
-                    .filter((d) => d.value !== undefined)
-            );
-
-            // Overbought/Oversold reference lines
-            const rsi70 = chart.addSeries(LineSeries, {
-                color: 'rgba(239,68,68,0.3)',
-                lineWidth: 1,
-                lineStyle: 2,
-                priceLineVisible: false,
-                lastValueVisible: false,
-                crosshairMarkerVisible: false,
-            }, nextPaneIdx);
-
-            const rsi30 = chart.addSeries(LineSeries, {
-                color: 'rgba(16,185,129,0.3)',
-                lineWidth: 1,
-                lineStyle: 2,
-                priceLineVisible: false,
-                lastValueVisible: false,
-                crosshairMarkerVisible: false,
-            }, nextPaneIdx);
-
-            const rsi50 = chart.addSeries(LineSeries, {
-                color: 'rgba(100,116,139,0.2)',
-                lineWidth: 1,
-                lineStyle: 2,
-                priceLineVisible: false,
-                lastValueVisible: false,
-                crosshairMarkerVisible: false,
-            }, nextPaneIdx);
-
-            const validCandles = candles.filter((_, i) => rsiValues[i] !== null);
-            const refData = (val: number) =>
-                validCandles.map((c) => ({ time: c.time as any, value: val }));
-
-            rsi70.setData(refData(70));
-            rsi30.setData(refData(30));
-            rsi50.setData(refData(50));
-
-            nextPaneIdx++;
-        }
-
-        // ── MACD Pane ──────────────────────────────────────────────────────
-        if (hasMACD) {
-            chart.addPane();
-            const macdResult = calcMACD(candles, 12, 26, 9);
-
-            const macdLine = chart.addSeries(LineSeries, {
-                color: '#8b5cf6',
-                lineWidth: 2,
-                priceLineVisible: false,
-                lastValueVisible: true,
-            }, nextPaneIdx);
-
-            const signalLine = chart.addSeries(LineSeries, {
-                color: '#f97316',
-                lineWidth: 1,
-                priceLineVisible: false,
-                lastValueVisible: false,
-                crosshairMarkerVisible: false,
-            }, nextPaneIdx);
-
-            const macdHist = chart.addSeries(HistogramSeries, {
-                priceLineVisible: false,
-                lastValueVisible: false,
-            }, nextPaneIdx);
-
-            macdLine.setData(toLineData(macdResult.macd));
-            signalLine.setData(toLineData(macdResult.signal));
-            macdHist.setData(
-                candles
-                    .map((c, i) => {
-                        const v = macdResult.histogram[i];
-                        if (v === null) return null;
-                        return {
-                            time: c.time as any,
-                            value: v,
-                            color: v >= 0 ? 'rgba(16,185,129,0.5)' : 'rgba(239,68,68,0.5)',
-                        };
-                    })
-                    .filter(Boolean) as any
-            );
-
-            // zero line
-            const zeroLine = chart.addSeries(LineSeries, {
-                color: 'rgba(100,116,139,0.2)',
-                lineWidth: 1,
-                lineStyle: 2,
-                priceLineVisible: false,
-                lastValueVisible: false,
-                crosshairMarkerVisible: false,
-            }, nextPaneIdx);
-
-            const validMacd = candles.filter((_, i) => macdResult.macd[i] !== null);
-            zeroLine.setData(validMacd.map((c) => ({ time: c.time as any, value: 0 })));
-        }
+        // ── Helper: line series opts from config ─────────────────────────
+        const lineOpts = (ind: IndicatorConfig, overrides?: Record<string, any>) => ({
+            color: ind.color, lineWidth: ind.lineWidth, priceLineVisible: false,
+            lastValueVisible: false, crosshairMarkerVisible: false, ...overrides,
+        });
 
         // Helper: add horizontal reference line in a pane
         const addRefLine = (pane: number, val: number, color: string) => {
@@ -463,16 +281,126 @@ export default function DemoTradingPage() {
                 color, lineWidth: 1, lineStyle: 2,
                 priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false,
             }, pane);
-            const validCandles = candles.filter((_, i) => i >= 10); // enough data
-            s.setData(validCandles.map((c) => ({ time: c.time as any, value: val })));
+            const validC = candles.filter((_, i) => i >= 10);
+            s.setData(validC.map((c) => ({ time: c.time as any, value: val })));
         };
+
+        // ── SMA Overlays ──────────────────────────────────────────────────
+        for (const id of ['sma20', 'sma50', 'sma200']) {
+            if (!isActive(id)) continue;
+            const cfg = getInd(id);
+            chart.addSeries(LineSeries, lineOpts(cfg), 0)
+                .setData(toLineData(calcSMA(candles, cfg.params.period)));
+        }
+
+        // ── EMA Overlays ───────────────────────────────────────────────────
+        for (const id of ['ema9', 'ema21', 'ema50', 'ema200']) {
+            if (!isActive(id)) continue;
+            const cfg = getInd(id);
+            chart.addSeries(LineSeries, lineOpts(cfg), 0)
+                .setData(toLineData(calcEMA(candles, cfg.params.period)));
+        }
+
+        // ── Bollinger Bands ────────────────────────────────────────────────
+        if (isActive('bb')) {
+            const cfg = getInd('bb');
+            const bb = calcBollingerBands(candles, cfg.params.period, cfg.params.stdDev);
+            const bandOpts = (opacity: number, style?: number) => ({
+                color: cfg.color + (opacity < 1 ? '80' : '50'), lineWidth: cfg.lineWidth,
+                lineStyle: style, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false,
+            });
+            chart.addSeries(LineSeries, bandOpts(0.5), 0).setData(toLineData(bb.upper));
+            chart.addSeries(LineSeries, bandOpts(0.3, 2), 0).setData(toLineData(bb.middle));
+            chart.addSeries(LineSeries, bandOpts(0.5), 0).setData(toLineData(bb.lower));
+        }
+
+        // ── Keltner Channel ────────────────────────────────────────────────
+        if (isActive('keltner')) {
+            const cfg = getInd('keltner');
+            const kc = calcKeltnerChannel(candles, cfg.params.emaPeriod, cfg.params.atrPeriod, cfg.params.multiplier);
+            const kcOpts = (opacity: number, style?: number) => ({
+                color: cfg.color + (opacity < 1 ? '80' : '50'), lineWidth: cfg.lineWidth,
+                lineStyle: style, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false,
+            });
+            chart.addSeries(LineSeries, kcOpts(0.5), 0).setData(toLineData(kc.upper));
+            chart.addSeries(LineSeries, kcOpts(0.3, 2), 0).setData(toLineData(kc.middle));
+            chart.addSeries(LineSeries, kcOpts(0.5), 0).setData(toLineData(kc.lower));
+        }
+
+        // ── Ichimoku Cloud ─────────────────────────────────────────────────
+        if (isActive('ichimoku')) {
+            const cfg = getInd('ichimoku');
+            const ichi = calcIchimoku(candles, cfg.params.tenkan, cfg.params.kijun, cfg.params.senkouB);
+            chart.addSeries(LineSeries, lineOpts(cfg, { color: '#2dd4bf' }), 0).setData(toLineData(ichi.tenkan));
+            chart.addSeries(LineSeries, lineOpts(cfg, { color: cfg.color }), 0).setData(toLineData(ichi.kijun));
+            chart.addSeries(LineSeries, lineOpts(cfg, { color: 'rgba(16,185,129,0.4)' }), 0).setData(toLineData(ichi.senkouA));
+            chart.addSeries(LineSeries, lineOpts(cfg, { color: 'rgba(239,68,68,0.4)' }), 0).setData(toLineData(ichi.senkouB));
+        }
+
+        // ── Parabolic SAR ──────────────────────────────────────────────────
+        if (isActive('psar')) {
+            const cfg = getInd('psar');
+            chart.addSeries(LineSeries, {
+                color: cfg.color, lineWidth: cfg.lineWidth, lineStyle: 0, priceLineVisible: false,
+                lastValueVisible: false, crosshairMarkerVisible: false,
+                pointMarkersVisible: true, pointMarkersRadius: 2,
+            }, 0).setData(toLineData(calcParabolicSAR(candles, cfg.params.step, cfg.params.max)));
+        }
+
+        // ── VWAP ───────────────────────────────────────────────────────────
+        if (isActive('vwap')) {
+            const cfg = getInd('vwap');
+            chart.addSeries(LineSeries, lineOpts(cfg, { lineStyle: 2 }), 0)
+                .setData(toLineData(calcVWAP(candles)));
+        }
+
+        // ── RSI Pane ───────────────────────────────────────────────────────
+        let nextPaneIdx = 1;
+        if (hasRSI) {
+            chart.addPane();
+            const cfg = getInd('rsi');
+            const rsiValues = calcRSI(candles, cfg.params.period);
+            chart.addSeries(LineSeries, {
+                color: cfg.color, lineWidth: cfg.lineWidth, priceLineVisible: false, lastValueVisible: true,
+            }, nextPaneIdx).setData(toLineData(rsiValues));
+            addRefLine(nextPaneIdx, 70, 'rgba(239,68,68,0.3)');
+            addRefLine(nextPaneIdx, 30, 'rgba(16,185,129,0.3)');
+            addRefLine(nextPaneIdx, 50, 'rgba(100,116,139,0.2)');
+            nextPaneIdx++;
+        }
+
+        // ── MACD Pane ──────────────────────────────────────────────────────
+        if (hasMACD) {
+            chart.addPane();
+            const cfg = getInd('macd');
+            const macdResult = calcMACD(candles, cfg.params.fast, cfg.params.slow, cfg.params.signal);
+            chart.addSeries(LineSeries, {
+                color: cfg.color, lineWidth: cfg.lineWidth, priceLineVisible: false, lastValueVisible: true,
+            }, nextPaneIdx).setData(toLineData(macdResult.macd));
+            chart.addSeries(LineSeries, {
+                color: '#f97316', lineWidth: 1, priceLineVisible: false,
+                lastValueVisible: false, crosshairMarkerVisible: false,
+            }, nextPaneIdx).setData(toLineData(macdResult.signal));
+            chart.addSeries(HistogramSeries, {
+                priceLineVisible: false, lastValueVisible: false,
+            }, nextPaneIdx).setData(
+                candles.map((c, i) => {
+                    const v = macdResult.histogram[i];
+                    if (v === null) return null;
+                    return { time: c.time as any, value: v, color: v >= 0 ? 'rgba(16,185,129,0.5)' : 'rgba(239,68,68,0.5)' };
+                }).filter(Boolean) as any
+            );
+            addRefLine(nextPaneIdx, 0, 'rgba(100,116,139,0.2)');
+            nextPaneIdx++;
+        }
 
         // ── Stochastic Pane ──────────────────────────────────────────────
         if (hasStoch) {
             chart.addPane();
-            const stoch = calcStochastic(candles, 14, 3);
+            const cfg = getInd('stochastic');
+            const stoch = calcStochastic(candles, cfg.params.kPeriod, cfg.params.dPeriod);
             chart.addSeries(LineSeries, {
-                color: '#10b981', lineWidth: 2, priceLineVisible: false, lastValueVisible: true,
+                color: cfg.color, lineWidth: cfg.lineWidth, priceLineVisible: false, lastValueVisible: true,
             }, nextPaneIdx).setData(toLineData(stoch.k));
             chart.addSeries(LineSeries, {
                 color: '#f97316', lineWidth: 1, priceLineVisible: false,
@@ -487,10 +415,10 @@ export default function DemoTradingPage() {
         // ── CCI Pane ─────────────────────────────────────────────────────
         if (hasCCI) {
             chart.addPane();
-            const cciValues = calcCCI(candles, 20);
+            const cfg = getInd('cci');
             chart.addSeries(LineSeries, {
-                color: '#eab308', lineWidth: 2, priceLineVisible: false, lastValueVisible: true,
-            }, nextPaneIdx).setData(toLineData(cciValues));
+                color: cfg.color, lineWidth: cfg.lineWidth, priceLineVisible: false, lastValueVisible: true,
+            }, nextPaneIdx).setData(toLineData(calcCCI(candles, cfg.params.period)));
             addRefLine(nextPaneIdx, 100, 'rgba(239,68,68,0.3)');
             addRefLine(nextPaneIdx, -100, 'rgba(16,185,129,0.3)');
             addRefLine(nextPaneIdx, 0, 'rgba(100,116,139,0.2)');
@@ -500,10 +428,10 @@ export default function DemoTradingPage() {
         // ── Williams %R Pane ─────────────────────────────────────────────
         if (hasWillR) {
             chart.addPane();
-            const wrValues = calcWilliamsR(candles, 14);
+            const cfg = getInd('williamsR');
             chart.addSeries(LineSeries, {
-                color: '#f43f5e', lineWidth: 2, priceLineVisible: false, lastValueVisible: true,
-            }, nextPaneIdx).setData(toLineData(wrValues));
+                color: cfg.color, lineWidth: cfg.lineWidth, priceLineVisible: false, lastValueVisible: true,
+            }, nextPaneIdx).setData(toLineData(calcWilliamsR(candles, cfg.params.period)));
             addRefLine(nextPaneIdx, -20, 'rgba(239,68,68,0.3)');
             addRefLine(nextPaneIdx, -80, 'rgba(16,185,129,0.3)');
             addRefLine(nextPaneIdx, -50, 'rgba(100,116,139,0.2)');
@@ -513,29 +441,30 @@ export default function DemoTradingPage() {
         // ── OBV Pane ─────────────────────────────────────────────────────
         if (hasOBV) {
             chart.addPane();
-            const obvValues = calcOBV(candles);
+            const cfg = getInd('obv');
             chart.addSeries(LineSeries, {
-                color: '#22d3ee', lineWidth: 2, priceLineVisible: false, lastValueVisible: true,
-            }, nextPaneIdx).setData(toLineData(obvValues));
+                color: cfg.color, lineWidth: cfg.lineWidth, priceLineVisible: false, lastValueVisible: true,
+            }, nextPaneIdx).setData(toLineData(calcOBV(candles)));
             nextPaneIdx++;
         }
 
         // ── ATR Pane ─────────────────────────────────────────────────────
         if (hasATR) {
             chart.addPane();
-            const atrValues = calcATR(candles, 14);
+            const cfg = getInd('atr');
             chart.addSeries(LineSeries, {
-                color: '#84cc16', lineWidth: 2, priceLineVisible: false, lastValueVisible: true,
-            }, nextPaneIdx).setData(toLineData(atrValues));
+                color: cfg.color, lineWidth: cfg.lineWidth, priceLineVisible: false, lastValueVisible: true,
+            }, nextPaneIdx).setData(toLineData(calcATR(candles, cfg.params.period)));
             nextPaneIdx++;
         }
 
         // ── ADX Pane ─────────────────────────────────────────────────────
         if (hasADX) {
             chart.addPane();
-            const adxResult = calcADX(candles, 14);
+            const cfg = getInd('adx');
+            const adxResult = calcADX(candles, cfg.params.period);
             chart.addSeries(LineSeries, {
-                color: '#2dd4bf', lineWidth: 2, priceLineVisible: false, lastValueVisible: true,
+                color: cfg.color, lineWidth: cfg.lineWidth, priceLineVisible: false, lastValueVisible: true,
             }, nextPaneIdx).setData(toLineData(adxResult.adx));
             chart.addSeries(LineSeries, {
                 color: '#10b981', lineWidth: 1, priceLineVisible: false,
@@ -733,7 +662,7 @@ export default function DemoTradingPage() {
 
                 {/* Indicator Toolbar */}
                 <div className="border-t border-[var(--border-color)] pt-2.5">
-                    <IndicatorToolbar indicators={indicators} onToggle={toggleIndicator} />
+                    <IndicatorToolbar indicators={indicators} onToggle={toggleIndicator} onUpdate={updateIndicator} />
                 </div>
             </div>
 
