@@ -308,7 +308,7 @@ export default function IndicatorToolbar({ indicators, onToggle, onUpdate }: Pro
                                             } ${isSettingsOpen ? 'text-[var(--accent-blue)]' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'}`}
                                             style={
                                                 ind.active
-                                                    ? { borderColor: ind.color + '50', backgroundColor: ind.color + '10' }
+                                                    ? { borderColor: ind.color + '50', backgroundColor: ind.color + '20' }
                                                     : undefined
                                             }
                                         >
