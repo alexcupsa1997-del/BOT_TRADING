@@ -7,6 +7,8 @@ import {
 
 /* ─── Types ──────────────────────────────────────────────────────── */
 
+export type PriceScaleMode = 'normal' | 'log' | 'percentage' | 'indexedTo100';
+
 export interface IndicatorConfig {
     id: string;
     label: string;
@@ -14,6 +16,7 @@ export interface IndicatorConfig {
     active: boolean;
     color: string;
     lineWidth: 1 | 2 | 3 | 4;
+    scaleMode: PriceScaleMode;
     group: 'ma' | 'bands' | 'volume' | 'momentum' | 'volatility' | 'trend';
     description?: string;
     params: Record<string, number>;
@@ -56,40 +59,47 @@ export const INDICATOR_GROUPS = {
 
 export const DEFAULT_INDICATORS: IndicatorConfig[] = [
     // Medie Mobili
-    { id: 'sma20', label: 'SMA 20', icon: TrendingUp, active: false, color: '#06b6d4', lineWidth: 1, group: 'ma', description: 'Simple Moving Average', params: { period: 20 } },
-    { id: 'sma50', label: 'SMA 50', icon: TrendingUp, active: false, color: '#0ea5e9', lineWidth: 1, group: 'ma', description: 'Simple Moving Average', params: { period: 50 } },
-    { id: 'sma200', label: 'SMA 200', icon: TrendingUp, active: false, color: '#0284c7', lineWidth: 2, group: 'ma', description: 'Simple Moving Average', params: { period: 200 } },
-    { id: 'ema9', label: 'EMA 9', icon: TrendingUp, active: true, color: '#f59e0b', lineWidth: 1, group: 'ma', description: 'Exponential Moving Average', params: { period: 9 } },
-    { id: 'ema21', label: 'EMA 21', icon: TrendingUp, active: true, color: '#3b82f6', lineWidth: 1, group: 'ma', description: 'Exponential Moving Average', params: { period: 21 } },
-    { id: 'ema50', label: 'EMA 50', icon: TrendingUp, active: false, color: '#a855f7', lineWidth: 2, group: 'ma', description: 'Exponential Moving Average', params: { period: 50 } },
-    { id: 'ema200', label: 'EMA 200', icon: TrendingUp, active: false, color: '#ef4444', lineWidth: 2, group: 'ma', description: 'Exponential Moving Average', params: { period: 200 } },
+    { id: 'sma20', label: 'SMA 20', icon: TrendingUp, active: false, color: '#06b6d4', lineWidth: 1, scaleMode: 'normal', group: 'ma', description: 'Simple Moving Average', params: { period: 20 } },
+    { id: 'sma50', label: 'SMA 50', icon: TrendingUp, active: false, color: '#0ea5e9', lineWidth: 1, scaleMode: 'normal', group: 'ma', description: 'Simple Moving Average', params: { period: 50 } },
+    { id: 'sma200', label: 'SMA 200', icon: TrendingUp, active: false, color: '#0284c7', lineWidth: 2, scaleMode: 'normal', group: 'ma', description: 'Simple Moving Average', params: { period: 200 } },
+    { id: 'ema9', label: 'EMA 9', icon: TrendingUp, active: true, color: '#f59e0b', lineWidth: 1, scaleMode: 'normal', group: 'ma', description: 'Exponential Moving Average', params: { period: 9 } },
+    { id: 'ema21', label: 'EMA 21', icon: TrendingUp, active: true, color: '#3b82f6', lineWidth: 1, scaleMode: 'normal', group: 'ma', description: 'Exponential Moving Average', params: { period: 21 } },
+    { id: 'ema50', label: 'EMA 50', icon: TrendingUp, active: false, color: '#a855f7', lineWidth: 2, scaleMode: 'normal', group: 'ma', description: 'Exponential Moving Average', params: { period: 50 } },
+    { id: 'ema200', label: 'EMA 200', icon: TrendingUp, active: false, color: '#ef4444', lineWidth: 2, scaleMode: 'normal', group: 'ma', description: 'Exponential Moving Average', params: { period: 200 } },
 
     // Bande & Canali
-    { id: 'bb', label: 'Bollinger', icon: Layers, active: true, color: '#6366f1', lineWidth: 1, group: 'bands', description: 'Bollinger Bands', params: { period: 20, stdDev: 2 } },
-    { id: 'keltner', label: 'Keltner', icon: Layers, active: false, color: '#ec4899', lineWidth: 1, group: 'bands', description: 'Keltner Channel', params: { emaPeriod: 20, atrPeriod: 10, multiplier: 1.5 } },
-    { id: 'ichimoku', label: 'Ichimoku', icon: Layers, active: false, color: '#f97316', lineWidth: 1, group: 'bands', description: 'Ichimoku Cloud', params: { tenkan: 9, kijun: 26, senkouB: 52 } },
+    { id: 'bb', label: 'Bollinger', icon: Layers, active: true, color: '#6366f1', lineWidth: 1, scaleMode: 'normal', group: 'bands', description: 'Bollinger Bands', params: { period: 20, stdDev: 2 } },
+    { id: 'keltner', label: 'Keltner', icon: Layers, active: false, color: '#ec4899', lineWidth: 1, scaleMode: 'normal', group: 'bands', description: 'Keltner Channel', params: { emaPeriod: 20, atrPeriod: 10, multiplier: 1.5 } },
+    { id: 'ichimoku', label: 'Ichimoku', icon: Layers, active: false, color: '#f97316', lineWidth: 1, scaleMode: 'normal', group: 'bands', description: 'Ichimoku Cloud', params: { tenkan: 9, kijun: 26, senkouB: 52 } },
 
     // Volume
-    { id: 'volume', label: 'Volume', icon: BarChart3, active: true, color: '#64748b', lineWidth: 1, group: 'volume', description: 'Volume histogram', params: {} },
-    { id: 'vwap', label: 'VWAP', icon: LineChart, active: false, color: '#14b8a6', lineWidth: 2, group: 'volume', description: 'Volume Weighted Avg Price', params: {} },
-    { id: 'obv', label: 'OBV', icon: BarChart3, active: false, color: '#22d3ee', lineWidth: 2, group: 'volume', description: 'On Balance Volume', params: {} },
+    { id: 'volume', label: 'Volume', icon: BarChart3, active: true, color: '#64748b', lineWidth: 1, scaleMode: 'normal', group: 'volume', description: 'Volume histogram', params: {} },
+    { id: 'vwap', label: 'VWAP', icon: LineChart, active: false, color: '#14b8a6', lineWidth: 2, scaleMode: 'normal', group: 'volume', description: 'Volume Weighted Avg Price', params: {} },
+    { id: 'obv', label: 'OBV', icon: BarChart3, active: false, color: '#22d3ee', lineWidth: 2, scaleMode: 'normal', group: 'volume', description: 'On Balance Volume', params: {} },
 
     // Momentum
-    { id: 'rsi', label: 'RSI', icon: Activity, active: true, color: '#f97316', lineWidth: 2, group: 'momentum', description: 'Relative Strength Index', params: { period: 14 } },
-    { id: 'macd', label: 'MACD', icon: Activity, active: false, color: '#8b5cf6', lineWidth: 2, group: 'momentum', description: 'MACD', params: { fast: 12, slow: 26, signal: 9 } },
-    { id: 'stochastic', label: 'Stochastic', icon: Gauge, active: false, color: '#10b981', lineWidth: 2, group: 'momentum', description: 'Stochastic Oscillator', params: { kPeriod: 14, dPeriod: 3 } },
-    { id: 'cci', label: 'CCI', icon: Activity, active: false, color: '#eab308', lineWidth: 2, group: 'momentum', description: 'Commodity Channel Index', params: { period: 20 } },
-    { id: 'williamsR', label: 'Will %R', icon: Activity, active: false, color: '#f43f5e', lineWidth: 2, group: 'momentum', description: 'Williams Percent Range', params: { period: 14 } },
+    { id: 'rsi', label: 'RSI', icon: Activity, active: true, color: '#f97316', lineWidth: 2, scaleMode: 'normal', group: 'momentum', description: 'Relative Strength Index', params: { period: 14 } },
+    { id: 'macd', label: 'MACD', icon: Activity, active: false, color: '#8b5cf6', lineWidth: 2, scaleMode: 'normal', group: 'momentum', description: 'MACD', params: { fast: 12, slow: 26, signal: 9 } },
+    { id: 'stochastic', label: 'Stochastic', icon: Gauge, active: false, color: '#10b981', lineWidth: 2, scaleMode: 'normal', group: 'momentum', description: 'Stochastic Oscillator', params: { kPeriod: 14, dPeriod: 3 } },
+    { id: 'cci', label: 'CCI', icon: Activity, active: false, color: '#eab308', lineWidth: 2, scaleMode: 'normal', group: 'momentum', description: 'Commodity Channel Index', params: { period: 20 } },
+    { id: 'williamsR', label: 'Will %R', icon: Activity, active: false, color: '#f43f5e', lineWidth: 2, scaleMode: 'normal', group: 'momentum', description: 'Williams Percent Range', params: { period: 14 } },
 
     // Volatilità
-    { id: 'atr', label: 'ATR', icon: Waves, active: false, color: '#84cc16', lineWidth: 2, group: 'volatility', description: 'Average True Range', params: { period: 14 } },
+    { id: 'atr', label: 'ATR', icon: Waves, active: false, color: '#84cc16', lineWidth: 2, scaleMode: 'normal', group: 'volatility', description: 'Average True Range', params: { period: 14 } },
 
     // Trend
-    { id: 'psar', label: 'P. SAR', icon: Circle, active: false, color: '#fbbf24', lineWidth: 1, group: 'trend', description: 'Parabolic Stop & Reverse', params: { step: 0.02, max: 0.2 } },
-    { id: 'adx', label: 'ADX', icon: Target, active: false, color: '#2dd4bf', lineWidth: 2, group: 'trend', description: 'Average Directional Index', params: { period: 14 } },
+    { id: 'psar', label: 'P. SAR', icon: Circle, active: false, color: '#fbbf24', lineWidth: 1, scaleMode: 'normal', group: 'trend', description: 'Parabolic Stop & Reverse', params: { step: 0.02, max: 0.2 } },
+    { id: 'adx', label: 'ADX', icon: Target, active: false, color: '#2dd4bf', lineWidth: 2, scaleMode: 'normal', group: 'trend', description: 'Average Directional Index', params: { period: 14 } },
 ];
 
 /* ─── Settings Popover ───────────────────────────────────────────── */
+
+const SCALE_MODES: { value: PriceScaleMode; label: string }[] = [
+    { value: 'normal', label: 'Normal' },
+    { value: 'log', label: 'Log' },
+    { value: 'percentage', label: '%' },
+    { value: 'indexedTo100', label: 'Idx100' },
+];
 
 function IndicatorSettingsPopover({
     indicator,
@@ -103,12 +113,30 @@ function IndicatorSettingsPopover({
     const ref = useRef<HTMLDivElement>(null);
     const paramDefs = INDICATOR_PARAM_DEFS[indicator.id] || [];
 
+    // Local param state for smooth slider dragging (avoids chart rebuild on every tick)
+    const [localParams, setLocalParams] = useState(indicator.params);
+    const commitTimer = useRef<ReturnType<typeof setTimeout>>(null);
+
+    // Sync local state when indicator changes externally
+    useEffect(() => { setLocalParams(indicator.params); }, [indicator.id]);
+
+    const handleParamChange = useCallback((key: string, val: number) => {
+        const newParams = { ...localParams, [key]: val };
+        setLocalParams(newParams);
+        // Debounce: commit to parent after user stops dragging
+        if (commitTimer.current) clearTimeout(commitTimer.current);
+        commitTimer.current = setTimeout(() => {
+            onUpdate(indicator.id, { params: newParams });
+        }, 300);
+    }, [localParams, indicator.id, onUpdate]);
+
     useEffect(() => {
+        const close = onClose;
         const handleClick = (e: MouseEvent) => {
-            if (ref.current && !ref.current.contains(e.target as Node)) onClose();
+            if (ref.current && !ref.current.contains(e.target as Node)) close();
         };
         const handleKey = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') onClose();
+            if (e.key === 'Escape') close();
         };
         document.addEventListener('mousedown', handleClick);
         document.addEventListener('keydown', handleKey);
@@ -118,11 +146,15 @@ function IndicatorSettingsPopover({
         };
     }, [onClose]);
 
+    // Cleanup debounce timer on unmount
+    useEffect(() => () => { if (commitTimer.current) clearTimeout(commitTimer.current); }, []);
+
     return (
         <div
             ref={ref}
-            className="absolute top-full left-0 mt-1 z-50 min-w-[200px] rounded-lg border border-[var(--border-color)] bg-[var(--bg-card)] shadow-xl shadow-black/30 p-2.5 space-y-2"
-            style={{ animation: 'fadeInUp 0.15s ease-out' }}
+            className="absolute top-full left-0 mt-1 z-[999] min-w-[210px] rounded-lg border border-[var(--border-color)] shadow-xl shadow-black/30 p-2.5 space-y-2"
+            style={{ animation: 'fadeInUp 0.15s ease-out', backgroundColor: '#1e293b', pointerEvents: 'auto' }}
+            onMouseDown={(e) => e.stopPropagation()}
             onClick={(e) => e.stopPropagation()}
         >
             <div className="text-[10px] font-semibold text-[var(--text-primary)] uppercase tracking-wider mb-1">
@@ -167,6 +199,26 @@ function IndicatorSettingsPopover({
                 </div>
             </div>
 
+            {/* Scale Mode */}
+            <div>
+                <span className="text-[10px] text-[var(--text-muted)]">Scala</span>
+                <div className="flex gap-1 mt-0.5">
+                    {SCALE_MODES.map((sm) => (
+                        <button
+                            key={sm.value}
+                            onClick={() => onUpdate(indicator.id, { scaleMode: sm.value })}
+                            className={`flex-1 py-1 rounded text-[10px] font-medium transition-all ${
+                                indicator.scaleMode === sm.value
+                                    ? 'bg-[var(--accent-blue)] text-white'
+                                    : 'bg-[var(--bg-elevated)] text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
+                            }`}
+                        >
+                            {sm.label}
+                        </button>
+                    ))}
+                </div>
+            </div>
+
             {/* Params */}
             {paramDefs.map((def) => (
                 <div key={def.key}>
@@ -174,8 +226,8 @@ function IndicatorSettingsPopover({
                         <span className="text-[10px] text-[var(--text-muted)]">{def.label}</span>
                         <span className="text-[10px] font-mono text-[var(--text-secondary)]">
                             {def.step < 1
-                                ? (indicator.params[def.key] ?? 0).toFixed(String(def.step).split('.')[1]?.length || 2)
-                                : indicator.params[def.key] ?? 0}
+                                ? (localParams[def.key] ?? 0).toFixed(String(def.step).split('.')[1]?.length || 2)
+                                : localParams[def.key] ?? 0}
                         </span>
                     </div>
                     <input
@@ -183,13 +235,8 @@ function IndicatorSettingsPopover({
                         min={def.min}
                         max={def.max}
                         step={def.step}
-                        value={indicator.params[def.key] ?? 0}
-                        onChange={(e) => {
-                            const val = parseFloat(e.target.value);
-                            onUpdate(indicator.id, {
-                                params: { ...indicator.params, [def.key]: val },
-                            });
-                        }}
+                        value={localParams[def.key] ?? 0}
+                        onChange={(e) => handleParamChange(def.key, parseFloat(e.target.value))}
                         className="w-full h-1 mt-0.5 accent-[var(--accent-blue)]"
                     />
                 </div>

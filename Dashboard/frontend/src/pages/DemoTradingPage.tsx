@@ -19,6 +19,7 @@ import TradeHistoryTable from '../components/demo-trading/TradeHistoryTable';
 import IndicatorToolbar, {
     DEFAULT_INDICATORS,
     type IndicatorConfig,
+    type PriceScaleMode,
 } from '../components/demo-trading/IndicatorToolbar';
 import {
     calcEMA,
@@ -61,6 +62,13 @@ export default function DemoTradingPage() {
     const [loading, setLoading] = useState(false);
     const [indicators, setIndicators] = useState<IndicatorConfig[]>(DEFAULT_INDICATORS);
 
+    // Debounced indicators for chart rendering (avoids rebuilding chart on every slider tick)
+    const [chartIndicators, setChartIndicators] = useState<IndicatorConfig[]>(DEFAULT_INDICATORS);
+    useEffect(() => {
+        const timer = setTimeout(() => setChartIndicators(indicators), 200);
+        return () => clearTimeout(timer);
+    }, [indicators]);
+
     const toggleIndicator = useCallback((id: string) => {
         setIndicators((prev) =>
             prev.map((ind) => (ind.id === id ? { ...ind, active: !ind.active } : ind))
@@ -72,16 +80,6 @@ export default function DemoTradingPage() {
             prev.map((ind) => (ind.id === id ? { ...ind, ...changes } : ind))
         );
     }, []);
-
-    const isActive = useCallback(
-        (id: string) => indicators.find((i) => i.id === id)?.active ?? false,
-        [indicators],
-    );
-
-    const getInd = useCallback(
-        (id: string) => indicators.find((i) => i.id === id)!,
-        [indicators],
-    );
 
     // ─── Load symbols on mount ───────────────────────────────────────────
     useEffect(() => {
@@ -198,6 +196,10 @@ export default function DemoTradingPage() {
         if (!chartRef.current || candles.length === 0) return;
         if (chartInstance.current) chartInstance.current.remove();
 
+        // Local helpers using debounced chartIndicators (avoids stale closures)
+        const isActive = (id: string) => chartIndicators.find((i) => i.id === id)?.active ?? false;
+        const getInd = (id: string) => chartIndicators.find((i) => i.id === id)!;
+
         // Count oscillator panes needed
         const hasRSI = isActive('rsi');
         const hasMACD = isActive('macd');
@@ -268,6 +270,18 @@ export default function DemoTradingPage() {
             );
             volumeSeriesRef.current = volumeSeries as any;
         }
+
+        // ── Helper: convert scaleMode string to lightweight-charts numeric mode
+        const scaleModeNum = (mode: PriceScaleMode): number =>
+            mode === 'log' ? 1 : mode === 'percentage' ? 2 : mode === 'indexedTo100' ? 3 : 0;
+
+        // ── Helper: apply scaleMode to a pane's right price scale
+        const applyScale = (pane: number, ind: IndicatorConfig) => {
+            const mode = scaleModeNum(ind.scaleMode);
+            if (mode !== 0) {
+                try { chart.panes()[pane]?.priceScale('right')?.applyOptions({ mode } as any); } catch { /* pane may not exist yet */ }
+            }
+        };
 
         // ── Helper: line series opts from config ─────────────────────────
         const lineOpts = (ind: IndicatorConfig, overrides?: Record<string, any>) => ({
@@ -366,6 +380,7 @@ export default function DemoTradingPage() {
             addRefLine(nextPaneIdx, 70, 'rgba(239,68,68,0.3)');
             addRefLine(nextPaneIdx, 30, 'rgba(16,185,129,0.3)');
             addRefLine(nextPaneIdx, 50, 'rgba(100,116,139,0.2)');
+            applyScale(nextPaneIdx, cfg);
             nextPaneIdx++;
         }
 
@@ -391,6 +406,7 @@ export default function DemoTradingPage() {
                 }).filter(Boolean) as any
             );
             addRefLine(nextPaneIdx, 0, 'rgba(100,116,139,0.2)');
+            applyScale(nextPaneIdx, cfg);
             nextPaneIdx++;
         }
 
@@ -409,6 +425,7 @@ export default function DemoTradingPage() {
             addRefLine(nextPaneIdx, 80, 'rgba(239,68,68,0.3)');
             addRefLine(nextPaneIdx, 20, 'rgba(16,185,129,0.3)');
             addRefLine(nextPaneIdx, 50, 'rgba(100,116,139,0.2)');
+            applyScale(nextPaneIdx, cfg);
             nextPaneIdx++;
         }
 
@@ -422,6 +439,7 @@ export default function DemoTradingPage() {
             addRefLine(nextPaneIdx, 100, 'rgba(239,68,68,0.3)');
             addRefLine(nextPaneIdx, -100, 'rgba(16,185,129,0.3)');
             addRefLine(nextPaneIdx, 0, 'rgba(100,116,139,0.2)');
+            applyScale(nextPaneIdx, cfg);
             nextPaneIdx++;
         }
 
@@ -435,6 +453,7 @@ export default function DemoTradingPage() {
             addRefLine(nextPaneIdx, -20, 'rgba(239,68,68,0.3)');
             addRefLine(nextPaneIdx, -80, 'rgba(16,185,129,0.3)');
             addRefLine(nextPaneIdx, -50, 'rgba(100,116,139,0.2)');
+            applyScale(nextPaneIdx, cfg);
             nextPaneIdx++;
         }
 
@@ -445,6 +464,7 @@ export default function DemoTradingPage() {
             chart.addSeries(LineSeries, {
                 color: cfg.color, lineWidth: cfg.lineWidth, priceLineVisible: false, lastValueVisible: true,
             }, nextPaneIdx).setData(toLineData(calcOBV(candles)));
+            applyScale(nextPaneIdx, cfg);
             nextPaneIdx++;
         }
 
@@ -455,6 +475,7 @@ export default function DemoTradingPage() {
             chart.addSeries(LineSeries, {
                 color: cfg.color, lineWidth: cfg.lineWidth, priceLineVisible: false, lastValueVisible: true,
             }, nextPaneIdx).setData(toLineData(calcATR(candles, cfg.params.period)));
+            applyScale(nextPaneIdx, cfg);
             nextPaneIdx++;
         }
 
@@ -499,7 +520,7 @@ export default function DemoTradingPage() {
             candleSeriesRef.current = null;
             volumeSeriesRef.current = null;
         };
-    }, [candles.length > 0 ? candles[0].time : 0, selectedSymbol, selectedTimeframe, indicators]);
+    }, [candles.length > 0 ? candles[0].time : 0, selectedSymbol, selectedTimeframe, chartIndicators]);
 
     // ─── Helpers ─────────────────────────────────────────────────────────
     const groupedSymbols = useMemo(() => {
@@ -660,8 +681,8 @@ export default function DemoTradingPage() {
                     </div>
                 </div>
 
-                {/* Indicator Toolbar */}
-                <div className="border-t border-[var(--border-color)] pt-2.5">
+                {/* Indicator Toolbar — relative z-20 so popovers stack above the chart canvas */}
+                <div className="border-t border-[var(--border-color)] pt-2.5 relative z-20">
                     <IndicatorToolbar indicators={indicators} onToggle={toggleIndicator} onUpdate={updateIndicator} />
                 </div>
             </div>
