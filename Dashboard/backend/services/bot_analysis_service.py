@@ -8,7 +8,9 @@ Falls back to stub data if the analysis module is unavailable.
 import sys
 import os
 import time
+import json
 import traceback
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 from decimal import Decimal
 from loguru import logger
@@ -63,6 +65,14 @@ class BotAnalysisService:
         self._regime_classifier = None
         self._analysis_log: List[Dict[str, Any]] = []
 
+        # ML model state
+        self._model = None
+        self._scaler_mean = None
+        self._scaler_scale = None
+        self._feat_names: Optional[List[str]] = None
+        self._model_loaded = False
+        self._compute_features_fn = None
+
         if _ORCHESTRATOR_AVAILABLE:
             self._regime_classifier = MarketRegimeClassifier()
 
@@ -71,6 +81,103 @@ class BotAnalysisService:
                 self._kraken = ccxt.kraken({'enableRateLimit': True})
             except Exception:
                 pass
+
+        self._load_ml_model()
+
+    # ─── ML Model Loading ────────────────────────────────────────────────
+
+    def _load_ml_model(self):
+        """Load trained XAUTransformer model for real inference."""
+        try:
+            import torch
+
+            base = Path(__file__).resolve().parents[3]  # BOT_TRADING root
+            ckpt_path = base / "analysis" / "models_checkpoint" / "goliath_xau_best.pth"
+            scaler_path = base / "analysis" / "models_checkpoint" / "goliath_xau_scaler.json"
+
+            if not ckpt_path.exists() or not scaler_path.exists():
+                logger.warning(f"ML model files not found ({ckpt_path.exists()=}, {scaler_path.exists()=})")
+                return
+
+            # Load scaler
+            with open(scaler_path) as f:
+                sc = json.load(f)
+            self._scaler_mean = np.array(sc['mean'], dtype=np.float32)
+            self._scaler_scale = np.array(sc['scale'], dtype=np.float32)
+            self._feat_names = sc['features']
+
+            # Import model class and feature function
+            from analysis.train_xau_gpu_live import XAUTransformer, compute_features
+            self._compute_features_fn = compute_features
+
+            # Instantiate model with training hyperparameters
+            self._model = XAUTransformer(
+                n_features=len(self._feat_names),
+                d_model=96, nhead=4, num_layers=3, dropout=0.35, seq_len=64,
+            )
+            state = torch.load(ckpt_path, map_location='cpu', weights_only=True)
+            self._model.load_state_dict(state)
+            self._model.eval()
+            self._model_loaded = True
+            logger.success(f"XAUTransformer loaded ({len(self._feat_names)} features, CPU inference)")
+        except Exception as e:
+            logger.warning(f"ML model not loaded, using indicator stub: {e}")
+            self._model_loaded = False
+
+    def _ml_real_inference(self, df, indicators: Dict, verdict: Dict, price: float) -> Dict:
+        """Run real XAUTransformer inference on OHLCV data."""
+        import torch
+
+        # 1. Compute 33 features from OHLCV
+        feat_df, _ = self._compute_features_fn(df)
+        feat_arr = feat_df[self._feat_names].values  # [n_bars, 33]
+
+        # 2. Normalize with training scaler
+        scaled = (feat_arr - self._scaler_mean) / (self._scaler_scale + 1e-9)
+        scaled = np.nan_to_num(scaled, nan=0.0, posinf=0.0, neginf=0.0)
+
+        if len(scaled) < 64:
+            logger.warning(f"Not enough bars for ML inference ({len(scaled)} < 64), falling back to stub")
+            return self._ml_inference_stub(indicators, verdict)
+
+        # 3. Last 64 bars → [1, 64, 33]
+        seq = scaled[-64:]
+        x = torch.FloatTensor(seq).unsqueeze(0)
+
+        # 4. Inference
+        with torch.no_grad():
+            out = self._model(x)
+
+        probs = torch.softmax(out['direction'][0], dim=0).numpy()
+        confidence = out['confidence'][0].item()
+        sl_dist = out['sl_dist'][0].item()
+        tp_dist = out['tp_dist'][0].item()
+
+        action_idx = int(np.argmax(probs))
+        action_map = {0: 'SHORT', 1: 'HOLD', 2: 'LONG'}
+
+        # 5. SL/TP from model output, floored by ATR
+        atr = indicators.get('atr', {}).get('value', price * 0.01)
+        sl_distance = max(sl_dist * price, atr * 1.0)
+        tp_distance = max(tp_dist * price, atr * 1.5)
+
+        return {
+            'model_type': 'XAUTransformer',
+            'model_loaded': True,
+            'direction_probabilities': {
+                'SELL': round(float(probs[0]), 4),
+                'HOLD': round(float(probs[1]), 4),
+                'BUY': round(float(probs[2]), 4),
+            },
+            'predicted_action': action_map[action_idx],
+            'confidence': round(float(confidence), 4),
+            'tp_multiplier': round(tp_distance / max(sl_distance, 0.01), 2),
+            'sl_multiplier': 1.0,
+            'sl_distance': round(float(sl_distance), 2),
+            'tp_distance': round(float(tp_distance), 2),
+            'note': 'Real XAUTransformer inference from trained model',
+            'source_tier': 'ML_MODEL',
+        }
 
     # ─── Symbol mapping ─────────────────────────────────────────────────
 
@@ -598,8 +705,16 @@ class BotAnalysisService:
         atr = indicators.get('atr', {}).get('value', price * 0.01)
         verdict = self._generate_verdict(signals, indicators, regime, price, atr)
 
-        # Step 7: ML inference
-        ml_output = self._ml_inference_stub(indicators, verdict)
+        # Step 7: ML inference (real model for XAU/USD, stub for others)
+        is_gold = symbol.upper() in ('XAUUSD', 'XAU', 'GOLD')
+        if self._model_loaded and is_gold:
+            try:
+                ml_output = self._ml_real_inference(df, indicators, verdict, price)
+            except Exception as e:
+                logger.error(f"ML real inference failed, falling back to stub: {e}")
+                ml_output = self._ml_inference_stub(indicators, verdict)
+        else:
+            ml_output = self._ml_inference_stub(indicators, verdict)
 
         elapsed = round(time.time() - start_time, 3)
 
@@ -670,8 +785,9 @@ class BotAnalysisService:
         return {
             'orchestrator_available': _ORCHESTRATOR_AVAILABLE,
             'ccxt_available': _CCXT_AVAILABLE,
-            'model_loaded': False,
-            'model_type': 'GoliathTransformerV2',
+            'model_loaded': self._model_loaded,
+            'model_type': 'XAUTransformer' if self._model_loaded else 'GoliathTransformerV2 (stub)',
+            'ml_supported_symbols': ['XAUUSD'] if self._model_loaded else [],
             'analysis_count': len(self._analysis_log),
             'recent_analyses': self._analysis_log[:10],
         }
