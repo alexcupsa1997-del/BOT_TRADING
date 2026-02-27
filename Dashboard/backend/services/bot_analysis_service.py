@@ -710,6 +710,31 @@ class BotAnalysisService:
         if self._model_loaded and is_gold:
             try:
                 ml_output = self._ml_real_inference(df, indicators, verdict, price)
+                # Override verdict with ML model prediction
+                ml_action = ml_output['predicted_action']
+                ml_conf = ml_output['confidence']
+                ml_sl = ml_output['sl_distance']
+                ml_tp = ml_output['tp_distance']
+                if ml_action == 'LONG':
+                    verdict['stop_loss'] = round(price - ml_sl, 2)
+                    verdict['take_profit'] = round(price + ml_tp, 2)
+                elif ml_action == 'SHORT':
+                    verdict['stop_loss'] = round(price + ml_sl, 2)
+                    verdict['take_profit'] = round(price - ml_tp, 2)
+                else:
+                    verdict['stop_loss'] = None
+                    verdict['take_profit'] = None
+                verdict['action'] = ml_action
+                verdict['confidence'] = round(ml_conf, 4)
+                verdict['entry_price'] = round(price, 2)
+                verdict['risk_reward'] = round(ml_tp / max(ml_sl, 0.01), 2)
+                verdict['source_tier'] = 'ML_MODEL'
+                verdict['reasoning'] = (
+                    f'ML model prediction: {ml_action} '
+                    f'(SELL={ml_output["direction_probabilities"]["SELL"]:.1%}, '
+                    f'HOLD={ml_output["direction_probabilities"]["HOLD"]:.1%}, '
+                    f'BUY={ml_output["direction_probabilities"]["BUY"]:.1%})'
+                )
             except Exception as e:
                 logger.error(f"ML real inference failed, falling back to stub: {e}")
                 ml_output = self._ml_inference_stub(indicators, verdict)
