@@ -272,15 +272,14 @@ export default function DemoTradingPage() {
         }
 
         // ── Helper: convert scaleMode string to lightweight-charts numeric mode
+        // 0=Normal, 1=Logarithmic, 2=Percentage, 3=IndexedTo100
         const scaleModeNum = (mode: PriceScaleMode): number =>
             mode === 'log' ? 1 : mode === 'percentage' ? 2 : mode === 'indexedTo100' ? 3 : 0;
 
-        // ── Helper: apply scaleMode to a pane's right price scale
-        const applyScale = (pane: number, ind: IndicatorConfig) => {
+        // ── Helper: apply scaleMode via a series' priceScale API (v5 compatible)
+        const applyScaleToSeries = (series: ISeriesApi<any>, ind: IndicatorConfig) => {
             const mode = scaleModeNum(ind.scaleMode);
-            if (mode !== 0) {
-                try { chart.panes()[pane]?.priceScale('right')?.applyOptions({ mode } as any); } catch { /* pane may not exist yet */ }
-            }
+            try { series.priceScale().applyOptions({ mode } as any); } catch { /* fallback */ }
         };
 
         // ── Helper: line series opts from config ─────────────────────────
@@ -374,13 +373,14 @@ export default function DemoTradingPage() {
             chart.addPane();
             const cfg = getInd('rsi');
             const rsiValues = calcRSI(candles, cfg.params.period);
-            chart.addSeries(LineSeries, {
+            const s = chart.addSeries(LineSeries, {
                 color: cfg.color, lineWidth: cfg.lineWidth, priceLineVisible: false, lastValueVisible: true,
-            }, nextPaneIdx).setData(toLineData(rsiValues));
+            }, nextPaneIdx);
+            s.setData(toLineData(rsiValues));
+            applyScaleToSeries(s, cfg);
             addRefLine(nextPaneIdx, 70, 'rgba(239,68,68,0.3)');
             addRefLine(nextPaneIdx, 30, 'rgba(16,185,129,0.3)');
             addRefLine(nextPaneIdx, 50, 'rgba(100,116,139,0.2)');
-            applyScale(nextPaneIdx, cfg);
             nextPaneIdx++;
         }
 
@@ -389,9 +389,11 @@ export default function DemoTradingPage() {
             chart.addPane();
             const cfg = getInd('macd');
             const macdResult = calcMACD(candles, cfg.params.fast, cfg.params.slow, cfg.params.signal);
-            chart.addSeries(LineSeries, {
+            const s = chart.addSeries(LineSeries, {
                 color: cfg.color, lineWidth: cfg.lineWidth, priceLineVisible: false, lastValueVisible: true,
-            }, nextPaneIdx).setData(toLineData(macdResult.macd));
+            }, nextPaneIdx);
+            s.setData(toLineData(macdResult.macd));
+            applyScaleToSeries(s, cfg);
             chart.addSeries(LineSeries, {
                 color: '#f97316', lineWidth: 1, priceLineVisible: false,
                 lastValueVisible: false, crosshairMarkerVisible: false,
@@ -406,7 +408,6 @@ export default function DemoTradingPage() {
                 }).filter(Boolean) as any
             );
             addRefLine(nextPaneIdx, 0, 'rgba(100,116,139,0.2)');
-            applyScale(nextPaneIdx, cfg);
             nextPaneIdx++;
         }
 
@@ -415,9 +416,11 @@ export default function DemoTradingPage() {
             chart.addPane();
             const cfg = getInd('stochastic');
             const stoch = calcStochastic(candles, cfg.params.kPeriod, cfg.params.dPeriod);
-            chart.addSeries(LineSeries, {
+            const s = chart.addSeries(LineSeries, {
                 color: cfg.color, lineWidth: cfg.lineWidth, priceLineVisible: false, lastValueVisible: true,
-            }, nextPaneIdx).setData(toLineData(stoch.k));
+            }, nextPaneIdx);
+            s.setData(toLineData(stoch.k));
+            applyScaleToSeries(s, cfg);
             chart.addSeries(LineSeries, {
                 color: '#f97316', lineWidth: 1, priceLineVisible: false,
                 lastValueVisible: false, crosshairMarkerVisible: false,
@@ -425,7 +428,6 @@ export default function DemoTradingPage() {
             addRefLine(nextPaneIdx, 80, 'rgba(239,68,68,0.3)');
             addRefLine(nextPaneIdx, 20, 'rgba(16,185,129,0.3)');
             addRefLine(nextPaneIdx, 50, 'rgba(100,116,139,0.2)');
-            applyScale(nextPaneIdx, cfg);
             nextPaneIdx++;
         }
 
@@ -433,13 +435,14 @@ export default function DemoTradingPage() {
         if (hasCCI) {
             chart.addPane();
             const cfg = getInd('cci');
-            chart.addSeries(LineSeries, {
+            const s = chart.addSeries(LineSeries, {
                 color: cfg.color, lineWidth: cfg.lineWidth, priceLineVisible: false, lastValueVisible: true,
-            }, nextPaneIdx).setData(toLineData(calcCCI(candles, cfg.params.period)));
+            }, nextPaneIdx);
+            s.setData(toLineData(calcCCI(candles, cfg.params.period)));
+            applyScaleToSeries(s, cfg);
             addRefLine(nextPaneIdx, 100, 'rgba(239,68,68,0.3)');
             addRefLine(nextPaneIdx, -100, 'rgba(16,185,129,0.3)');
             addRefLine(nextPaneIdx, 0, 'rgba(100,116,139,0.2)');
-            applyScale(nextPaneIdx, cfg);
             nextPaneIdx++;
         }
 
@@ -447,13 +450,14 @@ export default function DemoTradingPage() {
         if (hasWillR) {
             chart.addPane();
             const cfg = getInd('williamsR');
-            chart.addSeries(LineSeries, {
+            const s = chart.addSeries(LineSeries, {
                 color: cfg.color, lineWidth: cfg.lineWidth, priceLineVisible: false, lastValueVisible: true,
-            }, nextPaneIdx).setData(toLineData(calcWilliamsR(candles, cfg.params.period)));
+            }, nextPaneIdx);
+            s.setData(toLineData(calcWilliamsR(candles, cfg.params.period)));
+            applyScaleToSeries(s, cfg);
             addRefLine(nextPaneIdx, -20, 'rgba(239,68,68,0.3)');
             addRefLine(nextPaneIdx, -80, 'rgba(16,185,129,0.3)');
             addRefLine(nextPaneIdx, -50, 'rgba(100,116,139,0.2)');
-            applyScale(nextPaneIdx, cfg);
             nextPaneIdx++;
         }
 
@@ -461,10 +465,11 @@ export default function DemoTradingPage() {
         if (hasOBV) {
             chart.addPane();
             const cfg = getInd('obv');
-            chart.addSeries(LineSeries, {
+            const s = chart.addSeries(LineSeries, {
                 color: cfg.color, lineWidth: cfg.lineWidth, priceLineVisible: false, lastValueVisible: true,
-            }, nextPaneIdx).setData(toLineData(calcOBV(candles)));
-            applyScale(nextPaneIdx, cfg);
+            }, nextPaneIdx);
+            s.setData(toLineData(calcOBV(candles)));
+            applyScaleToSeries(s, cfg);
             nextPaneIdx++;
         }
 
@@ -472,10 +477,11 @@ export default function DemoTradingPage() {
         if (hasATR) {
             chart.addPane();
             const cfg = getInd('atr');
-            chart.addSeries(LineSeries, {
+            const s = chart.addSeries(LineSeries, {
                 color: cfg.color, lineWidth: cfg.lineWidth, priceLineVisible: false, lastValueVisible: true,
-            }, nextPaneIdx).setData(toLineData(calcATR(candles, cfg.params.period)));
-            applyScale(nextPaneIdx, cfg);
+            }, nextPaneIdx);
+            s.setData(toLineData(calcATR(candles, cfg.params.period)));
+            applyScaleToSeries(s, cfg);
             nextPaneIdx++;
         }
 
@@ -484,9 +490,11 @@ export default function DemoTradingPage() {
             chart.addPane();
             const cfg = getInd('adx');
             const adxResult = calcADX(candles, cfg.params.period);
-            chart.addSeries(LineSeries, {
+            const adxS = chart.addSeries(LineSeries, {
                 color: cfg.color, lineWidth: cfg.lineWidth, priceLineVisible: false, lastValueVisible: true,
-            }, nextPaneIdx).setData(toLineData(adxResult.adx));
+            }, nextPaneIdx);
+            adxS.setData(toLineData(adxResult.adx));
+            applyScaleToSeries(adxS, cfg);
             chart.addSeries(LineSeries, {
                 color: '#10b981', lineWidth: 1, priceLineVisible: false,
                 lastValueVisible: false, crosshairMarkerVisible: false,
